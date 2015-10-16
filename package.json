@@ -1,0 +1,35 @@
+{
+  "name": "thewallet",
+  "version": "1.0.0",
+  "description": "The wallet you need",
+  "main": "main.js",
+  "scripts": {
+    "build": "babel src -d node_modules",
+    "start": "electron ."
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "wallet",
+    "bitcoin",
+    "ethereum",
+    "ripple",
+    "monero"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "electron": "~1.7.8"
+  },
+  "dependencies": {
+    "bitcoinjs-lib": "^3.3.1",
+    "coinselect": "^3.1.1",
+    "cryptocoins-icons": "^2.6.0",
+    "dhttp": "^2.3.5",
+    "jquery": "^3.2.1",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
+  }
+}

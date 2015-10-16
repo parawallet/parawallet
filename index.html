@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>The Wallet</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="lib/photon/css/photon.css">
+    <link rel="stylesheet" href="node_modules/cryptocoins-icons/webfont/cryptocoins.css">
+    <link rel="stylesheet" href="node_modules/cryptocoins-icons/webfont/cryptocoins-colors.css">
+
+    <style>
+        i.cc {
+            font-size: 4rem;
+            display: inline-block;
+            transition: 0.1s ease all;
+        }
+
+        i.cc:hover {
+            color: #0060BD;
+            transform: rotate(-20deg);
+            transform-origin: 0.49em 0.7em;
+        }
+
+        .big_icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .coin_header {
+            font-size: 20pt;
+        }
+
+        .coin_icon {
+            width: 19px;
+            height: 18px;
+            float: left;
+            margin-top: -3px;
+            margin-right: 7px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<header class="toolbar toolbar-header">
+    <h1 class="title">BH Wallet</h1>
+</header>
+
+<div class="window">
+    <div class="window-content" id="root">
+    </div>
+</div>
+
+
+<script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+</script>
+</body>
+</html>
