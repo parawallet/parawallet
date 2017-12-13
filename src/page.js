@@ -160,11 +160,17 @@ class ContentPane extends React.Component {
                     id={this.props.wallet.code + "-balance"}></span> {this.props.wallet.code}</span>
 
                 <hr/>
+                <h5>Receive {this.props.wallet.name}:</h5>
+                Your Address: <span
+                    id={this.props.wallet.code + "-address"}></span>
+
+
+                <hr/>
                 <h5>Send {this.props.wallet.name}:</h5>
 
                 <form onSubmit={this.handleSubmit}>
                     <div className="form-group">
-                        <label>Address:</label>
+                        <label>To Address:</label>
                         <input type="text" className="form-control" name="address"
                                value={this.state.address} onChange={this.handleAddressChange}/>
                     </div>

@@ -138,16 +138,20 @@ function readAccounts(callback) {
     fs.readFile('btc.txt', 'utf8', function (err, contents) {
         if (err) {
             console.log(err);
-            generateAddress();
+            var keyPair = generateAddress();
+            $("#"+walletCode+"-address").html(keypair.getAddress())
             return
         }
         contents.split("###").forEach(
-            wif => {
+            (wif, index) => {
                 if (wif.length > 0) {
                     let keypair = bitcoin.ECPair.fromWIF(wif, network);
                     console.log("read address:" + keypair.getAddress());
                     console.log("read wif:" + wif);
                     keypairs.push(keypair)
+                    if(index === 0) {
+                        $("#"+walletCode+"-address").html(keypair.getAddress())
+                    }
                     if (callback) {
                         callback(keypair);
                     }

@@ -9,6 +9,8 @@ var walletCode = "XRP"
 export function updateTotalBalance() {
     totalBalance = 0
     $("#"+walletCode+"-balance").html("wallet not available")
+    $("#"+walletCode+"-address").html("")
+
 }
 
 export function send(toAddress, amount) {
