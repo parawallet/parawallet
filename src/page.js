@@ -2,22 +2,27 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import * as BtcWallet from 'btc-wallet';
+import * as BccWallet from 'bcc-wallet';
+import * as LtcWallet from 'ltc-wallet';
+import * as EthWallet from 'eth-wallet';
+import * as XmrWallet from 'xmr-wallet';
+import * as XrpWallet from 'xrp-wallet';
 
 
 class Wallet {
     constructor(code, name, wallet) {
         this.code = code
         this.name = name
-        this.wallet = wallet
+        this.impl = wallet
     }
 }
 
 var BTC = new Wallet("BTC", "Bitcoin", BtcWallet)
-var ETH = new Wallet("ETH", "Ethereum", BtcWallet)
-var BCC = new Wallet("BCC", "Bitcoin Cash", BtcWallet)
-var LTC = new Wallet("LTC", "LiteCoin", BtcWallet)
-var XRP = new Wallet("XRP", "Ripple", BtcWallet)
-var XMR = new Wallet("XMR", "Monero", BtcWallet)
+var ETH = new Wallet("ETH", "Ethereum", EthWallet)
+var BCC = new Wallet("BCC", "Bitcoin Cash", BccWallet)
+var LTC = new Wallet("LTC", "LiteCoin", LtcWallet)
+var XRP = new Wallet("XRP", "Ripple", XrpWallet)
+var XMR = new Wallet("XMR", "Monero", XmrWallet)
 
 var wallets = [BTC, ETH, BCC, LTC, XRP, XMR]
 
@@ -28,13 +33,17 @@ class Page extends React.Component {
         this.state = {
             wallet: BTC
         };
+        this.state.wallet.impl.updateTotalBalance();
+    }
+
+    componentDidUpdate() {
+        this.state.wallet.impl.updateTotalBalance();
     }
 
     handleClick(wallet) {
         this.setState({
             wallet: wallet
         })
-        BtcWallet.updateTotalBalance();
     }
 
     render() {
@@ -96,7 +105,7 @@ class ToolsMenu extends React.Component {
         return (
             <nav className="nav-group">
                 <h5 className="nav-group-title">Tools Menu</h5>
-                <a class="nav-group-item active">
+                <a className="nav-group-item">
                     <span className="icon icon-home"></span>
                     Exchange
                 </a>
@@ -137,7 +146,7 @@ class ContentPane extends React.Component {
     }
 
     handleSubmit(event) {
-        BtcWallet.send(this.state.address, Number(this.state.amount))
+        this.props.wallet.impl.send(this.state.address, Number(this.state.amount))
         event.preventDefault();
     }
 
@@ -145,11 +154,13 @@ class ContentPane extends React.Component {
         return (
             <div style={{padding: '30px'}}>
                 <h1>
-                <i className={'icon cc ' + this.props.wallet.code} title={this.props.wallet.code}></i>
+                    <i className={'icon cc ' + this.props.wallet.code} title={this.props.wallet.code}></i>
                     &nbsp; {this.props.wallet.name} </h1>
-                <span className="coin_header">Balance: <span id="balance"></span> {this.props.wallet.code}</span>
+                <span className="coin_header">Balance: <span
+                    id={this.props.wallet.code + "-balance"}></span> {this.props.wallet.code}</span>
 
-                <h3>Send {this.props.wallet.name}:</h3>
+                <hr/>
+                <h5>Send {this.props.wallet.name}:</h5>
 
                 <form onSubmit={this.handleSubmit}>
                     <div className="form-group">
@@ -177,5 +188,3 @@ ReactDOM.render(
     <Page/>,
     document.getElementById('root')
 );
-
-BtcWallet.updateTotalBalance();

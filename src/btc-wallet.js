@@ -10,11 +10,13 @@ var API_KEY = "a3f9078954c1f4efa062ced312b3ab6bad027ed1"
 var totalBalance = 0
 var keypairs = []
 var network = bitcoin.networks.testnet
+var walletCode = "BTC"
 
 
 // exposed functions
 export function updateTotalBalance() {
     totalBalance = 0
+    $("#"+walletCode+"-balance").html("")
     readAccounts(keypair => queryBalance(keypair))
 }
 
@@ -161,7 +163,7 @@ function queryBalance(keypair) {
     $.get(url, function (d) {
         let balance = d.balance / 1e8
         totalBalance += balance
-        $("#balance").html(totalBalance)
+        $("#"+walletCode+"-balance").html(totalBalance)
     });
 }
 
@@ -189,7 +191,7 @@ function writeWIFToFile(wif) {
                 if (err) {
                     return console.log(err);
                 }
-                $("#balance").html("0")
+                $("#"+walletCode+"-balance").html("0")
                 console.log("The file was saved!");
             });
         }
