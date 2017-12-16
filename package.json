@@ -4,7 +4,7 @@
   "description": "The wallet you need",
   "main": "main.js",
   "scripts": {
-    "build": "babel src -d node_modules",
+    "build": "rm -rf node_modules/thewallet && babel src -d node_modules/thewallet",
     "start": "electron ."
   },
   "repository": "https://github.com/electron/electron-quick-start",

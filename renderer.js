@@ -3,5 +3,5 @@
 // All of the Node.js APIs are available in this process.
 
 
-require('page')
+require('thewallet/app/page')
 

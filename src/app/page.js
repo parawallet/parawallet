@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import $ from 'jquery';
-import * as BtcWallet from 'btc-wallet';
-import * as BccWallet from 'bcc-wallet';
-import * as LtcWallet from 'ltc-wallet';
-import * as EthWallet from 'eth-wallet';
-import * as XmrWallet from 'xmr-wallet';
-import * as XrpWallet from 'xrp-wallet';
+import * as BtcWallet from '../core/btc-wallet';
+import * as BccWallet from '../core/bcc-wallet';
+import * as LtcWallet from '../core/ltc-wallet';
+import * as EthWallet from '../core/eth-wallet';
+import * as XmrWallet from '../core/xmr-wallet';
+import * as XrpWallet from '../core/xrp-wallet';
 
 
 class Wallet {
