@@ -1,31 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import $ from 'jquery';
-import * as BtcWallet from '../core/btc-wallet';
-import * as BccWallet from '../core/bcc-wallet';
-import * as LtcWallet from '../core/ltc-wallet';
-import * as EthWallet from '../core/eth-wallet';
-import * as XmrWallet from '../core/xmr-wallet';
-import * as XrpWallet from '../core/xrp-wallet';
+import { BtcWallet } from '../core/btc-wallet';
+import { EthWallet } from '../core/eth-wallet';
 
 
-class Wallet {
-    constructor(code, name, wallet) {
-        this.code = code
-        this.name = name
-        this.impl = wallet
-    }
-}
+var BTC = new BtcWallet()
+var ETH = new EthWallet()
 
-var BTC = new Wallet("BTC", "Bitcoin", BtcWallet)
-var ETH = new Wallet("ETH", "Ethereum", EthWallet)
-var BCC = new Wallet("BCC", "Bitcoin Cash", BccWallet)
-var LTC = new Wallet("LTC", "LiteCoin", LtcWallet)
-var XRP = new Wallet("XRP", "Ripple", XrpWallet)
-var XMR = new Wallet("XMR", "Monero", XmrWallet)
-
-var wallets = [BTC, ETH, BCC, LTC, XRP, XMR]
-
+var wallets = [BTC, ETH]
 
 class Page extends React.Component {
     constructor(props) {
@@ -33,11 +15,11 @@ class Page extends React.Component {
         this.state = {
             wallet: BTC
         };
-        this.state.wallet.impl.updateTotalBalance();
+        this.state.wallet.updateTotalBalance();
     }
 
     componentDidUpdate() {
-        this.state.wallet.impl.updateTotalBalance();
+        this.state.wallet.updateTotalBalance();
     }
 
     handleClick(wallet) {
@@ -73,7 +55,7 @@ class WalletMenu extends React.Component {
             <nav className="nav-group">
                 <h5 className="nav-group-title">Funds</h5>
                 {wallets.map((it) =>
-                    <WalletMenuItem wallet={it} onClick={() => this.props.onClick(it)}/>
+                    <WalletMenuItem wallet={it} onClick={() => this.props.onClick(it)} key={it.code}/>
                 )}
             </nav>
         )
@@ -146,7 +128,7 @@ class ContentPane extends React.Component {
     }
 
     handleSubmit(event) {
-        this.props.wallet.impl.send(this.state.address, Number(this.state.amount))
+        this.props.wallet.send(this.state.address, Number(this.state.amount))
         event.preventDefault();
     }
 
