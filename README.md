@@ -1,7 +1,7 @@
 # The Wallet
 
 
-#### Getting Started
+### Getting Started
 - install node and npm
 - install babel compiler:
 https://babeljs.io/docs/setup/
@@ -15,7 +15,7 @@ npm install
 npm run build & npm start
 ```
 
-#### stack
+### stack
 backend: node.js
 
 client-side: electron, react, jsx
@@ -25,13 +25,15 @@ design: http://photonkit.com/
 bitcoin library: https://github.com/bitcoinjs/bitcoinjs-lib
 
 
-#### bitcoin API
-For Data:
-https://www.blocktrail.com/tBTC/address/n32PUHi2HkraYn6xAxi28pCSkwrndT9KcB
+### bitcoin API
 
+#### For Data:
+- https://www.blocktrail.com/tBTC/address/n32PUHi2HkraYn6xAxi28pCSkwrndT9KcB
+- https://live.blockcypher.com/btc-testnet/tx/e841d76cbacf607fce9270ae7db085954b352cde7326bd3b7420b4cd6a80bf8b/
 
-For pushing txn to testnet:
+#### For pushing txn to testnet:
 https://www.smartbit.com.au/api
 
-Borrow Bitcoin for testnet
-https://testnet.manu.backend.hamburg/faucet
+#### Borrow Bitcoin from testnet
+- https://testnet.coinfaucet.eu/en/
+- https://testnet.manu.backend.hamburg/faucet
