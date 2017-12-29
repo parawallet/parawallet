@@ -1,9 +1,10 @@
-import bitcoin from 'bitcoinjs-lib'
-import typeforce from 'typeforce'
+import bitcoin from 'bitcoinjs-lib';
+import typeforce from 'typeforce';
 import fs, { read } from 'fs';
 import $ from 'jquery';
-import dhttp from 'dhttp'
-import coinselect from 'coinselect'
+import dhttp from 'dhttp';
+import coinselect from 'coinselect';
+import * as db from './secure-db'
 
 
 var fee = 0.00001
@@ -18,9 +19,20 @@ export class BtcWallet {
         this.name = "Bitcoin"
         this.keypairs = []
         this.network = bitcoin.networks.testnet
+
+        this.ready = db.open("the-wallet-secure-password")
+        this.ready.then(() => {
+            console.log("KV ready now !!!")            
+            this.kv = db.get()              
+        })
     }
     
-    updateTotalBalance(callback) {
+    updateTotalBalance(callback) {        
+        if (!this.kv) {
+            console.log("KV not ready... yet")
+            this.ready.then(() => this.updateTotalBalance(callback))    
+            return
+        }
         this.totalBalance = 0
         this.readAccounts(() => this.queryAccounts(callback))
     }
@@ -155,29 +167,33 @@ export class BtcWallet {
             return
         }
         
-        fs.readFile('btc.txt', 'utf8', (err, data) => {
-            if (err) {
-                console.log(err);
-                let keyPair = this.generateAddress();   
-                this.keypairs.push(keypair)                
-                return
-            }
-            
-            data.split("###").forEach(
-                (wif, index) => {
-                    if (wif.length > 0) {
-                        let keypair = bitcoin.ECPair.fromWIF(wif, this.network);
-                        console.log(index + ": read address -> " + keypair.getAddress());
-                        console.log(index + ": read WIF -> " + wif);
-                        this.keypairs.push(keypair)                        
-                    }
+        this.kv.get("count").then(count => {
+            console.log("Key Count: " + count)
+            if (count) {                 
+                let promises = [];      
+                for (let i = 0; i < count; i++) {
+                    promises.push(this.kv.get("account" + i))        
                 }
-            )
-
-            if (callback) {
-                callback()
-            }
-        });
+                Promise.all(promises).then(wifs => {
+                    wifs.forEach(
+                        (wif, index) => {
+                            console.log(index + ": read WIF -> " + wif);
+                            let keypair = bitcoin.ECPair.fromWIF(wif, this.network);
+                            console.log(index + ": read address -> " + keypair.getAddress());                            
+                            this.keypairs.push(keypair)                                                    
+                        }
+                    )
+                    if (callback) {
+                        callback()
+                    }
+                })
+            } else {
+                this.generateAddress();                 
+                if (callback) {
+                    callback();
+                }
+            }            
+        })
     };
 
     queryAccounts(callback) {   
@@ -223,26 +239,9 @@ export class BtcWallet {
         let wif = keypair.toWIF();
         console.log("generated wif:" + wif)
         this.keypairs.push(keypair)
-        this.writeWIFToFile(wif)
+        this.kv.set("count", 1)
+        this.kv.set("account0", wif)
         return keypair
-    };
-
-
-    writeWIFToFile(wif) {
-        fs.exists("btc.txt", (exists) => {
-            if (exists) { // append the wif
-                fs.appendFile('btc.txt', "###" + wif, (err) => {
-                    if (err) throw err;
-                });
-            } else {
-                fs.writeFile("btc.txt", wif, (err) => {
-                    if (err) {
-                        return console.log(err);
-                    }                    
-                    console.log("The file was saved!");
-                });
-            }
-        });
     }
 }
 

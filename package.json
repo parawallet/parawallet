@@ -27,6 +27,7 @@
     "bitcoinjs-lib": "^3.3.1",
     "coinselect": "^3.1.1",
     "cryptocoins-icons": "^2.6.0",
+    "seco-keyval": "^0.2.0",
     "dhttp": "^2.3.5",
     "jquery": "^3.2.1",
     "react": "^16.2.0",
