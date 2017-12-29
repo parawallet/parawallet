@@ -20,14 +20,12 @@ export class BtcWallet {
         this.network = bitcoin.networks.testnet
     }
     
-    // TODO: get rid of page updates, instead pass a callbak from page
-    updateTotalBalance() {
+    updateTotalBalance(callback) {
         this.totalBalance = 0
-        $("#" + this.code + "-balance").html("")
-        this.readAccounts(keypair => this.queryBalance(keypair))
+        this.readAccounts(callback)
     }
 
-    send(toAddress, amount) {
+    send(toAddress, amount, callback) {
         alert(amount)
 
         // if(!typeforce(types.Satoshi, amount)) {
@@ -95,7 +93,7 @@ export class BtcWallet {
                 url: 'https://testnet-api.smartbit.com.au/v1/blockchain/pushtx',
                 json: true,
                 body: '{"hex":"' + txb.build().toHex() + '"}'
-            }, function (err, res) {
+            }, (err, res) => {
 
                 alert("status code:" + res.statusCode)
                 console.log(err)
@@ -106,7 +104,7 @@ export class BtcWallet {
                 if (res.statusCode !== 200) return
                 if (res.headers['content-type'] !== 'application/json') return
 
-                that.updateTotalBalance();
+                that.updateTotalBalance(callback);
                 // if `content-type` was not supported, expect body to be `null` (unless an override is given).
                 console.log(res.body)
                 // => { foo: 'bar' }, a parsed JSON object
@@ -153,10 +151,13 @@ export class BtcWallet {
         fs.readFile('btc.txt', 'utf8', (err, data) => {
             if (err) {
                 console.log(err);
-                var keyPair = this.generateAddress();
-                $("#" + this.code + "-address").html(keypair.getAddress())
+                let keyPair = this.generateAddress();                
+                if (callback) {
+                    callback(keyPair.getAddress(), 0)
+                }
                 return
             }
+            
             data.split("###").forEach(
                 (wif, index) => {
                     if (wif.length > 0) {
@@ -164,11 +165,11 @@ export class BtcWallet {
                         console.log("read address:" + keypair.getAddress());
                         console.log("read wif:" + wif);
                         this.keypairs.push(keypair)
-                        if (index === 0) {
-                            $("#" + this.code + "-address").html(keypair.getAddress())
+                        if (index === 0) {                            
+                            var address = keypair.getAddress()
                         }
                         if (callback) {
-                            callback(keypair);
+                            this.queryBalance(keypair, () => callback(address, this.totalBalance))                            
                         }
                     }
                 }
@@ -176,13 +177,15 @@ export class BtcWallet {
         });
     };
 
-    queryBalance(keypair) {        
+    queryBalance(keypair, doneCallback) {        
         let address = keypair.getAddress()
         let url = QUERY_URL + address + '?api_key=' + API_KEY;
         $.get(url,  result => {
             let balance = result.balance / 1e8
             this.totalBalance += balance
-            $("#" + this.code + "-balance").html(this.totalBalance)
+            if (doneCallback) {
+                doneCallback()
+            }
         });
     }
 
@@ -209,8 +212,7 @@ export class BtcWallet {
                 fs.writeFile("btc.txt", wif, (err) => {
                     if (err) {
                         return console.log(err);
-                    }
-                    $("#" + this.code + "-balance").html("0")
+                    }                    
                     console.log("The file was saved!");
                 });
             }

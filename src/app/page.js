@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import $ from 'jquery';
 import { BtcWallet } from '../core/btc-wallet';
 import { EthWallet } from '../core/eth-wallet';
 
@@ -15,11 +16,27 @@ class Page extends React.Component {
         this.state = {
             wallet: BTC
         };
-        this.state.wallet.updateTotalBalance();
+        this.updateBalance()
     }
 
     componentDidUpdate() {
-        this.state.wallet.updateTotalBalance();
+        this.updateBalance()
+    }
+
+    updateBalance() {
+        var code = this.state.wallet.code
+        $("#" + code + "-address").html('Fetching...')
+        $("#" + code + "-balance").html('Fetching...')
+
+        this.state.wallet.updateTotalBalance((address, balance) => {            
+            this.setBalance(address, balance)
+        })
+    }
+
+    setBalance(address, balance) {
+        var code = this.state.wallet.code
+        $("#" + code + "-address").html(address)
+        $("#" + code + "-balance").html(balance)
     }
 
     handleClick(wallet) {
@@ -128,7 +145,9 @@ class ContentPane extends React.Component {
     }
 
     handleSubmit(event) {
-        this.props.wallet.send(this.state.address, Number(this.state.amount))
+        this.props.wallet.send(this.state.address, Number(this.state.amount), (address, balance) => {            
+            this.setBalance(address, balance)
+        })
         event.preventDefault();
     }
 
