@@ -1,6 +1,6 @@
 import bitcoin from 'bitcoinjs-lib'
 import typeforce from 'typeforce'
-import fs from 'fs';
+import fs, { read } from 'fs';
 import $ from 'jquery';
 import dhttp from 'dhttp'
 import coinselect from 'coinselect'
@@ -22,7 +22,7 @@ export class BtcWallet {
     
     updateTotalBalance(callback) {
         this.totalBalance = 0
-        this.readAccounts(callback)
+        this.readAccounts(() => this.queryAccounts(callback))
     }
 
     send(toAddress, amount, callback) {
@@ -146,15 +146,20 @@ export class BtcWallet {
         });
     }
 
-
     readAccounts(callback) {        
+        if (this.keypairs.length) {
+            // already populated
+            if (callback) {
+                callback()
+            }
+            return
+        }
+        
         fs.readFile('btc.txt', 'utf8', (err, data) => {
             if (err) {
                 console.log(err);
-                let keyPair = this.generateAddress();                
-                if (callback) {
-                    callback(keyPair.getAddress(), 0)
-                }
+                let keyPair = this.generateAddress();   
+                this.keypairs.push(keypair)                
                 return
             }
             
@@ -162,19 +167,40 @@ export class BtcWallet {
                 (wif, index) => {
                     if (wif.length > 0) {
                         let keypair = bitcoin.ECPair.fromWIF(wif, this.network);
-                        console.log("read address:" + keypair.getAddress());
-                        console.log("read wif:" + wif);
-                        this.keypairs.push(keypair)
-                        if (index === 0) {                            
-                            var address = keypair.getAddress()
-                        }
-                        if (callback) {
-                            this.queryBalance(keypair, () => callback(address, this.totalBalance))                            
-                        }
+                        console.log(index + ": read address -> " + keypair.getAddress());
+                        console.log(index + ": read WIF -> " + wif);
+                        this.keypairs.push(keypair)                        
                     }
                 }
             )
+
+            if (callback) {
+                callback()
+            }
         });
+    };
+
+    queryAccounts(callback) {   
+        if (!callback) {
+            alert("Callback required!")
+            return
+        }   
+        
+        if (!this.keypairs.length) {
+            alert("Key pairs is empty!")
+            return            
+        }
+
+        this.keypairs.forEach(
+            (keypair, index) => {                                  
+                console.log(index + ": querying address -> " + keypair.getAddress());
+                if (index === 0) {                            
+                    var address = keypair.getAddress()
+                }                
+                this.queryBalance(keypair, () => callback(address, this.totalBalance))                                                        
+            }
+        )
+        
     };
 
     queryBalance(keypair, doneCallback) {        

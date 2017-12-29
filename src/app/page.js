@@ -15,11 +15,14 @@ class Page extends React.Component {
         super(props);
         this.state = {
             wallet: BTC
-        };
+        };        
+    }
+
+    componentDidMount() {
         this.updateBalance()
     }
 
-    componentDidUpdate() {
+    componentDidUpdate() {        
         this.updateBalance()
     }
 
