@@ -7,7 +7,8 @@ import coinselect from 'coinselect'
 
 
 var fee = 0.00001
-var API_KEY = "a3f9078954c1f4efa062ced312b3ab6bad027ed1"
+const QUERY_URL = "https://api.blocktrail.com/v1/tBTC/address/"
+const API_KEY = "a3f9078954c1f4efa062ced312b3ab6bad027ed1"
 
 
 export class BtcWallet {
@@ -23,8 +24,7 @@ export class BtcWallet {
     updateTotalBalance() {
         this.totalBalance = 0
         $("#" + this.code + "-balance").html("")
-        let that = this;
-        this.readAccounts(keypair => that.queryBalance(keypair))
+        this.readAccounts(keypair => this.queryBalance(keypair))
     }
 
     send(toAddress, amount) {
@@ -142,31 +142,30 @@ export class BtcWallet {
 
     // todo filter unconfirmed ones. see: https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/test/integration/_testnet.js
     getUnspentOutputs(address, callback) {
-        let url = 'https://api.blocktrail.com/v1/tBTC/address/' + address + '/unspent-outputs?api_key=' + API_KEY;
+        let url = QUERY_URL + address + '/unspent-outputs?api_key=' + API_KEY;
         $.get(url, d => {
             callback(d.data.map(it => new UnspentOutput(it.hash, it.index, it.value)))
         });
     }
 
 
-    readAccounts(callback) {
-        let that = this;
-        fs.readFile('btc.txt', 'utf8', function (err, contents) {
+    readAccounts(callback) {        
+        fs.readFile('btc.txt', 'utf8', (err, data) => {
             if (err) {
                 console.log(err);
-                var keyPair = that.generateAddress();
-                $("#" + that.code + "-address").html(keypair.getAddress())
+                var keyPair = this.generateAddress();
+                $("#" + this.code + "-address").html(keypair.getAddress())
                 return
             }
-            contents.split("###").forEach(
+            data.split("###").forEach(
                 (wif, index) => {
                     if (wif.length > 0) {
-                        let keypair = bitcoin.ECPair.fromWIF(wif, that.network);
+                        let keypair = bitcoin.ECPair.fromWIF(wif, this.network);
                         console.log("read address:" + keypair.getAddress());
                         console.log("read wif:" + wif);
-                        that.keypairs.push(keypair)
+                        this.keypairs.push(keypair)
                         if (index === 0) {
-                            $("#" + that.code + "-address").html(keypair.getAddress())
+                            $("#" + this.code + "-address").html(keypair.getAddress())
                         }
                         if (callback) {
                             callback(keypair);
@@ -177,14 +176,13 @@ export class BtcWallet {
         });
     };
 
-    queryBalance(keypair) {
-        let that = this;
+    queryBalance(keypair) {        
         let address = keypair.getAddress()
-        let url = 'https://api.blocktrail.com/v1/tBTC/address/' + address + '?api_key=' + API_KEY;
-        $.get(url, function (d) {
-            let balance = d.balance / 1e8
-            that.totalBalance += balance
-            $("#" + that.code + "-balance").html(that.totalBalance)
+        let url = QUERY_URL + address + '?api_key=' + API_KEY;
+        $.get(url,  result => {
+            let balance = result.balance / 1e8
+            this.totalBalance += balance
+            $("#" + this.code + "-balance").html(this.totalBalance)
         });
     }
 
@@ -202,18 +200,17 @@ export class BtcWallet {
 
 
     writeWIFToFile(wif) {
-        let that = this;    
         fs.exists("btc.txt", (exists) => {
             if (exists) { // append the wif
                 fs.appendFile('btc.txt', "###" + wif, (err) => {
                     if (err) throw err;
                 });
             } else {
-                fs.writeFile("btc.txt", wif, function (err) {
+                fs.writeFile("btc.txt", wif, (err) => {
                     if (err) {
                         return console.log(err);
                     }
-                    $("#" + that.code + "-balance").html("0")
+                    $("#" + this.code + "-balance").html("0")
                     console.log("The file was saved!");
                 });
             }
