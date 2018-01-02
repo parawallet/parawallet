@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "build": "rm -rf node_modules/thewallet && babel src -d node_modules/thewallet",
+    "test": "mocha --require babel-core/register test/**/*.js",
     "start": "electron ."
   },
   "repository": "https://github.com/electron/electron-quick-start",
@@ -21,7 +22,9 @@
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
-    "electron": "~1.7.8"
+    "chai": "*",
+    "electron": "~1.7.8",
+    "mocha": "*"
   },
   "dependencies": {
     "bitcoinjs-lib": "^3.3.1",
