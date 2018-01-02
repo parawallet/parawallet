@@ -10,10 +10,18 @@ const url = require('url')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+let splash
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({width: 800, height: 600, title: "The Wallet", show: false})
+
+  splash = new BrowserWindow({width: 800, height: 600, alwaysOnTop: true, webPreferences: {nodeIntegration: false}})
+  splash.loadURL(url.format({
+    pathname: path.join(__dirname, 'splash.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -33,6 +41,13 @@ function createWindow () {
     mainWindow = null
   })
 }
+
+// close splash screen and show main window when page is ready
+const {ipcMain} = require('electron')
+ipcMain.on('my-page-ready', (event, arg) => {
+    splash.destroy()
+    mainWindow.show()
+})
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

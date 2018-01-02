@@ -4,8 +4,6 @@ import fs, { read } from 'fs';
 import $ from 'jquery';
 import dhttp from 'dhttp';
 import coinselect from 'coinselect';
-import * as db from './secure-db'
-
 
 var fee = 0.00001
 const QUERY_URL = "https://api.blocktrail.com/v1/tBTC/address/"
@@ -13,26 +11,24 @@ const API_KEY = "a3f9078954c1f4efa062ced312b3ab6bad027ed1"
 
 
 export class BtcWallet {
-    constructor() {
+    
+    constructor(kv) {
         this.totalBalance = 0
         this.code = "BTC"
         this.name = "Bitcoin"
         this.keypairs = []
         this.network = bitcoin.networks.testnet
-
-        this.ready = db.open("the-wallet-secure-password")
-        this.ready.then(() => {
-            console.log("KV ready now !!!")            
-            this.kv = db.get()              
-        })
+        
+        if (!kv) {
+            throw new Error("KV is required")
+        }
+        if (!kv.hasOpened) {
+            throw new Error("KV is not ready yet!")
+        }
+        this.kv = kv
     }
     
-    updateTotalBalance(callback) {        
-        if (!this.kv) {
-            console.log("KV not ready... yet")
-            this.ready.then(() => this.updateTotalBalance(callback))    
-            return
-        }
+    updateTotalBalance(callback) {                
         this.totalBalance = 0
         this.readAccounts(() => this.queryAccounts(callback))
     }

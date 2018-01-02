@@ -3,12 +3,13 @@ import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import { BtcWallet } from '../core/btc-wallet';
 import { EthWallet } from '../core/eth-wallet';
+import * as db from './secure-db'
 
 
-var BTC = new BtcWallet()
-var ETH = new EthWallet()
+const BTC = new BtcWallet(db.get())
+const ETH = new EthWallet(db.get())
 
-var wallets = [BTC, ETH]
+const wallets = [BTC, ETH]
 
 class Page extends React.Component {
     constructor(props) {
