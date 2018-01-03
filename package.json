@@ -2,13 +2,15 @@
   "name": "thewallet",
   "version": "1.0.0",
   "description": "The wallet you need",
-  "main": "main.js",
+  "main": "app/main.js",
   "scripts": {
-    "build": "rm -rf node_modules/thewallet && babel src -d node_modules/thewallet",
+    "build": "rm -rf app && babel src -d app",
     "test": "mocha --require babel-core/register test/**/*.js",
-    "start": "electron ."
+    "start": "electron app/main.js",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://bitbucket.org/thewallet/thewallet",
   "keywords": [
     "wallet",
     "bitcoin",
@@ -24,6 +26,7 @@
     "babel-preset-react": "^6.24.1",
     "chai": "*",
     "electron": "~1.7.8",
+    "electron-builder": "^19.52.1",
     "mocha": "*"
   },
   "dependencies": {
@@ -35,5 +38,15 @@
     "jquery": "^3.2.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0"
+  },
+  "build": {
+    "appId": "com.the.wallet",
+    "mac": {
+      "category": "public.app-category.finance"
+    },
+    "files": [
+      "app/", 
+      "static/"
+    ]
   }
 }

@@ -1,11 +1,12 @@
-const electron = require('electron')
+import electron from 'electron'
+import path from 'path'
+import url from 'url'
+import {ipcMain} from 'electron'
+
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
-
-const path = require('path')
-const url = require('url')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -18,19 +19,20 @@ function createWindow () {
 
   splash = new BrowserWindow({width: 800, height: 600, alwaysOnTop: true, webPreferences: {nodeIntegration: false}})
   splash.loadURL(url.format({
-    pathname: path.join(__dirname, 'splash.html'),
+    pathname: path.join(__dirname, '../static/splash.html'),
     protocol: 'file:',
     slashes: true
   }))
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
+    pathname: path.join(__dirname, '../static/index.html'),
     protocol: 'file:',
     slashes: true
   }))
 
   // Open the DevTools.
+  // splash.webContents.openDevTools()
   // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
@@ -43,7 +45,6 @@ function createWindow () {
 }
 
 // close splash screen and show main window when page is ready
-const {ipcMain} = require('electron')
 ipcMain.on('my-page-ready', (event, arg) => {
     splash.destroy()
     mainWindow.show()
@@ -58,9 +59,9 @@ app.on('ready', createWindow)
 app.on('window-all-closed', function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
+  // if (process.platform !== 'darwin') {
     app.quit()
-  }
+  // }
 })
 
 app.on('activate', function () {
