@@ -12,7 +12,7 @@ npm install
 ```
 - Run the app
 ```
-npm run build & npm start
+npm run build ; npm start
 ```
 
 ### stack
