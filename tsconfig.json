@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "outDir": "app",
+        "sourceMap": false,
+        "strictNullChecks": true,
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "jsx": "react",
+        "target": "es5",
+        "lib": ["es6", "dom"],
+        "allowJs": true,
+        "baseUrl": "."
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

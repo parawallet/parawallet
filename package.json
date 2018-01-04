@@ -4,11 +4,12 @@
   "description": "The wallet you need",
   "main": "app/main.js",
   "scripts": {
-    "build": "rm -rf app && babel src -d app",
+    "build": "rm -rf app && tsc",
     "test": "mocha --require babel-core/register test/**/*.js",
-    "start": "electron app/main.js",
+    "start": "electron .",
     "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "lint": "tslint -c tslint.json -p tsconfig.json"
   },
   "repository": "https://bitbucket.org/thewallet/thewallet",
   "keywords": [
@@ -21,13 +22,13 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-react": "^6.24.1",
     "chai": "*",
     "electron": "~1.7.8",
     "electron-builder": "^19.52.1",
-    "mocha": "*"
+    "mocha": "*",
+    "tslint": "^5.8.0",
+    "tslint-react": "^3.3.3",
+    "typescript": "^2.6.2"
   },
   "dependencies": {
     "bitcoinjs-lib": "^3.3.1",
@@ -45,7 +46,7 @@
       "category": "public.app-category.finance"
     },
     "files": [
-      "app/", 
+      "app/",
       "static/"
     ]
   }
