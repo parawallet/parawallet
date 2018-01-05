@@ -7,11 +7,11 @@ import * as db from "./secure-db";
 import { Page } from "./page";
 
 const BTC = new BtcWallet(db.get());
-const ETH = new EthWallet(db.get());
+const ETH = new EthWallet();
 
 const wallets = [BTC, ETH];
 
 ReactDOM.render(
-  <Page defaultWallet={BTC} wallets={wallets} />,
+  <Page defaultWalletCode={BTC.code} wallets={wallets} />,
   document.getElementById("root"),
 );

@@ -13,6 +13,8 @@
       "no-consecutive-blank-lines": false,
       "max-classes-per-file": false,
       "object-literal-key-quotes": false,
+      "jsx-no-multiline-js": false,
+      "jsx-no-lambda": false,
       "no-console": [false, "log", "error"]
     },
     "jsRules": {
