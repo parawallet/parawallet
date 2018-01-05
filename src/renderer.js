@@ -11,7 +11,7 @@ console.log("renderering page");
 const p = db.open("the-wallet-secure-password");
 p.then(() => {
   console.log("DB is ready now -> " + db.get().hasOpened);
-  require("./ui/page");
+  require("./ui/main");
 
   ipcRenderer.send("my-page-ready", {});
 }, (e) => console.log(e));
