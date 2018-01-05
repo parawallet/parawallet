@@ -1,57 +1,54 @@
 import * as React from "react";
-import * as $ from "jquery";
-
 import { WalletMenu } from "./wallet-menu";
 import { ToolsMenu } from "./tools-menu";
 import { ContentPane } from "./content-pane";
 
+// TODO: keep all wallet states, just switch active wallet
+class WalletState {
+  constructor(wallet, address, balance) {
+    this.wallet = wallet;
+    this.address = address || "Loading...";
+    this.balance = balance || "0";
+  }
+}
+
 export class Page extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      wallet: props.defaultWallet,
-    };
+    this.state = new WalletState(props.defaultWallet);
   }
 
   componentDidMount() {
-    this.updateBalance();
+    this.updateBalance(this.state.wallet);
+    this.timerID = setInterval(() => this.updateBalance(this.state.wallet), 10000);
   }
 
-  componentDidUpdate() {
-    this.updateBalance();
+  componentWillUnmount() {
+    clearInterval(this.timerID);
   }
 
-  updateBalance() {
-    var code = this.state.wallet.code;
-    $("#" + code + "-address").html("Fetching...");
-    $("#" + code + "-balance").html("Fetching...");
+  // Do Not Modify State Directly. Instead, use setState().
+  switchWallet(wallet) {
+    this.setState(new WalletState(wallet));
+    this.updateBalance(wallet);
+  }
 
-    this.state.wallet.updateTotalBalance((address, balance) => {
-      this.setBalance(address, balance);
+  updateBalance(wallet) {
+    wallet.updateTotalBalance((address, balance) => {
+      this.setState(new WalletState(wallet, address, balance));
     });
   }
 
-  setBalance(address, balance) {
-    var code = this.state.wallet.code;
-    $("#" + code + "-address").html(address);
-    $("#" + code + "-balance").html(balance);
-  }
-
-  handleClick(wallet) {
-    this.setState({
-      wallet: wallet,
-    });
-  }
-
+  // If you don’t use something in render(), it shouldn’t be in the state.
   render() {
     return (
       <div className="pane-group">
         <div className="pane-sm sidebar">
-          <WalletMenu wallets={this.props.wallets} onClick={(wlt) => this.handleClick(wlt)} />
+          <WalletMenu wallets={this.props.wallets} onClick={(wlt) => this.switchWallet(wlt)} />
           <ToolsMenu />
         </div>
         <div className="pane">
-          <ContentPane wallet={this.state.wallet} />
+          <ContentPane data={this.state} />
         </div>
       </div>
     );

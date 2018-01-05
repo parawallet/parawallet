@@ -3,6 +3,34 @@ import * as React from "react";
 export class ContentPane extends React.Component {
   constructor(props) {
     super(props);
+  }
+
+  render() {
+    const data = this.props.data;
+    const wallet = data.wallet;
+    return (
+      <div style={{padding: "30px"}}>
+        <h1>
+          <i className={"icon cc " + wallet.code} title={wallet.code} />
+          {wallet.name}
+        </h1>
+        <span className="coin_header">
+          Balance: {data.balance} {wallet.code}
+        </span>
+
+        <hr />
+        <h5>Receive {wallet.name}:</h5> Your Address: {data.address}
+
+        <hr />
+        <TransferPane wallet={wallet}/>
+      </div>
+    );
+  }
+}
+
+class TransferPane extends React.Component {
+  constructor(props) {
+    super(props);
     this.state = {address: "mq3ce8CE4jmyg5a8Y4HqcPtnLRGJu9qhHf", amount: "1000000"};
 
     this.handleAmountChange = this.handleAmountChange.bind(this);
@@ -27,19 +55,7 @@ export class ContentPane extends React.Component {
 
   render() {
     return (
-      <div style={{padding: "30px"}}>
-        <h1>
-          <i className={"icon cc " + this.props.wallet.code} title={this.props.wallet.code} />
-          {this.props.wallet.name} </h1>
-        <span className="coin_header">Balance: <span
-          id={this.props.wallet.code + "-balance"} /> {this.props.wallet.code}</span>
-
-        <hr />
-        <h5>Receive {this.props.wallet.name}:</h5>
-                Your Address: <span
-          id={this.props.wallet.code + "-address"} />
-
-        <hr />
+      <div>
         <h5>Send {this.props.wallet.name}:</h5>
 
         <form onSubmit={this.handleSubmit}>
@@ -57,7 +73,6 @@ export class ContentPane extends React.Component {
             <input className="btn btn-large btn-default" type="submit" value="Submit" />
           </div>
         </form>
-
       </div>
     );
   }
