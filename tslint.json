@@ -11,6 +11,8 @@
       "no-bitwise": true,
       "no-conditional-assignment": true,
       "no-consecutive-blank-lines": false,
+      "max-classes-per-file": false,
+      "object-literal-key-quotes": false,
       "no-console": [false, "log", "error"]
     },
     "jsRules": {
@@ -18,6 +20,7 @@
         "options": [
           120
         ]
-      }
+      },
+      "no-console": [false, "log", "error"]
     }
   }

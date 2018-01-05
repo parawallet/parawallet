@@ -5,7 +5,7 @@
   "main": "app/main.js",
   "scripts": {
     "build": "rm -rf app && tsc",
-    "test": "mocha --require babel-core/register test/**/*.js",
+    "test": "npm run lint && mocha --require ts-node/register test/**/*.{js,ts}",
     "start": "electron .",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
@@ -22,10 +22,18 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "chai": "*",
+    "@types/bitcoinjs-lib": "^3.3.1",
+    "@types/chai": "^4.0.10",
+    "@types/jquery": "^3.2.17",
+    "@types/mocha": "^2.2.46",
+    "@types/react": "^16.0.34",
+    "@types/react-dom": "^16.0.3",
+    "@types/request": "^2.0.9",
+    "chai": "^4.1.2",
     "electron": "~1.7.8",
     "electron-builder": "^19.52.1",
-    "mocha": "*",
+    "mocha": "^4.1.0",
+    "ts-node": "^4.1.0",
     "tslint": "^5.8.0",
     "tslint-react": "^3.3.3",
     "typescript": "^2.6.2"
@@ -34,11 +42,10 @@
     "bitcoinjs-lib": "^3.3.1",
     "coinselect": "^3.1.1",
     "cryptocoins-icons": "^2.6.0",
-    "seco-keyval": "^0.2.0",
-    "dhttp": "^2.3.5",
     "jquery": "^3.2.1",
     "react": "^16.2.0",
-    "react-dom": "^16.2.0"
+    "react-dom": "^16.2.0",
+    "seco-keyval": "^0.2.0"
   },
   "build": {
     "appId": "com.the.wallet",
