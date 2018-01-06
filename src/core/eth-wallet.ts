@@ -5,7 +5,7 @@ export class EthWallet extends AbstractWallet implements IWallet {
     super("ETH", "Ethereum");
   }
 
-  public updateTotalBalance(callback?: BalanceCallback) {
+  public update(callback?: BalanceCallback) {
     this.totalBalance = 0;
     if (callback) {
       callback("", 0);

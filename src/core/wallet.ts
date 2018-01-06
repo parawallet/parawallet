@@ -4,7 +4,7 @@ export interface IWallet {
   readonly code: string;
   readonly name: string;
   getTotalBalance(): number;
-  updateTotalBalance(callback?: BalanceCallback): void;
+  update(callback?: BalanceCallback): void;
   send(toAddress: string, amount: number, callback?: BalanceCallback): void;
 }
 

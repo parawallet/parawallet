@@ -1,9 +1,8 @@
 import {ECPair, Network, networks, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
 import * as request from "request";
-import {RequestResponse as Response} from "request";
-import {SecoKeyval} from "seco-keyval";
-// import typeforce from 'typeforce'
+import { RequestResponse as Response } from "request";
+import { BtcAddressGenerator } from "./btc-address-gen";
 import {AbstractWallet, BalanceCallback, IWallet} from "./wallet";
 
 
@@ -13,42 +12,33 @@ const QUERY_URL = "https://api.blocktrail.com/v1/tBTC/address/";
 const API_KEY = "a3f9078954c1f4efa062ced312b3ab6bad027ed1";
 
 export class BtcWallet extends AbstractWallet implements IWallet {
-  private kv: SecoKeyval;
   private network: Network;
-  private keypairs: ECPair[];
+  private addressGen: BtcAddressGenerator;
 
-  constructor(kv: SecoKeyval) {
+  constructor(addressGen: BtcAddressGenerator) {
     super("BTC", "Bitcoin");
-    this.keypairs = [];
+    this.addressGen = addressGen;
     this.network = networks.testnet;
-
-    if (!kv) {
-      throw new Error("KV is required");
-    }
-    if (!kv.hasOpened) {
-      throw new Error("KV is not ready yet!");
-    }
-    this.kv = kv;
   }
 
-  public updateTotalBalance(callback?: BalanceCallback) {
+  public initialize() {
+    return this.addressGen.initialize();
+  }
+
+  public update(callback?: BalanceCallback) {
     this.totalBalance = 0;
-    this.readAccounts(() => this.queryAccounts(callback));
+    this.queryAccounts(callback);
   }
 
   public send(toAddress: string, amount: number, callback?: BalanceCallback) {
-    alert(amount);
-
-    // if(!typeforce(types.Satoshi, amount)) {
-    //     alert("error")
-    // }
+    alert("You are about to send " + amount +  " satoshis");
 
     const that = this;
     const txnId2KeypairMap = new Map<string, ECPair>();
     const requests: Array<Promise<any>> = [];
     let allUnspentOutputs: UnspentTxOutput[] = [];
 
-    for (const keypair of this.keypairs) {
+    for (const keypair of this.addressGen.getKeypairs()) {
       requests.push(new Promise((resolve, reject) => {
         const address = keypair.getAddress();
         that.getUnspentOutputs(address, (unspentOutputs: UnspentTxOutput[]) => {
@@ -63,9 +53,8 @@ export class BtcWallet extends AbstractWallet implements IWallet {
       }));
     }
 
-    setTimeout(console.log, 3000, requests);
     Promise.all(requests).then((values) => {
-      const {inputs, outputs, fee} = coinselect(allUnspentOutputs, [{"address": toAddress, "value": amount}], 100);
+      const {inputs, outputs, fee} = coinselect(allUnspentOutputs, [{"address": toAddress, "value": amount}], 20);
 
       console.log("Fee: " + fee);
 
@@ -84,7 +73,7 @@ export class BtcWallet extends AbstractWallet implements IWallet {
       }
       for (const output of outputs) {
         if (!output.address) {
-          output.address = that.findChangeAddress(inputs, txnId2KeypairMap);
+          output.address = this.addressGen.generateChangeAddress();
         }
         txb.addOutput(output.address, output.value);
       }
@@ -107,7 +96,7 @@ export class BtcWallet extends AbstractWallet implements IWallet {
             if (res.statusCode !== 200) { return; }
             if (res.headers["content-type"] !== "application/json") { return; }
 
-            that.updateTotalBalance(callback);
+            that.update(callback);
             // if `content-type` was not supported, expect body to be `null` (unless an override is given).
             console.log(res.body);
             // => { foo: 'bar' }, a parsed JSON object
@@ -117,27 +106,6 @@ export class BtcWallet extends AbstractWallet implements IWallet {
   }
 
   // internal functions
-
-  // finds an address that was not selected by coinselect so it can be used as change address
-  private findChangeAddress(inputs: UnspentTxOutput[], txnId2KeypairMap: Map<string, ECPair>) {
-    const selectedTxnids = inputs.map((input) => input.txId);
-
-    let keypair = this.keypairs.find((key) => {
-      for (const txnid of selectedTxnids) {
-        if (txnId2KeypairMap.get(txnid)!.getAddress() === key.getAddress()) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    if (!keypair) {
-      keypair = this.generateNewAddress();
-    }
-
-    console.log("selected addr:" + keypair.toWIF());
-    return keypair.getAddress();
-  }
 
   // todo filter unconfirmed ones.
   // see: https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/test/integration/_testnet.js
@@ -150,63 +118,16 @@ export class BtcWallet extends AbstractWallet implements IWallet {
     });
   }
 
-  private readAccounts(callback?: () => void) {
-    if (this.keypairs.length) {
-      // already populated
-      if (callback) {
-        callback();
-      }
-      return;
-    }
-
-    this.kv.get("count").then((count: number) => {
-      console.log("Key Count: " + count);
-      if (count) {
-        const promises: Array<Promise<any>> = [];
-        for (let i = 0; i < count; i++) {
-          promises.push(this.kv.get("account" + i));
-        }
-        Promise.all(promises).then((wifs: string[]) => {
-          wifs.forEach(
-            (wif, index) => {
-              console.log(index + ": read WIF -> " + wif);
-              const keypair = ECPair.fromWIF(wif, this.network);
-              console.log(index + ": read address -> " + keypair.getAddress());
-              this.keypairs.push(keypair);
-            },
-          );
-          if (callback) {
-            callback();
-          }
-        });
-      } else {
-        this.generateNewAddress();
-        if (callback) {
-          callback();
-        }
-      }
-    });
-  }
-
   private queryAccounts(callback?: BalanceCallback) {
     if (!callback) {
       alert("Callback required!");
       return;
     }
 
-    if (!this.keypairs.length) {
-      alert("Key pairs is empty!");
-      return;
-    }
-
-    let address: string;
-    this.keypairs.forEach(
+    this.addressGen.getKeypairs().forEach(
       (keypair, index) => {
         console.log(index + ": querying address -> " + keypair.getAddress());
-        if (index === 0) {
-          address = keypair.getAddress();
-        }
-        this.queryBalance(keypair, () => callback(address, this.totalBalance));
+        this.queryBalance(keypair, () => callback(this.addressGen.getReceiveAddress(), this.totalBalance));
       },
     );
   }
@@ -222,20 +143,6 @@ export class BtcWallet extends AbstractWallet implements IWallet {
         doneCallback();
       }
     });
-  }
-
-  private generateNewAddress() {
-    const keypair = ECPair.makeRandom({
-      network: this.network,
-    });
-    console.log("generated address:" + keypair.getAddress());
-    const wif = keypair.toWIF();
-    console.log("generated wif:" + wif);
-    this.keypairs.push(keypair);
-    this.kv.set("count", this.keypairs.length);
-    const index = this.keypairs.length - 1;
-    this.kv.set("account" + index, wif);
-    return keypair;
   }
 }
 

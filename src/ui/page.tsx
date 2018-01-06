@@ -102,7 +102,7 @@ export class Page extends React.Component<IPageProps, WalletState> {
   }
 
   private updateBalance(wallet: IWallet) {
-    wallet.updateTotalBalance((address, balance) => {
+    wallet.update((address, balance) => {
       const ws = new WalletState(wallet, address, balance);
       this.walletsContext.setState(wallet.code, ws);
       this.setState(ws);

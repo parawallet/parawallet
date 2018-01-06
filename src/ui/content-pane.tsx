@@ -21,7 +21,8 @@ export class ContentPane extends React.Component<IContentPaneProps, any> {
         </span>
 
         <hr />
-        <h5>Receive {wallet.name}:</h5> Your Address: {this.props.address}
+        <h5>Receive {wallet.name}:</h5> Your Address:
+        <input type="text" className="form-control" readOnly={true} value={this.props.address} />
 
         <hr />
         <TransferPane wallet={wallet}/>
