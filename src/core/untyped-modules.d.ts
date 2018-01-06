@@ -10,13 +10,14 @@ declare module "seco-keyval" {
 }
 
 declare module "coinselect" {
-  export interface UTXO {
-    readonly txId: string;
-    readonly vout: number; // tx index
-    readonly value: number; // value in satoshi
-  }
+  // export interface UTXO {
+  //   readonly txId: string;
+  //   readonly vout: number; // tx index
+  //   readonly value: number; // value in satoshi
+  // }
 
-  export function coinSelect (utxos: UTXO[], outputs: {address: string, value: number}[], feeRate: number):
-    {inputs: UTXO[], outputs: {address: string, value: number}[], fee: number};
+  function coinSelect (utxos: {txId: string, vout: number, value: number}[], outputs: {address: string, value: number}[], feeRate: number):
+    {inputs: {txId: string, vout: number, value: number}[], outputs: {address: string, value: number}[], fee: number};
 
+  export = coinSelect;
 }

@@ -1,5 +1,5 @@
 import {ECPair, Network, networks, TransactionBuilder} from "bitcoinjs-lib";
-import { coinSelect, UTXO } from "coinselect";
+import coinselect = require("coinselect");
 import * as request from "request";
 import {RequestResponse as Response} from "request";
 import {SecoKeyval} from "seco-keyval";
@@ -65,7 +65,7 @@ export class BtcWallet extends AbstractWallet implements IWallet {
 
     setTimeout(console.log, 3000, requests);
     Promise.all(requests).then((values) => {
-      const {inputs, outputs, fee} = coinSelect(allUnspentOutputs, [{"address": toAddress, "value": amount}], 10);
+      const {inputs, outputs, fee} = coinselect(allUnspentOutputs, [{"address": toAddress, "value": amount}], 100);
 
       console.log("Fee: " + fee);
 
@@ -95,8 +95,7 @@ export class BtcWallet extends AbstractWallet implements IWallet {
       }
 
       request.post({
-          body: JSON.stringify('{"hex":"' + txb.build().toHex() + '"}'),
-          json: true,
+          body: '{"hex":"' + txb.build().toHex() + '"}',
           url: TX_PUSH_URL,
         }, (err: any, res: Response, body: any) => {
             alert("status code:" + res.statusCode);
@@ -120,7 +119,7 @@ export class BtcWallet extends AbstractWallet implements IWallet {
   // internal functions
 
   // finds an address that was not selected by coinselect so it can be used as change address
-  private findChangeAddress(inputs: UTXO[], txnId2KeypairMap: Map<string, ECPair>) {
+  private findChangeAddress(inputs: UnspentTxOutput[], txnId2KeypairMap: Map<string, ECPair>) {
     const selectedTxnids = inputs.map((input) => input.txId);
 
     let keypair = this.keypairs.find((key) => {
@@ -240,7 +239,7 @@ export class BtcWallet extends AbstractWallet implements IWallet {
   }
 }
 
-class UnspentTxOutput implements UTXO {
+class UnspentTxOutput {
   public readonly txId: string;
   public readonly vout: number; // tx index
   public readonly value: number; // value in satoshi
