@@ -1,14 +1,15 @@
 import * as bip39 from "bip39";
 import {ECPair, HDNode, Network, networks, TransactionBuilder} from "bitcoinjs-lib";
 import { SecoKeyval } from "seco-keyval";
+import {ChainType, CoinType, generatePath} from "./bip44-path";
 
 export class BtcAddressGenerator {
-    private kv: SecoKeyval;
+    private readonly kv: SecoKeyval;
+    private readonly network = networks.testnet;
+    private readonly cointype = this.network === networks.bitcoin ? CoinType.BTC : CoinType.TEST;
     private receiveAddressIndex = 0;
     private changeAddressIndex = 0;
     private currentReceiveAddress = "";
-    private network = networks.testnet;
-    private pathPrefix = "m/44'/1'/0'/";
     private mnemonic: string;
 
     constructor(kv: SecoKeyval) {
@@ -49,7 +50,7 @@ export class BtcAddressGenerator {
                     that.kv.get("btc-receive-address-index").then((index) => {
                             if (index) {
                                 that.receiveAddressIndex = index;
-                                that.currentReceiveAddress = that.prepareAddress("receive", 0);
+                                that.currentReceiveAddress = that.prepareAddress(ChainType.EXTERNAL, 0);
                             } else {
                                 that.receiveAddressIndex = 0;
                                 that.currentReceiveAddress = that.generateReceiveAddress();
@@ -80,7 +81,7 @@ export class BtcAddressGenerator {
         if (!this.mnemonic) {
             throw new Error("no mnemonic");
         }
-        const address = this.prepareAddress("change", this.changeAddressIndex);
+        const address = this.prepareAddress(ChainType.CHANGE, this.changeAddressIndex);
         this.changeAddressIndex = this.changeAddressIndex + 1;
         // TODO: the kv.set methods are async. check if they needs to be synchronized
         this.kv.set("btc-change-address-index", this.changeAddressIndex);
@@ -96,10 +97,10 @@ export class BtcAddressGenerator {
         console.log("receiveAddressIndex: " + this.receiveAddressIndex);
         console.log("changeAddressIndex: " + this.changeAddressIndex);
         for (let i = 0; i < this.receiveAddressIndex; i++) {
-            keypairs.push(this.getNode("receive", i).keyPair);
+            keypairs.push(this.getNode(ChainType.EXTERNAL, i).keyPair);
         }
         for (let i = 0; i < this.changeAddressIndex; i++) {
-            keypairs.push(this.getNode("change", i).keyPair);
+            keypairs.push(this.getNode(ChainType.CHANGE, i).keyPair);
         }
         return keypairs;
     }
@@ -108,24 +109,14 @@ export class BtcAddressGenerator {
         return this.currentReceiveAddress;
     }
 
-    private extractPath(type: string, index: number) {
-        let path = this.pathPrefix;
-        if (type === "change") {
-            path = path + "1/";
-        } else {
-            path = path + "0/";
-        }
-        return path + index;
-    }
-
-    private getNode(type: string, index: number) {
-        const path = this.extractPath(type, index);
+    private getNode(type: ChainType, index: number) {
+        const path = generatePath(this.cointype, type, index);
         const seed = bip39.mnemonicToSeed(this.mnemonic);
         const root = HDNode.fromSeedBuffer(seed, this.network);
         return root.derivePath(path);
     }
 
-    private prepareAddress(type: string, index: number) {
+    private prepareAddress(type: ChainType, index: number) {
         return this.getNode(type, index).getAddress();
     }
 
@@ -133,7 +124,7 @@ export class BtcAddressGenerator {
         if (!this.mnemonic) {
             throw new Error("no mnemonic");
         }
-        const address = this.prepareAddress("receive", this.receiveAddressIndex);
+        const address = this.prepareAddress(ChainType.EXTERNAL, this.receiveAddressIndex);
         this.receiveAddressIndex = this.receiveAddressIndex + 1;
         // TODO: the kv.set methods are async. check if they needs to be synchronized
         this.kv.set("btc-receive-address-index", this.receiveAddressIndex);
