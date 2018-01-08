@@ -3,18 +3,62 @@ import * as ReactDOM from "react-dom";
 import { BtcAddressGenerator } from "../core/btc-address-gen";
 import { BtcWallet } from "../core/btc-wallet";
 import { EthWallet } from "../core/eth-wallet";
+import { IWallet } from "../core/wallet";
+import * as db from "../db/secure-db";
+import { Login, LoginCredentials } from "./login";
 import { Page } from "./page";
-import * as db from "./secure-db";
 
-const btcAddressGen = new BtcAddressGenerator(db.get());
-const BTC = new BtcWallet(btcAddressGen);
-const ETH = new EthWallet();
+class LoginState {
+  public authenticated: boolean;
+  public initialized: boolean;
+}
 
-const wallets = [BTC, ETH];
+class Main extends React.Component<any, LoginState> {
+  private btcAddressGen: BtcAddressGenerator;
+  private wallets: IWallet[] = [];
 
-Promise.all(BTC.initialize()).then(() => {
-  ReactDOM.render(
-    <Page defaultWalletCode={BTC.code} wallets={wallets} />,
-    document.getElementById("root"),
-  );
-});
+  constructor(props: any) {
+    super(props);
+    this.state = {authenticated: false, initialized: false};
+  }
+
+  public render() {
+    if (!this.state.authenticated) {
+      return (<Login onClick={(login: LoginCredentials) => this.onLogin(login)} />);
+    } else if (!this.state.initialized) {
+      return (
+        <div style={{padding: "30px"}}>
+          ...LOADING PAGE...
+        </div>
+      );
+    } else {
+      return this.renderPage();
+    }
+  }
+
+  private onLogin(loginCreds: LoginCredentials) {
+    const p = db.open(loginCreds.appPass);
+    p.then(() => {
+      console.log("DB is ready now -> " + db.get().hasOpened);
+      this.setState({authenticated: true, initialized: false});
+
+      this.btcAddressGen = new BtcAddressGenerator(db.get(), loginCreds.mnemonicPass);
+      Promise.all(this.btcAddressGen.initialize())
+        .then(() => this.setState({authenticated: true, initialized: true}));
+
+    }, (e: any) => {
+      console.log(e);
+      alert("Wrong password: " + e);
+    });
+  }
+
+  private renderPage() {
+    const BTC = new BtcWallet(this.btcAddressGen);
+    const ETH = new EthWallet();
+    this.wallets.push(BTC, ETH);
+
+    return (<Page defaultWalletCode={BTC.code} wallets={this.wallets} />);
+  }
+}
+
+ReactDOM.render(<Main />, document.getElementById("root"));

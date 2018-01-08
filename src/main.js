@@ -1,27 +1,14 @@
-import {app, BrowserWindow, ipcMain} from "electron";
+import {app, BrowserWindow} from "electron";
 import * as path from "path";
 import * as url from "url";
-
-// Module to control application life.
-// const app = electron.app
-// Module to create native browser window.
-// const BrowserWindow = electron.BrowserWindow
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
-let splash;
 
 function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600, title: "The Wallet", show: false});
-
-  splash = new BrowserWindow({width: 800, height: 600, alwaysOnTop: true, webPreferences: {nodeIntegration: false}});
-  splash.loadURL(url.format({
-    pathname: path.join(__dirname, "../static/splash.html"),
-    protocol: "file:",
-    slashes: true,
-  }));
+  mainWindow = new BrowserWindow({width: 800, height: 600, title: "The Wallet", show: true});
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -29,10 +16,6 @@ function createWindow() {
     protocol: "file:",
     slashes: true,
   }));
-
-  // Open the DevTools.
-  // splash.webContents.openDevTools()
-  // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on("closed", function() {
@@ -42,12 +25,6 @@ function createWindow() {
     mainWindow = null;
   });
 }
-
-// close splash screen and show main window when page is ready
-ipcMain.on("my-page-ready", (event, arg) => {
-  splash.destroy();
-  mainWindow.show();
-});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -70,6 +47,3 @@ app.on("activate", function() {
     createWindow();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.

@@ -15,6 +15,7 @@
       "object-literal-key-quotes": false,
       "jsx-no-multiline-js": false,
       "jsx-no-lambda": false,
+      "jsx-alignment": false,
       "no-console": [false, "log", "error"]
     },
     "jsRules": {

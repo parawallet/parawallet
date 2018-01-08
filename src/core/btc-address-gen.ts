@@ -7,12 +7,13 @@ export class BtcAddressGenerator {
     private readonly kv: SecoKeyval;
     private readonly network = networks.testnet;
     private readonly cointype = this.network === networks.bitcoin ? CoinType.BTC : CoinType.TEST;
+    private readonly pass: string;
     private receiveAddressIndex = 0;
     private changeAddressIndex = 0;
     private currentReceiveAddress = "";
     private mnemonic: string;
 
-    constructor(kv: SecoKeyval) {
+    constructor(kv: SecoKeyval, pass: string) {
         if (!kv) {
             throw new Error("KV is required");
         }
@@ -20,6 +21,7 @@ export class BtcAddressGenerator {
             throw new Error("KV is not ready yet!");
         }
         this.kv = kv;
+        this.pass = pass;
     }
 
     public initialize() {
@@ -37,6 +39,9 @@ export class BtcAddressGenerator {
                                 alert("Please write down following words to backup your wallet: " + mnemonic);
                             } else {
                                 console.log("read mnemonic:" + mnemonic);
+                                if (!bip39.validateMnemonic(mnemonic)) {
+                                    alert("Invalid mnemonic!");
+                                }
                                 that.mnemonic = mnemonic;
                             }
                             resolve("success");
@@ -111,7 +116,7 @@ export class BtcAddressGenerator {
 
     private getNode(type: ChainType, index: number) {
         const path = generatePath(this.cointype, type, index);
-        const seed = bip39.mnemonicToSeed(this.mnemonic);
+        const seed = bip39.mnemonicToSeed(this.mnemonic, this.pass);
         const root = HDNode.fromSeedBuffer(seed, this.network);
         return root.derivePath(path);
     }
