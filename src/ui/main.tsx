@@ -43,7 +43,7 @@ class Main extends React.Component<any, LoginState> {
       this.setState({authenticated: true, initialized: false});
 
       this.btcAddressGen = new BtcAddressGenerator(db.get(), loginCreds.mnemonicPass);
-      Promise.all(this.btcAddressGen.initialize())
+      this.btcAddressGen.initialize()
         .then(() => this.setState({authenticated: true, initialized: true}));
 
     }, (e: any) => {

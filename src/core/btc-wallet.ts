@@ -26,8 +26,23 @@ export class BtcWallet extends AbstractWallet implements IWallet {
   }
 
   public update(callback?: BalanceCallback) {
-    this.totalBalance = 0;
-    this.queryAccounts(callback);
+    const promises: Array<Promise<number>> = [];
+    this.addressGen.getKeypairs().forEach(
+      (keypair, index) => {
+        console.log(index + ": querying address -> " + keypair.getAddress());
+        promises.push(this.queryBalance(keypair));
+      },
+    );
+    Promise.all(promises).then((balances) => {
+        let total = 0;
+        balances.forEach((value) => {
+          total += value;
+        });
+        this.totalBalance = total;
+        if (callback) {
+          callback(this.addressGen.getReceiveAddress(), this.totalBalance);
+        }
+    });
   }
 
   public send(toAddress: string, amount: number, callback?: BalanceCallback) {
@@ -118,30 +133,21 @@ export class BtcWallet extends AbstractWallet implements IWallet {
     });
   }
 
-  private queryAccounts(callback?: BalanceCallback) {
-    if (!callback) {
-      alert("Callback required!");
-      return;
-    }
-
-    this.addressGen.getKeypairs().forEach(
-      (keypair, index) => {
-        console.log(index + ": querying address -> " + keypair.getAddress());
-        this.queryBalance(keypair, () => callback(this.addressGen.getReceiveAddress(), this.totalBalance));
-      },
-    );
-  }
-
-  private queryBalance(keypair: ECPair, doneCallback?: () => void) {
+  private queryBalance(keypair: ECPair) {
     const address = keypair.getAddress();
     const url = QUERY_URL + address + "?api_key=" + API_KEY;
-    request.get(url, (error: any, response: Response, body: any) => {
-      const result = JSON.parse(body);
-      const balance = result.balance / 1e8;
-      this.totalBalance += balance;
-      if (doneCallback) {
-        doneCallback();
-      }
+    return new Promise<number>((resolve, reject) => {
+      request.get(url, (error: any, response: Response, body: any) => {
+        if (error) {
+          console.error(error);
+          reject(error);
+          return;
+        }
+
+        const result = JSON.parse(body);
+        const balance = result.balance / 1e8;
+        resolve(balance);
+      });
     });
   }
 }

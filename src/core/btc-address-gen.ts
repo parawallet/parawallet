@@ -79,7 +79,7 @@ export class BtcAddressGenerator {
                     );
                 },
             ));
-        return promiseList;
+        return Promise.all(promiseList);
     }
 
     public generateChangeAddress() {
