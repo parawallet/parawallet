@@ -9,6 +9,8 @@ interface IPageProps {
   readonly wallets: IWallet[];
 }
 
+const NA_ADDRESS = "Loading...";
+
 class WalletState {
   public readonly wallet: IWallet;
   public readonly address: string;
@@ -16,7 +18,7 @@ class WalletState {
 
   constructor(wallet: IWallet, address?: string, balance?: number) {
     this.wallet = wallet;
-    this.address = address || "Loading...";
+    this.address = address || NA_ADDRESS;
     this.balance = balance || 0;
   }
 }
@@ -92,7 +94,7 @@ export class Page extends React.Component<IPageProps, WalletState> {
   private switchWallet(wallet: IWallet) {
     const ws = this.getWalletState(wallet.code);
     this.setState(ws);
-    if (!ws.address) {
+    if (ws.address === NA_ADDRESS) {
       this.updateBalance(wallet);
     }
   }
