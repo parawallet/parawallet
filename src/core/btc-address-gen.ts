@@ -5,15 +5,15 @@ import {ChainType, CoinType, generatePath} from "./bip44-path";
 
 export class BtcAddressGenerator {
     private readonly kv: SecoKeyval;
-    private readonly network = networks.testnet;
-    private readonly cointype = this.network === networks.bitcoin ? CoinType.BTC : CoinType.TEST;
+    private readonly network: Network;
+    private readonly cointype: CoinType;
     private readonly pass: string;
     private receiveAddressIndex = 0;
     private changeAddressIndex = 0;
     private currentReceiveAddress = "";
     private mnemonic: string;
 
-    constructor(kv: SecoKeyval, pass: string) {
+    constructor(kv: SecoKeyval, pass?: string, network?: Network) {
         if (!kv) {
             throw new Error("KV is required");
         }
@@ -21,7 +21,9 @@ export class BtcAddressGenerator {
             throw new Error("KV is not ready yet!");
         }
         this.kv = kv;
-        this.pass = pass;
+        this.network = network || networks.testnet;
+        this.cointype = this.network === networks.bitcoin ? CoinType.BTC : CoinType.TEST;
+        this.pass = pass || "";
     }
 
     public initialize() {
@@ -112,6 +114,10 @@ export class BtcAddressGenerator {
 
     public getReceiveAddress() {
         return this.currentReceiveAddress;
+    }
+
+    public getNetwork() {
+        return this.network;
     }
 
     private getNode(type: ChainType, index: number) {

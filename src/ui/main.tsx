@@ -2,6 +2,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { BtcAddressGenerator } from "../core/btc-address-gen";
 import { BtcWallet } from "../core/btc-wallet";
+import { BtcWalletTestnetRpc } from "../core/btc-wallet-rpc";
 import { EthWallet } from "../core/eth-wallet";
 import { IWallet } from "../core/wallet";
 import * as db from "../db/secure-db";
@@ -46,14 +47,14 @@ class Main extends React.Component<any, LoginState> {
       this.btcAddressGen.initialize()
         .then(() => this.setState({authenticated: true, initialized: true}));
 
-    }, (e: any) => {
+    }, (e: Error) => {
       console.log(e);
       alert("Wrong password: " + e);
     });
   }
 
   private renderPage() {
-    const BTC = new BtcWallet(this.btcAddressGen);
+    const BTC = new BtcWallet(this.btcAddressGen, new BtcWalletTestnetRpc());
     const ETH = new EthWallet();
     this.wallets.push(BTC, ETH);
 

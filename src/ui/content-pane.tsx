@@ -1,3 +1,4 @@
+import {clipboard} from "electron";
 import * as React from "react";
 import { IWallet } from "../core/wallet";
 
@@ -8,6 +9,10 @@ interface IContentPaneProps {
 }
 
 export class ContentPane extends React.Component<IContentPaneProps, any> {
+  constructor(props: IContentPaneProps) {
+    super(props);
+    this.copyAddress = this.copyAddress.bind(this);
+  }
   public render() {
     const wallet = this.props.wallet;
     return (
@@ -23,11 +28,15 @@ export class ContentPane extends React.Component<IContentPaneProps, any> {
         <hr />
         <h5>Receive {wallet.name}:</h5> Your Address:
         <input type="text" className="form-control" readOnly={true} value={this.props.address} />
-
+        <input className="btn btn-default" type="button" value="Copy Address" onClick={this.copyAddress} />
         <hr />
         <TransferPane wallet={wallet}/>
       </div>
     );
+  }
+
+  private copyAddress() {
+    clipboard.writeText(this.props.address);
   }
 }
 

@@ -8,7 +8,7 @@ let mainWindow;
 
 function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600, title: "The Wallet", show: true});
+  mainWindow = new BrowserWindow({width: 800, height: 600, title: "The Wallet", show: false});
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -16,6 +16,10 @@ function createWindow() {
     protocol: "file:",
     slashes: true,
   }));
+
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.show();
+  });
 
   // Emitted when the window is closed.
   mainWindow.on("closed", function() {
