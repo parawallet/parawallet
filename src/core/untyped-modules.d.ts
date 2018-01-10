@@ -10,25 +10,6 @@ declare module "seco-keyval" {
     }
 }
 
-declare module "eth-lightwallet" {
-
-    export interface KeyStore {
-        getAddresses() : any;
-        generateNewAddress(key: string, count: number): any;
-        keyFromPassword(pass: string, cb: any): string;
-    }
-
-    export function createVault(opts: any, cb: any): any;
-}
-
-
-declare module "hooked-web3-provider" {
-    export class HookedWeb3Provider {
-        constructor(props: any);
-    }
-}
-
-
 declare module "coinselect" {
 
     function coinSelect(utxos: { txId: string, vout: number, value: number }[], outputs: { address: string, value: number }[], feeRate: number): { inputs: { txId: string, vout: number, value: number }[], outputs: { address: string, value: number }[], fee: number };
