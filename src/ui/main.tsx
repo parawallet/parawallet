@@ -48,6 +48,7 @@ class Main extends React.Component<any, LoginState> {
             this.btcAddressGen = new BtcAddressGenerator(db.get(), loginCreds.mnemonicPass);
             this.btcAddressGen.initialize()
                 .then(() => this.setState({authenticated: true, initialized: true}));
+            this.ethAddressGen = new EthAddressGenerator(db.get(), loginCreds.mnemonicPass);
             this.ethAddressGen.initialize().then(() => console.log("ETH address generator initialized."));
         }, (e: Error) => {
             console.log(e);

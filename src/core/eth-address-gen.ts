@@ -1,6 +1,6 @@
 import * as bip39 from "bip39";
-import createVault = require("eth-lightwallet");
-import {KeyStore} from "eth-lightwallet";
+// import createVault = require("eth-lightwallet");
+import {createVault, KeyStore} from "eth-lightwallet";
 import {HookedWeb3Provider} from "hooked-web3-provider";
 import {SecoKeyval} from "seco-keyval";
 import Web3 = require("web3");

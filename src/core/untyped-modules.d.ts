@@ -14,13 +14,11 @@ declare module "eth-lightwallet" {
 
     export interface KeyStore {
         getAddresses() : any;
-        generateNewAddress(key: string, count: number) : any;
-        keyFromPassword(pass: string, cb: any) : string;
+        generateNewAddress(key: string, count: number): any;
+        keyFromPassword(pass: string, cb: any): string;
     }
 
-    function createVault(opts: any, cb: any) : any;
-
-    export = createVault;
+    export function createVault(opts: any, cb: any): any;
 }
 
 
