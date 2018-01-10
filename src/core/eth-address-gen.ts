@@ -1,7 +1,7 @@
 import * as bip39 from "bip39";
-import lightwallet = require("eth-lightwallet");
-import HookedWeb3Provider = require("hooked-web3-provider");
-// import HookedWeb3Provider from "hooked-web3-provider";
+import createVault = require("eth-lightwallet");
+import {KeyStore} from "eth-lightwallet";
+import {HookedWeb3Provider} from "hooked-web3-provider";
 import {SecoKeyval} from "seco-keyval";
 import Web3 = require("web3");
 import {ChainType, CoinType, generatePath} from "./bip44-path";
@@ -14,7 +14,7 @@ export class EthAddressGenerator {
     private readonly coinType: CoinType = CoinType.ETH;
     private web3: Web3;
     private receiveAddress = "";
-    private keystore;
+    private keystore: KeyStore;
     private mnemonic: string;
 
     constructor(kv: SecoKeyval, pass?: string) {
@@ -40,20 +40,19 @@ export class EthAddressGenerator {
                         alert("Invalid mnemonic!");
                     }
                     that.mnemonic = mnemonic;
-                    lightwallet.keystore.createVault({
+                    createVault({
                             hdPathString: generatePath(this.coinType, ChainType.EXTERNAL, 0),
                             password: that.pass,
                             seedPhrase: mnemonic }
-                        , (err, ks) => {
+                        , (err: any, ks: any) => {
                             that.keystore = ks;
-                            that.keystore.keyFromPassword(that.pass, (err2, pwDerivedKey) => {
+                            that.keystore.keyFromPassword(that.pass, (err2: any, pwDerivedKey: any) => {
                                 that.keystore.generateNewAddress(pwDerivedKey, 1);
                                 that.receiveAddress = that.keystore.getAddresses()[0];
                                 alert("addr:" + that.receiveAddress);
-                                const web3Provider = new HookedWeb3Provider({
+                                const web3Provider: any = new HookedWeb3Provider({
                                     host: "https://rinkeby.infura.io/",
-                                    transaction_signer: that.keystore,
-                                });
+                                    transaction_signer: that.keystore });
                                 this.web3 = new Web3(web3Provider);
                                 resolve("success");
                             });
