@@ -9,6 +9,11 @@ declare module "seco-keyval" {
   }
 }
 
+declare module "eth-lightwallet" {
+
+    export = lightwallet;
+}
+
 declare module "coinselect" {
 
   function coinSelect (utxos: {txId: string, vout: number, value: number}[], outputs: {address: string, value: number}[], feeRate: number):

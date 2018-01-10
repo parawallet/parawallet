@@ -13,7 +13,7 @@ export enum CoinType {
   TEST= "1",
   LTC = "2",
   // ...
-  ETC = "60",
+  ETH = "60",
 }
 
 export function generatePath(cointType: CoinType, chainType: ChainType, index: number) {

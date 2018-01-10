@@ -44,9 +44,12 @@
     "bitcoinjs-lib": "^3.3.2",
     "coinselect": "^3.1.1",
     "cryptocoins-icons": "^2.6.0",
+    "eth-lightwallet": "^3.0.1",
+    "hooked-web3-provider": "^1.0.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "seco-keyval": "^0.2.0"
+    "seco-keyval": "^0.2.0",
+    "web3": "^1.0.0-beta.27"
   },
   "build": {
     "appId": "com.the.wallet",

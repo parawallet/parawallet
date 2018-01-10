@@ -1,18 +1,23 @@
+import {EthAddressGenerator} from "./eth-address-gen";
 import {AbstractWallet, BalanceCallback, IWallet} from "./wallet";
 
 export class EthWallet extends AbstractWallet implements IWallet {
-  constructor() {
-    super("ETH", "Ethereum");
-  }
+    private addressGen: EthAddressGenerator;
 
-  public update(callback?: BalanceCallback) {
-    this.totalBalance = 0;
-    if (callback) {
-      callback("", 0);
+
+    constructor(addressGen: EthAddressGenerator) {
+        super("ETH", "Ethereum");
+        this.addressGen = addressGen;
     }
-  }
 
-  public send(toAddress: string, amount: number) {
-    alert("wallet not available");
-  }
+    public update(callback?: BalanceCallback) {
+        this.totalBalance = 0;
+        if (callback) {
+            callback("", 0);
+        }
+    }
+
+    public send(toAddress: string, amount: number) {
+        alert("wallet not available");
+    }
 }
