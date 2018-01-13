@@ -1,12 +1,10 @@
 import * as bip39 from "bip39";
-import * as lightwallet from "eth-lightwallet";
 import {SecoKeyval} from "seco-keyval";
 import {ChainType, CoinType, generatePath} from "./bip44-path";
 
-const SignerProvider = require('ethjs-provider-signer');
-const sign = require('ethjs-signer').sign;
-const Eth = require('ethjs-query');
-const Web3 = require("web3");
+var ethers = require("ethers");
+var Wallet = ethers.Wallet;
+var utils = ethers.utils;
 
 // todo support multiple addresses
 export class EthAddressGenerator {
@@ -35,30 +33,14 @@ export class EthAddressGenerator {
                         alert("Invalid mnemonic!");
                     }
                     that.mnemonic = mnemonic;
-                    lightwallet.keystore.createVault({
-                            hdPathString: generatePath(this.coinType, ChainType.EXTERNAL, 0),
-                            password: that.pass,
-                            seedPhrase: mnemonic,
-                        }
-                        , (err, ks) => {
-                            that.keystore = ks;
-                            that.keystore.keyFromPassword(that.pass, (err2, pwDerivedKey) => {
-                                that.keystore.generateNewAddress(pwDerivedKey, 1);
-                                that.receiveAddress = that.keystore.getAddresses()[0];
-                                console.log("eth receive addr:" + that.receiveAddress);
-                                // TODO: hooked-web3-provider is deprecated, use ethjs-provider-signer instead.
-                                const web3Provider = new HookedWeb3Provider({
-                                    host: "https://rinkeby.infura.io/",
-                                    transaction_signer: that.keystore,
-                                });
-                                const provider = new SignerProvider('https://rinkeby.infura.io/', {
-                                    signTransaction: (rawTx, cb) => cb(null, sign(rawTx, '0x...privateKey...')),
-                                    accounts: (cb) => cb(null, ['0x407d73d8a49eeb85d32cf465507dd71d507100c1']),
-                                });
-                                this.web3 = new Web3(web3Provider);
-                                resolve("success");
-                            });
-                        });
+                    // todo this library does not support encrytping mnemonic with password
+                    that.wallet = Wallet.fromMnemonic(that.mnemonic, generatePath(this.coinType, ChainType.EXTERNAL, 0));
+                    that.receiveAddress = that.wallet.address;
+                    let providers = ethers.providers;
+                    var network = providers.networks.rinkeby;
+                    that.provider = new providers.EtherscanProvider(network);
+                    that.wallet.provider = that.provider;
+                    resolve("success");
                 }
             });
         });
@@ -66,23 +48,22 @@ export class EthAddressGenerator {
     }
 
     getBalance() {
-        return this.web3.eth.getBalance(this.receiveAddress);
+        return this.provider.getBalance(this.receiveAddress);
     }
 
-    send(toAddr, amount, callback) {
-        const gas = 50000;
-        const gasPrice = 18000000000;
-        // todo return the receipt, tx hash etc
-        this.web3.eth.sendTransaction({
-            from: this.receiveAddress,
-            gas: gas,
-            gasPrice: gasPrice,
-            to: toAddr,
-            value: parseFloat(amount) * 1.0e18,
-        }, function(err, txhash) {
-            alert("huhu");
+    send(toAddr, etherAmount, callback) {
+        // todo check if we need to do something related to big numbers
+        var options = {
+            gasLimit: 30000,
+            gasPrice: utils.bigNumberify("20000000000"),
+        };
+        var amount = etherAmount * 1e18;
+        var sendPromise = this.wallet.send(toAddr, amount, options);
+        sendPromise.then(function(transactionHash) {
+            console.log(transactionHash);
             callback();
         });
+        // todo return the receipt, tx hash etc
     }
 
 }

@@ -12,7 +12,7 @@ npm install
 ```
 - Run the app
 ```
-npm run build ; npm start
+npm run build  npm start
 ```
 
 ### stack
@@ -27,13 +27,24 @@ bitcoin library: https://github.com/bitcoinjs/bitcoinjs-lib
 
 ### bitcoin API
 
-#### For Data:
+#### Scan:
 - https://www.blocktrail.com/tBTC/address/n32PUHi2HkraYn6xAxi28pCSkwrndT9KcB
 - https://live.blockcypher.com/btc-testnet/tx/e841d76cbacf607fce9270ae7db085954b352cde7326bd3b7420b4cd6a80bf8b/
 
 #### For pushing txn to testnet:
 https://www.smartbit.com.au/api
 
-#### Borrow Bitcoin from testnet
+#### Faucet
 - https://testnet.coinfaucet.eu/en/
 - https://testnet.manu.backend.hamburg/faucet
+
+### Ethereum API
+
+#### Wallet:
+- https://docs.ethers.io/ethers.js/html/api-wallet.html#blockchain-operations
+
+#### Network:
+rinkeby
+
+#### Faucet
+https://faucet.rinkeby.io/

@@ -20,6 +20,6 @@ export class EthWallet extends AbstractWallet implements IWallet {
     }
 
     public send(toAddress: string, amount: number, callback?: BalanceCallback) {
-        this.addressGen.send(toAddress, amount, this.update(callback));
+        this.addressGen.send(toAddress, amount, () => this.update(callback));
     }
 }
