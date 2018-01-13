@@ -11,13 +11,15 @@ export class EthWallet extends AbstractWallet implements IWallet {
     }
 
     public update(callback?: BalanceCallback) {
-        this.totalBalance = 0;
-        if (callback) {
-            callback("", 0);
-        }
+        const promise: Promise<number> = this.addressGen.getBalance();
+        promise.then((balance: number) => {
+            if (callback) {
+                callback(this.addressGen.receiveAddress, balance / 1.0e18);
+            }
+        });
     }
 
-    public send(toAddress: string, amount: number) {
-        alert("wallet not available");
+    public send(toAddress: string, amount: number, callback?: BalanceCallback) {
+        this.addressGen.send(toAddress, amount, this.update(callback));
     }
 }

@@ -50,6 +50,7 @@ class Main extends React.Component<any, LoginState> {
                 .then(() => this.setState({authenticated: true, initialized: true}));
             this.ethAddressGen = new EthAddressGenerator(db.get(), loginCreds.mnemonicPass);
             this.ethAddressGen.initialize().then(() => console.log("ETH address generator initialized."));
+            // todo set state initialized after all address generators initialized
         }, (e: Error) => {
             console.log(e);
             alert("Wrong password: " + e);

@@ -57,7 +57,7 @@ class TransferState {
 class TransferPane extends React.Component<ITransferPaneProps, TransferState> {
   public constructor(props: ITransferPaneProps) {
     super(props);
-    this.state = new TransferState("mq3ce8CE4jmyg5a8Y4HqcPtnLRGJu9qhHf", 1000000);
+    this.state = new TransferState("", 0);
 
     this.handleAmountChange = this.handleAmountChange.bind(this);
     this.handleAddressChange = this.handleAddressChange.bind(this);
