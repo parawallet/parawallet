@@ -2,65 +2,46 @@ import * as bip39 from "bip39";
 import {ECPair, HDNode, Network, networks, TransactionBuilder} from "bitcoinjs-lib";
 import { SecoKeyval } from "seco-keyval";
 import {ChainType, CoinType, generatePath} from "./bip44-path";
+import { BtcNetworkType } from "./btc-wallet";
 
 export class BtcAddressGenerator {
     private readonly kv: SecoKeyval;
     private readonly network: Network;
     private readonly cointype: CoinType;
+    private readonly mnemonic: string;
     private readonly pass: string;
     private receiveAddressIndex = 0;
     private changeAddressIndex = 0;
     private currentReceiveAddress = "";
-    private mnemonic: string;
 
-    constructor(kv: SecoKeyval, pass?: string, network?: Network) {
+    constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: BtcNetworkType) {
         if (!kv) {
             throw new Error("KV is required");
         }
         if (!kv.hasOpened) {
             throw new Error("KV is not ready yet!");
         }
+        if (!mnemonic) {
+            throw new Error("no mnemonic");
+        }
+        this.mnemonic = mnemonic;
         this.kv = kv;
-        this.network = network || networks.testnet;
+        this.network = networkType === BtcNetworkType.MAINNET ? networks.bitcoin : networks.testnet;
         this.cointype = this.network === networks.bitcoin ? CoinType.BTC : CoinType.TEST;
         this.pass = pass || "";
     }
 
     public initialize() {
-        const that = this;
         const promiseList: Array<Promise<any>> = [];
-
         promiseList.push(
             new Promise((resolve, reject) => {
-                    that.kv.get("mnemonic").then((mnemonic) => {
-                            if (!mnemonic) {
-                                mnemonic = bip39.generateMnemonic();
-                                that.kv.set("mnemonic", mnemonic);
-                                that.mnemonic = mnemonic;
-                                console.log("generated mnemonic:" + mnemonic);
-                                alert("Please write down following words to backup your wallet: " + mnemonic);
-                            } else {
-                                console.log("read mnemonic:" + mnemonic);
-                                if (!bip39.validateMnemonic(mnemonic)) {
-                                    alert("Invalid mnemonic!");
-                                }
-                                that.mnemonic = mnemonic;
-                            }
-                            resolve("success");
-                        },
-                    );
-                },
-            ));
-
-        promiseList.push(
-            new Promise((resolve, reject) => {
-                    that.kv.get("btc-receive-address-index").then((index) => {
+                    this.kv.get("btc-receive-address-index").then((index) => {
                             if (index) {
-                                that.receiveAddressIndex = index;
-                                that.currentReceiveAddress = that.prepareAddress(ChainType.EXTERNAL, 0);
+                                this.receiveAddressIndex = index;
+                                this.currentReceiveAddress = this.prepareAddress(ChainType.EXTERNAL, 0);
                             } else {
-                                that.receiveAddressIndex = 0;
-                                that.currentReceiveAddress = that.generateReceiveAddress();
+                                this.receiveAddressIndex = 0;
+                                this.currentReceiveAddress = this.generateReceiveAddress();
                             }
                             resolve("success");
                         },
@@ -69,12 +50,12 @@ export class BtcAddressGenerator {
             ));
         promiseList.push(
             new Promise((resolve, reject) => {
-                    that.kv.get("btc-change-address-index").then((index) => {
+                this.kv.get("btc-change-address-index").then((index) => {
                             if (index) {
-                                that.changeAddressIndex = index;
+                                this.changeAddressIndex = index;
                             } else {
-                                that.changeAddressIndex = 0;
-                                that.kv.set("btc-change-address-index", 0);
+                                this.changeAddressIndex = 0;
+                                this.kv.set("btc-change-address-index", 0);
                             }
                             resolve("success");
                         },

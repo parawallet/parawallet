@@ -1,18 +1,29 @@
 import {ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
+import { SecoKeyval } from "seco-keyval";
 import {BtcAddressGenerator} from "./btc-address-gen";
-import {IBtcWalletRpc, UnspentTxOutput} from "./btc-wallet-rpc";
+import {createBtcWalletRpc, IBtcWalletRpc, UnspentTxOutput} from "./btc-wallet-rpc";
 import {AbstractWallet, BalanceCallback, IWallet} from "./wallet";
 
+export enum BtcNetworkType {
+    MAINNET, TESTNET,
+}
 
 export class BtcWallet extends AbstractWallet implements IWallet {
-    private rpc: IBtcWalletRpc;
-    private addressGen: BtcAddressGenerator;
+    private readonly rpc: IBtcWalletRpc;
+    private readonly addressGen: BtcAddressGenerator;
 
-    constructor(addressGen: BtcAddressGenerator, rpc: IBtcWalletRpc) {
+    constructor(kv: SecoKeyval, mnemonic: string, mnemonicPass: string, network: BtcNetworkType) {
         super("BTC", "Bitcoin");
-        this.addressGen = addressGen;
-        this.rpc = rpc;
+        const rpc = createBtcWalletRpc(network);
+        if (rpc) {
+            this.rpc = rpc;
+        }
+        this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, network);
+    }
+
+    public initialize() {
+        return this.addressGen.initialize();
     }
 
     public update(callback?: BalanceCallback) {

@@ -1,10 +1,8 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import {BtcAddressGenerator} from "../core/btc-address-gen";
-import {BtcWallet} from "../core/btc-wallet";
-import {BtcWalletTestnetRpc} from "../core/btc-wallet-rpc";
-import {EthAddressGenerator} from "../core/eth-address-gen";
-import {EthWallet} from "../core/eth-wallet";
+import {BtcNetworkType, BtcWallet} from "../core/btc-wallet";
+import {EthNetworkType, EthWallet} from "../core/eth-wallet";
+import {getOrInitializeMnemonic} from "../core/mnemonic";
 import {IWallet} from "../core/wallet";
 import * as db from "../db/secure-db";
 import {Login, LoginCredentials} from "./login";
@@ -16,8 +14,6 @@ class LoginState {
 }
 
 class Main extends React.Component<any, LoginState> {
-    private btcAddressGen: BtcAddressGenerator;
-    private ethAddressGen: EthAddressGenerator;
     private wallets: IWallet[] = [];
 
     constructor(props: any) {
@@ -44,25 +40,29 @@ class Main extends React.Component<any, LoginState> {
         p.then(() => {
             console.log("DB is ready now -> " + db.get().hasOpened);
             this.setState({authenticated: true, initialized: false});
-
-            this.btcAddressGen = new BtcAddressGenerator(db.get(), loginCreds.mnemonicPass);
-            this.btcAddressGen.initialize()
-                .then(() => this.setState({authenticated: true, initialized: true}));
-            this.ethAddressGen = new EthAddressGenerator(db.get(), loginCreds.mnemonicPass);
-            this.ethAddressGen.initialize().then(() => console.log("ETH address generator initialized."));
-            // todo set state initialized after all address generators initialized
+            this.initializeWallets(loginCreds.mnemonicPass);
         }, (e: Error) => {
             console.log(e);
             alert("Wrong password: " + e);
         });
     }
 
-    private renderPage() {
-        const BTC = new BtcWallet(this.btcAddressGen, new BtcWalletTestnetRpc());
-        const ETH = new EthWallet(this.ethAddressGen);
-        this.wallets.push(BTC, ETH);
+    private initializeWallets(mnemonicPass: string) {
+        getOrInitializeMnemonic(db.get()).then((mnemonic) => {
+            const BTC = new BtcWallet(db.get(), mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
+            const ETH = new EthWallet(mnemonic, mnemonicPass, EthNetworkType.rinkeby);
+            this.wallets.push(BTC, ETH);
 
-        return (<Page defaultWalletCode={BTC.code} wallets={this.wallets}/>);
+            const promises: Array<Promise<any>> = [];
+            promises.push(BTC.initialize());
+            promises.push(ETH.initialize());
+            Promise.all(promises).then(() => this.setState({authenticated: true, initialized: true}));
+        });
+    }
+
+    private renderPage() {
+        const defaultWallet = this.wallets[0];
+        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets}/>);
     }
 }
 
