@@ -13,13 +13,13 @@ export class BtcWallet extends AbstractWallet implements IWallet {
     private readonly rpc: IBtcWalletRpc;
     private readonly addressGen: BtcAddressGenerator;
 
-    constructor(kv: SecoKeyval, mnemonic: string, mnemonicPass: string, network: BtcNetworkType) {
+    constructor(kv: SecoKeyval, mnemonic: string, mnemonicPass: string, networkType: BtcNetworkType) {
         super("BTC", "Bitcoin");
-        const rpc = createBtcWalletRpc(network);
+        const rpc = createBtcWalletRpc(networkType);
         if (rpc) {
             this.rpc = rpc;
         }
-        this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, network);
+        this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType);
     }
 
     public initialize() {
@@ -27,16 +27,12 @@ export class BtcWallet extends AbstractWallet implements IWallet {
     }
 
     public update(callback?: BalanceCallback) {
-        const promises: Array<Promise<number>> = [];
-        this.addressGen.getKeypairs().forEach(
-            (keypair, index) => {
-                console.log(index + ": querying address -> " + keypair.getAddress());
-                promises.push(this.rpc.queryBalance(keypair.getAddress()));
-            },
-        );
-        Promise.all(promises).then((balances) => {
+        const addresses = this.addressGen.getKeypairs().map((keypair) => keypair.getAddress());
+        this.rpc.queryBalance(addresses).then((balances) => {
             let total = 0;
-            balances.forEach((value) => {
+            balances.forEach((balance) => {
+                const address = balance[0];
+                const value = balance[1];
                 total += value;
             });
             this.totalBalance = total;
@@ -50,15 +46,12 @@ export class BtcWallet extends AbstractWallet implements IWallet {
         alert("You are about to send " + amount + " bitcoins");
 
         const satoshiAmount = amount * 1e8;
-        const requests: Array<Promise<[ECPair, UnspentTxOutput[]]>> = [];
-        this.addressGen.getKeypairs()
-            .forEach((keypair) => requests.push(this.rpc.getUnspentOutputs(keypair)));
 
         const txnId2KeypairMap = new Map<string, ECPair>();
         let allUnspentOutputs: UnspentTxOutput[] = [];
 
-        Promise.all(requests).then((values) => {
-            values.forEach((tupple) => {
+        this.rpc.getUnspentOutputs(this.addressGen.getKeypairs()).then((outputTuples) => {
+            outputTuples.forEach((tupple) => {
                 const keypair = tupple[0];
                 const unspentOutputs = tupple[1];
                 unspentOutputs.forEach((output) => txnId2KeypairMap.set(output.txId, keypair));

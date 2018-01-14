@@ -8,24 +8,26 @@ export function createBtcWalletRpc(network: BtcNetworkType): IBtcWalletRpc | und
     throw new Error("not implemented!");
   }
   if (network === BtcNetworkType.TESTNET) {
-    return new BtcWalletTestnetRpc();
+    return new SmartbitBtcWalletRpc();
   }
 }
 
 export interface IBtcWalletRpc {
-  queryBalance(address: string): Promise<number>;
-  getUnspentOutputs(keyPair: ECPair): Promise<[ECPair, UnspentTxOutput[]]>;
+  queryBalance(addresses: string[]): Promise<Array<[string, number]>>;
+  getUnspentOutputs(keyPairs: ECPair[]): Promise<Array<[ECPair, UnspentTxOutput[]]>>;
   pushTransaction(txHex: string): Promise<any>;
 }
 
-export class BtcWalletTestnetRpc implements IBtcWalletRpc {
-  private readonly txPushUrl = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
-  private readonly queryUrl = "https://api.blocktrail.com/v1/tBTC/address/";
-  private readonly apiKey = "a3f9078954c1f4efa062ced312b3ab6bad027ed1";
+const unspentTxOutputMinConfirmations = 5;
 
-  public queryBalance(address: string) {
-    const url = this.queryUrl + address + "?api_key=" + this.apiKey;
-    return new Promise<number>((resolve, reject) => {
+// https://www.smartbit.com.au/api
+class SmartbitBtcWalletRpc implements IBtcWalletRpc {
+  private readonly txPushUrl = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
+  private readonly queryUrl = "https://testnet-api.smartbit.com.au/v1/blockchain/address/";
+
+  public queryBalance(addresses: string[]) {
+    const url = this.queryUrl + addresses.join(",");
+    return new Promise<Array<[string, number]>>((resolve, reject) => {
       request.get(url, (error: any, response: Response, body: any) => {
         if (error) {
           console.error(error);
@@ -33,28 +35,46 @@ export class BtcWalletTestnetRpc implements IBtcWalletRpc {
           return;
         }
 
-        const result = JSON.parse(body);
-        const balance = result.balance / 1e8;
-        resolve(balance);
+        const balances: Array<[string, number]> = [];
+        const results: any[] = JSON.parse(body).addresses;
+        results.forEach((result) => {
+          console.log("Received query result for " + result.address
+            + ", total: " + result.total.balance_int
+            + ", confirmed: " + result.confirmed.balance_int
+            + ", unconfirmed: " + result.unconfirmed.balance_int);
+          balances.push([result.address, result.total.balance_int / 1e8]);
+        });
+
+        resolve(balances);
       });
     });
   }
 
-  // todo filter unconfirmed ones.
-  // see: https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/test/integration/_testnet.js
-  public getUnspentOutputs(keyPair: ECPair) {
-    const url = this.queryUrl + keyPair.getAddress() + "/unspent-outputs?api_key=" + this.apiKey;
-    return new Promise<[ECPair, UnspentTxOutput[]]>((resolve, reject) => {
+  public getUnspentOutputs(keyPairs: ECPair[]) {
+    const url = this.queryUrl + keyPairs.map((keypair) => keypair.getAddress()).join(",") + "/unspent";
+
+    return new Promise<Array<[ECPair, UnspentTxOutput[]]>>((resolve, reject) => {
       request.get(url, (error: any, response: Response, body: any) => {
         if (error) {
           console.error(error);
           reject(error);
           return;
         }
+        // tslint:disable-next-line:interface-over-type-literal
+        type utxo = {addresses: string[], txid: string, n: number, value_int: number, confirmations: number};
+        const outputs: Array<[ECPair, UnspentTxOutput[]]> = [];
+
         const result = JSON.parse(body);
-        const unspent = result.data.map((out: {hash: string, index: number, value: number}) =>
-          new UnspentTxOutput(out.hash, out.index, out.value));
-        resolve([keyPair, unspent]);
+        const allUnspents: utxo[] = (result.unspent.filter((out: utxo) => out.confirmations > unspentTxOutputMinConfirmations) as utxo[]);
+
+        keyPairs.forEach((keypair) => {
+          const unspents = allUnspents.filter((out) => keypair.getAddress() === out.addresses[0])
+            .map((out: utxo) => new UnspentTxOutput(out.txid, out.n, out.value_int));
+          outputs.push([keypair, unspents]);
+          console.log("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
+        });
+
+        resolve(outputs);
       });
     });
   }
@@ -75,6 +95,24 @@ export class BtcWalletTestnetRpc implements IBtcWalletRpc {
           resolve("success");
       });
     });
+  }
+}
+
+// https://insight.bitpay.com/
+// https://test-insight.bitpay.com/
+// https://github.com/bitpay/insight-api
+// we can deploy ourselves, public one has a rate-limiter
+class BitpayInsightBtcWalletRpc implements IBtcWalletRpc {
+  public queryBalance(addresses: string[]): Promise<Array<[string, number]>> {
+    throw new Error("");
+  }
+
+  public getUnspentOutputs(keyPairs: ECPair[]): Promise<Array<[ECPair, UnspentTxOutput[]]>> {
+    throw new Error("");
+  }
+
+  public pushTransaction(txHex: string): Promise<any> {
+    throw new Error("");
   }
 }
 
