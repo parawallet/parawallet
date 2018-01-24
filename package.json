@@ -49,6 +49,7 @@
     "ethers": "^2.2.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
+    "ripple-lib": "^0.17.9",
     "seco-keyval": "^0.2.0"
   },
   "build": {

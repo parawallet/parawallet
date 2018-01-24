@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom";
 import {BtcNetworkType, BtcWallet} from "../core/btc-wallet";
 import {EthNetworkType, EthWallet} from "../core/eth-wallet";
 import {getOrInitializeMnemonic} from "../core/mnemonic";
+import {XrpWallet} from "../core/xrp-wallet";
 import {IWallet} from "../core/wallet";
 import * as db from "../db/secure-db";
 import {Login, LoginCredentials} from "./login";
@@ -51,11 +52,13 @@ class Main extends React.Component<any, LoginState> {
         getOrInitializeMnemonic(db.get()).then((mnemonic) => {
             const BTC = new BtcWallet(db.get(), mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
             const ETH = new EthWallet(mnemonic, mnemonicPass, EthNetworkType.rinkeby);
-            this.wallets.push(BTC, ETH);
+            const XRP = new XrpWallet();
+            this.wallets.push(BTC, ETH, XRP);
 
             const promises: Array<Promise<any>> = [];
             promises.push(BTC.initialize());
             promises.push(ETH.initialize());
+            promises.push(XRP.initialize());
             Promise.all(promises).then(() => this.setState({authenticated: true, initialized: true}));
         });
     }

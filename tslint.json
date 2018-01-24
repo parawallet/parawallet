@@ -16,6 +16,7 @@
       "jsx-no-multiline-js": false,
       "jsx-no-lambda": false,
       "jsx-alignment": false,
+      "ordered-imports": false,
       "no-console": [false, "log", "error"]
     },
     "jsRules": {
