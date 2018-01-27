@@ -52,7 +52,7 @@ class Main extends React.Component<any, LoginState> {
         getOrInitializeMnemonic(db.get()).then((mnemonic) => {
             const BTC = new BtcWallet(db.get(), mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
             const ETH = new EthWallet(mnemonic, mnemonicPass, EthNetworkType.rinkeby);
-            const XRP = new XrpWallet();
+            const XRP = new XrpWallet(mnemonic);
             this.wallets.push(BTC, ETH, XRP);
 
             const promises: Array<Promise<any>> = [];

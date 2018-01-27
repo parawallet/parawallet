@@ -6,9 +6,9 @@ export class XrpWallet extends AbstractWallet implements IWallet {
     private readonly rpc: XrpWalletRpc;
 
 
-    constructor() {
+    constructor(mnemonic: string) {
         super("XRP", "Ripple");
-        this.rpc = new XrpWalletRpc();
+        this.rpc = new XrpWalletRpc(mnemonic);
     }
 
     public initialize() {
