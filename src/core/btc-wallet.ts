@@ -85,7 +85,6 @@ export class BtcWallet extends AbstractWallet implements IWallet {
                 const keypair = txnId2KeypairMap.get(input.txId)!;
                 txb.sign(i, keypair);
             }
-
             this.rpc.pushTransaction(txb.build().toHex())
                 .then(() => this.update(callback));
         });
