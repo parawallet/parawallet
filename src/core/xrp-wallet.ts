@@ -5,13 +5,12 @@ import {AbstractWallet, BalanceCallback, IWallet} from "./wallet";
 export class XrpWallet extends AbstractWallet implements IWallet {
     private readonly rpc: XrpWalletRpc;
 
-
     constructor(mnemonic: string) {
         super("XRP", "Ripple");
         this.rpc = new XrpWalletRpc(mnemonic);
     }
 
-    public initialize() {
+    public initialize(newWallet: boolean) {
         return this.rpc.initialize();
     }
 

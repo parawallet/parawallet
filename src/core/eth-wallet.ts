@@ -13,7 +13,7 @@ export class EthWallet extends AbstractWallet implements IWallet {
         this.rpc = new EthWalletRpc(mnemonic, mnemonicPass, network);
     }
 
-    public initialize() {
+    public initialize(isNewWallet: boolean) {
         return this.rpc.initialize();
     }
 

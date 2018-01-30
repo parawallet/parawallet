@@ -1,6 +1,7 @@
 import {clipboard} from "electron";
 import * as React from "react";
 import { IWallet } from "../core/wallet";
+import { totpValidator, TotpVerifyDialog } from "./totp";
 
 interface IContentPaneProps {
   readonly wallet: IWallet;
@@ -8,7 +9,7 @@ interface IContentPaneProps {
   readonly balance: number;
 }
 
-export class ContentPane extends React.Component<IContentPaneProps, any> {
+export class WalletPane extends React.Component<IContentPaneProps, any> {
   constructor(props: IContentPaneProps) {
     super(props);
     this.copyAddress = this.copyAddress.bind(this);
@@ -47,10 +48,12 @@ interface ITransferPaneProps {
 class TransferState {
   public readonly address: string;
   public readonly amount: number | string;
+  public readonly verifyToken: boolean;
 
-  constructor(address: string, amount: number | string) {
+  constructor(address: string, amount: number | string, verifyToken?: boolean) {
     this.address = address;
     this.amount = amount;
+    this.verifyToken = verifyToken ? verifyToken : false;
   }
 }
 
@@ -62,9 +65,13 @@ class TransferPane extends React.Component<ITransferPaneProps, TransferState> {
     this.handleAmountChange = this.handleAmountChange.bind(this);
     this.handleAddressChange = this.handleAddressChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.onVerifyToken = this.onVerifyToken.bind(this);
   }
 
   public render() {
+    if (this.state.verifyToken) {
+      return <TotpVerifyDialog show={true} onVerify={this.onVerifyToken} />;
+    }
     return (
       <div>
         <h5>Send {this.props.wallet.name}:</h5>
@@ -91,6 +98,7 @@ class TransferPane extends React.Component<ITransferPaneProps, TransferState> {
     this.setState((prevState, props) => {
       return new TransferState(prevState.address, target.value);
     });
+    event.preventDefault();
   }
 
   private handleAddressChange(event: React.FormEvent<HTMLInputElement>) {
@@ -98,12 +106,35 @@ class TransferPane extends React.Component<ITransferPaneProps, TransferState> {
     this.setState((prevState, props) => {
       return new TransferState(target.value, prevState.amount);
     });
+    event.preventDefault();
   }
 
   private handleSubmit(event: React.FormEvent<any>) {
+    event.preventDefault();
+
+    if (totpValidator.enabled) {
+      this.setState((prevState, props) => {
+        return new TransferState(prevState.address, prevState.amount, true);
+      });
+    } else {
+      this.transfer();
+    }
+  }
+
+  private transfer() {
     this.props.wallet.send(this.state.address, Number(this.state.amount), (address, balance) => {
       // TODO: update balance in main UI
     });
-    event.preventDefault();
+  }
+
+  private onVerifyToken(valid: boolean) {
+    this.setState((prevState, props) => {
+      return new TransferState(prevState.address, prevState.amount, false);
+    });
+
+    if (!valid) {
+      return;
+    }
+    this.transfer();
   }
 }

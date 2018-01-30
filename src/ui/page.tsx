@@ -1,8 +1,9 @@
 import * as React from "react";
 import { IWallet } from "../core/wallet";
-import { ContentPane } from "./content-pane";
+import { Preferences, PreferencesMenu } from "./preferences";
 import { ToolsMenu } from "./tools-menu";
 import { WalletMenu } from "./wallet-menu";
+import { WalletPane } from "./wallet-pane";
 
 interface IPageProps {
   readonly defaultWalletCode: string;
@@ -10,6 +11,16 @@ interface IPageProps {
 }
 
 const NA_ADDRESS = "Loading...";
+
+class PageState {
+  public readonly walletCode: string;
+  public readonly showPrefs: boolean;
+
+  constructor(walletCode: string, showPrefs: boolean) {
+    this.walletCode = walletCode;
+    this.showPrefs = showPrefs;
+  }
+}
 
 class WalletState {
   public readonly wallet: IWallet;
@@ -44,14 +55,15 @@ class WalletsContext {
   }
 }
 
-export class Page extends React.Component<IPageProps, WalletState> {
+export class Page extends React.Component<IPageProps, PageState> {
   private walletsContext: WalletsContext;
   private timerID: NodeJS.Timer;
 
   constructor(props: IPageProps) {
     super(props);
     this.walletsContext = new WalletsContext(props.wallets);
-    this.state = this.getWalletState(props.defaultWalletCode);
+    this.state = new PageState(props.defaultWalletCode, false);
+    this.showPreferences = this.showPreferences.bind(this);
   }
 
   public componentDidMount() {
@@ -65,14 +77,20 @@ export class Page extends React.Component<IPageProps, WalletState> {
 
   // If you don’t use something in render(), it shouldn’t be in the state.
   public render() {
+    const ws = this.getWalletState(this.state.walletCode);
     return (
       <div className="pane-group">
         <div className="pane-sm sidebar">
           <WalletMenu wallets={this.props.wallets} onClick={(wlt) => this.switchWallet(wlt)} />
           <ToolsMenu />
+          <PreferencesMenu onClick={this.showPreferences} />
         </div>
         <div className="pane">
-          <ContentPane wallet={this.state.wallet} address={this.state.address} balance={this.state.balance} />
+          {this.state.showPrefs ? (
+            <Preferences />
+          ) : (
+            <WalletPane wallet={ws.wallet} address={ws.address} balance={ws.balance} />
+          )}
         </div>
       </div>
     );
@@ -86,28 +104,31 @@ export class Page extends React.Component<IPageProps, WalletState> {
     return ws;
   }
 
-  private getActiveWallet(): IWallet {
-    return this.state.wallet;
-  }
-
   // Do Not Modify State Directly. Instead, use setState().
   private switchWallet(wallet: IWallet) {
     const ws = this.getWalletState(wallet.code);
-    this.setState(ws);
+    this.setState(new PageState(wallet.code, false));
     if (ws.address === NA_ADDRESS) {
       this.updateBalance(wallet);
     }
   }
 
   private updateActiveBalance() {
-    this.updateBalance(this.getActiveWallet());
+    if (!this.state.showPrefs) {
+      const ws = this.getWalletState(this.state.walletCode);
+      this.updateBalance(ws.wallet);
+    }
   }
 
   private updateBalance(wallet: IWallet) {
     wallet.update((address, balance) => {
       const ws = new WalletState(wallet, address, balance);
       this.walletsContext.setState(wallet.code, ws);
-      this.setState(ws);
+      this.setState((prevState, props) => new PageState(wallet.code, prevState.showPrefs));
     });
+  }
+
+  private showPreferences() {
+    this.setState((prevState, props) => new PageState(prevState.walletCode, true));
   }
 }

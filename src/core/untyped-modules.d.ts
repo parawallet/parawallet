@@ -1,6 +1,8 @@
 declare module "seco-keyval" {
-    export interface SecoKeyval {
+    class SecoKeyval {
         hasOpened: boolean;
+
+        constructor(path: string, header: {appName: string, appVersion: string});
 
         open (passphrase: string, initalData?: {}): Promise<any>;
 
@@ -8,6 +10,7 @@ declare module "seco-keyval" {
 
         get (key: string): Promise<any>;
     }
+    export default SecoKeyval;
 }
 
 declare module "coinselect" {

@@ -1,6 +1,6 @@
 import {ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
-import { SecoKeyval } from "seco-keyval";
+import SecoKeyval from "seco-keyval";
 import {BtcAddressGenerator} from "./btc-address-gen";
 import {createBtcWalletRpc, IBtcWalletRpc, UnspentTxOutput} from "./btc-wallet-rpc";
 import {AbstractWallet, BalanceCallback, IWallet} from "./wallet";
@@ -19,11 +19,11 @@ export class BtcWallet extends AbstractWallet implements IWallet {
         if (rpc) {
             this.rpc = rpc;
         }
-        this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType);
+        this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType, this.rpc.queryTransactions.bind(this.rpc));
     }
 
-    public initialize() {
-        return this.addressGen.initialize();
+    public initialize(isNewWallet: boolean) {
+        return this.addressGen.initialize(isNewWallet);
     }
 
     public update(callback?: BalanceCallback) {
@@ -74,11 +74,14 @@ export class BtcWallet extends AbstractWallet implements IWallet {
             for (const input of inputs) {
                 txb.addInput(input.txId, input.vout);
             }
+
+            const usedAddresses = Array.from(txnId2KeypairMap.values()).map((key) => key.getAddress());
             for (const output of outputs) {
                 if (!output.address) {
-                    output.address = this.addressGen.generateChangeAddress();
+                    output.address = this.addressGen.pickChangeAddres(usedAddresses);
                 }
                 txb.addOutput(output.address, output.value);
+                usedAddresses.push(output.address);
             }
             for (let i = 0; i < inputs.length; i++) {
                 const input = inputs[i];

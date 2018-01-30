@@ -23,7 +23,6 @@ export class EthWalletRpc {
             const providers = ethers.providers;
             // tslint:disable-next-line:no-string-literal
             const network = providers.networks[this.networkName];
-            console.log("Selected ether network: " + JSON.stringify(network));
             this.provider = new providers.EtherscanProvider(network);
 
             const path = generatePath(this.coinType, ChainType.EXTERNAL, 0);
