@@ -23,7 +23,10 @@ export class XrpWallet extends AbstractWallet implements IWallet {
         });
     }
 
-    public send(toAddress: string, amount: number, callback?: BalanceCallback) {
-        this.rpc.send(toAddress, amount, () => this.update(callback));
+    public send(toAddress: string, amount: number, callback: any) {
+        this.rpc.send(toAddress, amount, (txnid: string) => {
+                callback("https://xrpcharts.ripple.com/#/transactions/", txnid);
+            },
+        );
     }
 }

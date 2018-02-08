@@ -86,7 +86,7 @@ export class BtcAddressGenerator {
         });
     }
 
-    public pickChangeAddres(usedAddresses: string[]): string {
+    public pickChangeAddress(usedAddresses: string[]): string {
         // Since we scan transactions for external and change addresses separately,
         // we shouldn't generate new change addresses more than gap limit
         // when there's a change address that's not included in input of the transaction.

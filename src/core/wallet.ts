@@ -6,7 +6,7 @@ export interface IWallet {
   initialize(newWallet: boolean): Promise<any>;
   getTotalBalance(): number;
   update(callback?: BalanceCallback): void;
-  send(toAddress: string, amount: number, callback?: BalanceCallback): void;
+  send(toAddress: string, amount: number, callback?: any): void;
 }
 
 export abstract class AbstractWallet /*implements IWallet*/ {

@@ -24,6 +24,7 @@ export interface IBtcWalletRpc {
 
 const unspentTxOutputMinConfirmations = 5;
 
+
 // https://en.bitcoin.it/wiki/Transaction_broadcasting
 // https://www.smartbit.com.au/api
 class SmartbitBtcWalletRpc implements IBtcWalletRpc {
@@ -85,7 +86,6 @@ class SmartbitBtcWalletRpc implements IBtcWalletRpc {
 
   public getUnspentOutputs(keyPairs: ECPair[]) {
     const url = this.queryUrl + keyPairs.map((keypair) => keypair.getAddress()).join(",") + "/unspent";
-
     return new Promise<Array<[ECPair, UnspentTxOutput[]]>>((resolve, reject) => {
       request.get(url, (error: any, response: Response, body: any) => {
         if (error) {
@@ -118,14 +118,14 @@ class SmartbitBtcWalletRpc implements IBtcWalletRpc {
         body: '{"hex":"' + txHex + '"}',
         url: this.txPushUrl,
       }, (error: any, res: Response, body: any) => {
-          alert("status code:" + res.statusCode);
-          console.log(res.body);
+          const txid: string = JSON.parse(body).txid;
+          console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
           if (error || res.statusCode !== 200) {
             console.error(error);
             reject(error);
             return;
           }
-          resolve("success");
+          resolve(txid);
       });
     });
   }
@@ -256,13 +256,12 @@ class BitpayInsightBtcWalletRpc implements IBtcWalletRpc {
         body: '{rawtx:"' + txHex + '"}',
         url: this.txPushUrl,
       }, (error: any, res: Response, body: any) => {
-          alert("status code:" + res.statusCode);
-          console.log(res.body);
           if (error || res.statusCode !== 200) {
             console.error(error);
             reject(error);
             return;
           }
+          alert("transaction completed successfully");
           resolve("success");
       });
     });

@@ -42,8 +42,8 @@ export class BtcWallet extends AbstractWallet implements IWallet {
         });
     }
 
-    public send(toAddress: string, amount: number, callback?: BalanceCallback) {
-        alert("You are about to send " + amount + " bitcoins");
+    public send(toAddress: string, amount: number, callback: any) {
+        alert("You are about to send " + amount + " bitcoins to " + toAddress);
 
         const satoshiAmount = amount * 1e8;
 
@@ -57,8 +57,10 @@ export class BtcWallet extends AbstractWallet implements IWallet {
                 unspentOutputs.forEach((output) => txnId2KeypairMap.set(output.txId, keypair));
                 allUnspentOutputs = allUnspentOutputs.concat(unspentOutputs);
             });
-
-            const {inputs, outputs, fee} = coinselect(allUnspentOutputs, [{"address": toAddress, "value": satoshiAmount}], 20);
+            const {inputs, outputs, fee} = coinselect(allUnspentOutputs, [{
+                "address": toAddress,
+                "value": satoshiAmount,
+            }], 20);
             console.log("Fee: " + fee);
 
             // .inputs and .outputs will be undefined if no solution was found
@@ -78,7 +80,7 @@ export class BtcWallet extends AbstractWallet implements IWallet {
             const usedAddresses = Array.from(txnId2KeypairMap.values()).map((key) => key.getAddress());
             for (const output of outputs) {
                 if (!output.address) {
-                    output.address = this.addressGen.pickChangeAddres(usedAddresses);
+                    output.address = this.addressGen.pickChangeAddress(usedAddresses);
                 }
                 txb.addOutput(output.address, output.value);
                 usedAddresses.push(output.address);
@@ -89,7 +91,10 @@ export class BtcWallet extends AbstractWallet implements IWallet {
                 txb.sign(i, keypair);
             }
             this.rpc.pushTransaction(txb.build().toHex())
-                .then(() => this.update(callback));
+                .then((txnId) => {
+                    // todo move the static url to network type
+                    callback("https://www.blocktrail.com/tBTC/tx/", txnId);
+                });
         });
     }
 }

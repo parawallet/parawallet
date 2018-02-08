@@ -26,7 +26,10 @@ export class EthWallet extends AbstractWallet implements IWallet {
         });
     }
 
-    public send(toAddress: string, amount: number, callback?: BalanceCallback) {
-        this.rpc.send(toAddress, amount, () => this.update(callback));
+    public send(toAddress: string, amount: number, callback: any) {
+        this.rpc.send(toAddress, amount, (transactionHash: string) => {
+            // todo move the static url to network type
+            callback("https://rinkeby.etherscan.io/tx/", transactionHash);
+        });
     }
 }

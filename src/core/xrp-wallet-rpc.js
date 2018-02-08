@@ -5,7 +5,7 @@ const addressCodec = require("ripple-address-codec");
 
 const serverAddress = "wss://s.altnet.rippletest.net:51233";
 
-//const serverAddress = "wss://s1.ripple.com"
+//const serverAddress = "wss://s1.ripple.com";
 
 export class XrpWalletRpc {
     constructor(mnemonic) {
@@ -85,10 +85,11 @@ export class XrpWalletRpc {
             const promise = api.connect().then(() => {
                 api.preparePayment(this.address, payment).then(prepared => {
                         let signedTxn = api.sign(prepared.txJSON, this.secret);
-                        console.log("txn id:" + signedTxn.id);
+                        console.log("ripple txn id:" + signedTxn.id);
                         api.submit(signedTxn.signedTransaction)
                             .then(result => {
                                 alert(result.resultMessage);
+                                callback(signedTxn.id);
                             });
                     },
                 );

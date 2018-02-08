@@ -48,9 +48,10 @@ export class EthWalletRpc {
         };
         var amount = etherAmount * 1e18;
         var sendPromise = this.wallet.send(toAddr, amount, options);
-        sendPromise.then(function(transactionHash) {
-            console.log(transactionHash);
-            callback();
+        sendPromise.then(function(transactionResult) {
+            console.log("txn hash:" );
+            console.log(transactionResult);
+            callback(transactionResult.hash);
         });
         // todo return the receipt, tx hash etc
     }
