@@ -102,8 +102,8 @@ export class Login extends React.Component<any, LoginPageState> {
 }
 
 class LoginApp extends React.Component<any, any> {
-  private appPassInput: HTMLInputElement | null;
-  private mnemonicPassInput: HTMLInputElement | null;
+  private appPassInput: HTMLInputElement | null = null;
+  private mnemonicPassInput: HTMLInputElement | null = null;
 
   constructor(props: any) {
     super(props);
@@ -140,10 +140,10 @@ class LoginApp extends React.Component<any, any> {
 }
 
 class CreateNewWallet extends React.Component<any, any> {
-  private appPassInput: HTMLInputElement | null;
-  private confirmAppPassInput: HTMLInputElement | null;
-  private mnemonicPassInput: HTMLInputElement | null;
-  private confirmMnemonicPassInput: HTMLInputElement | null;
+  private appPassInput: HTMLInputElement | null = null;
+  private confirmAppPassInput: HTMLInputElement | null = null;
+  private mnemonicPassInput: HTMLInputElement | null = null;
+  private confirmMnemonicPassInput: HTMLInputElement | null = null;
 
   constructor(props: any) {
     super(props);
@@ -202,10 +202,10 @@ class CreateNewWallet extends React.Component<any, any> {
 }
 
 class ImportWallet extends React.Component<any, any> {
-  private appPassInput: HTMLInputElement | null;
-  private confirmAppPassInput: HTMLInputElement | null;
-  private mnemonicInput: HTMLInputElement | null;
-  private mnemonicPassInput: HTMLInputElement | null;
+  private appPassInput: HTMLInputElement | null = null;
+  private confirmAppPassInput: HTMLInputElement | null = null;
+  private mnemonicInput: HTMLInputElement | null = null;
+  private mnemonicPassInput: HTMLInputElement | null = null;
 
   constructor(props: any) {
     super(props);

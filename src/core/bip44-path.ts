@@ -14,6 +14,7 @@ export enum CoinType {
   LTC = "2",
   // ...
   ETH = "60",
+  XRP = "144",
 }
 
 export function generatePath(cointType: CoinType, chainType: ChainType, index: number) {

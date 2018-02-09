@@ -25,7 +25,7 @@ export class BtcAddressGenerator {
     private readonly mnemonic: string;
     private readonly pass: string;
     private readonly queryTxFunc: QueryTransactionsFunc;
-    private params: Params;
+    private params: Params = new Params(0, 0);
     private currentReceiveAddress = "";
 
     constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: BtcNetworkType, queryTxFunc: QueryTransactionsFunc) {

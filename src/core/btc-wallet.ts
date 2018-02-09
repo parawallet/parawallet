@@ -15,10 +15,7 @@ export class BtcWallet extends AbstractWallet implements IWallet {
 
     constructor(kv: SecoKeyval, mnemonic: string, mnemonicPass: string, networkType: BtcNetworkType) {
         super("BTC", "Bitcoin");
-        const rpc = createBtcWalletRpc(networkType);
-        if (rpc) {
-            this.rpc = rpc;
-        }
+        this.rpc = createBtcWalletRpc(networkType);
         this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType, this.rpc.queryTransactions.bind(this.rpc));
     }
 

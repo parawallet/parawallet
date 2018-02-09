@@ -3,14 +3,23 @@ import * as request from "request";
 import { RequestResponse as Response } from "request";
 import { BtcNetworkType } from "./btc-wallet";
 
-export function createBtcWalletRpc(network: BtcNetworkType): IBtcWalletRpc | undefined {
+export function createBtcWalletRpc(network: BtcNetworkType): IBtcWalletRpc {
   if (network === BtcNetworkType.MAINNET) {
-    throw new Error("not implemented!");
+    return notImplemented();
   }
   if (network === BtcNetworkType.TESTNET) {
     return new SmartbitBtcWalletRpc();
     // return new BitpayInsightBtcWalletRpc();
   }
+  return illegalArgument(network);
+}
+
+function notImplemented(): never {
+  throw new Error("not implemented!");
+}
+
+function illegalArgument(arg: any): never {
+  throw new Error("illegal argument: " + arg);
 }
 
 export type QueryTransactionsFunc = (address: string) => Promise<string[]>;
