@@ -1,4 +1,6 @@
 import * as bip39 from "bip39";
+import { action, computed, observable } from "mobx";
+import { observer } from "mobx-react";
 import * as React from "react";
 import * as C from "../constants";
 import { restoreMnemonic } from "../core/mnemonic";
@@ -22,21 +24,18 @@ export enum LoginType {
   EXISTING,
 }
 
-class LoginPageState {
-  public readonly showCreateNewDialog: boolean = false;
-  public readonly showImportDialog: boolean = false;
-}
+@observer
+export class Login extends React.Component<any, any> {
+  @observable
+  private shouldShowCreateNewDialog: boolean = false;
+  @observable
+  private shouldShowImportDialog: boolean = false;
 
-export class Login extends React.Component<any, LoginPageState> {
   constructor(props: any) {
     super(props);
-    this.state = new LoginPageState();
     this.handleLogin = this.handleLogin.bind(this);
-    this.showCreateNew = this.showCreateNew.bind(this);
     this.handleCreateNew = this.handleCreateNew.bind(this);
-    this.showImport = this.showImport.bind(this);
     this.handleImport = this.handleImport.bind(this);
-    this.resetPage = this.resetPage.bind(this);
   }
 
   public render() {
@@ -44,13 +43,13 @@ export class Login extends React.Component<any, LoginPageState> {
       return (
         <LoginApp handle={this.handleLogin} />
       );
-    } else if (this.state.showCreateNewDialog) {
+    } else if (this.shouldShowCreateNewDialog) {
       return (
-        <CreateNewWallet handle={this.handleCreateNew} reset={this.resetPage} />
+        <CreateNewWallet handle={this.handleCreateNew} reset={this.reset} />
       );
-    } else if (this.state.showImportDialog) {
+    } else if (this.shouldShowImportDialog) {
       return (
-        <ImportWallet handle={this.handleImport} reset={this.resetPage} />
+        <ImportWallet handle={this.handleImport} reset={this.reset} />
       );
     } else {
       return this.renderInit();
@@ -61,43 +60,49 @@ export class Login extends React.Component<any, LoginPageState> {
     return (
       <div style={{padding: "30px"}}>
         <div className="form-actions">
-          <input className="btn btn-large" type="button" value="Create New Wallet" onClick={this.showCreateNew} />
-          <input className="btn btn-large btn-default" type="button" value="Import Wallet" onClick={this.showImport} />
+          <input className="btn btn-large" type="button" value="Create New Wallet" onClick={this.showCreateNewDialog} />
+          <input className="btn btn-large btn-default" type="button" value="Import Wallet" onClick={this.showImportDialog} />
         </div>
       </div>
     );
   }
 
-  private resetPage() {
-    this.setState({showCreateNewDialog: false, showImportDialog: false});
+  @action.bound
+  private showCreateNewDialog() {
+    this.shouldShowCreateNewDialog = true;
+    this.shouldShowImportDialog = false;
   }
 
-  private showCreateNew() {
-    this.setState({showCreateNewDialog: true, showImportDialog: false});
+  @action.bound
+  private showImportDialog() {
+    this.shouldShowCreateNewDialog = false;
+    this.shouldShowImportDialog = true;
   }
 
-  private showImport() {
-    this.setState({showCreateNewDialog: false, showImportDialog: true});
+  @action.bound
+  private reset() {
+    this.shouldShowCreateNewDialog = false;
+    this.shouldShowImportDialog = false;
   }
 
   private handleCreateNew(credentials: LoginCredentials) {
     DB.open(C.WALLET_DB, credentials.appPass).then(() => {
-      this.resetPage();
-      this.props.onClick(credentials, LoginType.NEW);
+      this.reset();
+      this.props.onLogin(credentials, LoginType.NEW);
     });
   }
 
   private handleImport(credentials: LoginCredentials, mnemonic: string) {
     DB.open(C.WALLET_DB, credentials.appPass).then(() => {
       restoreMnemonic(mnemonic, DB.get(C.WALLET_DB)!).then(() => {
-          this.resetPage();
-          this.props.onClick(credentials, LoginType.IMPORT);
+          this.reset();
+          this.props.onLogin(credentials, LoginType.IMPORT);
         });
     });
   }
 
   private handleLogin(credentials: LoginCredentials) {
-    this.props.onClick(credentials, LoginType.EXISTING);
+    this.props.onLogin(credentials, LoginType.EXISTING);
   }
 }
 

@@ -1,3 +1,5 @@
+import { observable } from "mobx";
+import { observer } from "mobx-react";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as C from "../constants";
@@ -16,21 +18,23 @@ enum NextState {
     SHOW_MAIN_PAGE,
 }
 
+@observer
 class Main extends React.Component<any, any> {
     private wallets: IWallet[] = [];
     private credentials: LoginCredentials;
     private loginType: LoginType;
+    @observable
+    private next = NextState.AUTH;
 
     constructor(props: any) {
         super(props);
-        this.state = {next: NextState.AUTH};
         this.onValidToken = this.onValidToken.bind(this);
     }
 
     public render() {
-        switch (this.state.next) {
+        switch (this.next) {
             case NextState.AUTH:
-                return (<Login onClick={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)}/>);
+                return (<Login onLogin={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)}/>);
             case NextState.SETUP_2FA:
                 return (<TotpSetup onValidToken={this.onValidToken} />);
             case NextState.INIT_WALLETS:
@@ -45,8 +49,8 @@ class Main extends React.Component<any, any> {
     }
 
     private onValidToken() {
-        this.setState({next: NextState.INIT_WALLETS},
-            () => this.initializeWallets(this.credentials.mnemonicPass, this.loginType === LoginType.NEW));
+        this.next = NextState.INIT_WALLETS;
+        this.initializeWallets(this.credentials.mnemonicPass, this.loginType === LoginType.NEW);
     }
 
     private onLogin(loginCreds: LoginCredentials, loginType: LoginType) {
@@ -61,10 +65,10 @@ class Main extends React.Component<any, any> {
         p.then(() => {
             console.log("DB is ready now -> " + DB.get(C.WALLET_DB)!.hasOpened);
             if (loginType === LoginType.NEW || loginType === LoginType.IMPORT) {
-                this.setState({next: NextState.SETUP_2FA});
+                this.next = NextState.SETUP_2FA;
             } else {
-                this.setState({next: NextState.INIT_WALLETS},
-                    () => this.initializeWallets(loginCreds.mnemonicPass, false));
+                this.next = NextState.INIT_WALLETS;
+                this.initializeWallets(loginCreds.mnemonicPass, false);
             }
         }, (e: Error) => {
             console.log(e);
@@ -84,7 +88,7 @@ class Main extends React.Component<any, any> {
             promises.push(BTC.initialize(isNewWallet));
             promises.push(ETH.initialize(isNewWallet));
             promises.push(XRP.initialize(isNewWallet));
-            Promise.all(promises).then(() => this.setState({next: NextState.SHOW_MAIN_PAGE}));
+            Promise.all(promises).then(() => this.next = NextState.SHOW_MAIN_PAGE);
         });
     }
 
@@ -94,4 +98,4 @@ class Main extends React.Component<any, any> {
     }
 }
 
-ReactDOM.render(<Main/>, document.getElementById("root"));
+ReactDOM.render(<Main />, document.getElementById("root"));

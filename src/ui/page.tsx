@@ -1,134 +1,78 @@
+import { action, computed, observable } from "mobx";
+import { observer } from "mobx-react";
 import * as React from "react";
-import { IWallet } from "../core/wallet";
+import { IWallet, IWalletType } from "../core/wallet";
 import { Preferences, PreferencesMenu } from "./preferences";
 import { ToolsMenu } from "./tools-menu";
 import { WalletMenu } from "./wallet-menu";
 import { WalletPane } from "./wallet-pane";
+import { WalletAccount, WalletStore } from "./wallet-store";
 
 interface IPageProps {
   readonly defaultWalletCode: string;
   readonly wallets: IWallet[];
 }
 
-const NA_ADDRESS = "Loading...";
-
-class PageState {
-  public readonly walletCode: string;
-  public readonly showPrefs: boolean;
-
-  constructor(walletCode: string, showPrefs: boolean) {
-    this.walletCode = walletCode;
-    this.showPrefs = showPrefs;
-  }
-}
-
-class WalletState {
-  public readonly wallet: IWallet;
-  public readonly address: string;
-  public readonly balance: number;
-
-  constructor(wallet: IWallet, address?: string, balance?: number) {
-    this.wallet = wallet;
-    this.address = address || NA_ADDRESS;
-    this.balance = balance || 0;
-  }
-}
-
-class WalletsContext {
-  private readonly walletStates = new Map<string, WalletState>();
-
-  constructor(wallets: IWallet[]) {
-    for (const w of wallets) {
-      this.walletStates.set(w.code, new WalletState(w));
-    }
-  }
-
-  public getState(walletCode: string): WalletState | undefined {
-    return this.walletStates.get(walletCode);
-  }
-
-  public setState(walletCode: string, walletState: WalletState) {
-    if (!this.walletStates.has(walletCode)) {
-      throw new Error("Invalid wallet code: " + walletCode);
-    }
-    this.walletStates.set(walletCode, walletState);
-  }
-}
-
-export class Page extends React.Component<IPageProps, PageState> {
-  private walletsContext: WalletsContext;
+@observer
+export class Page extends React.Component<IPageProps, any> {
+  private walletsStore: WalletStore;
   private timerID: NodeJS.Timer;
+  @observable
+  private showPreferences: boolean = false;
 
   constructor(props: IPageProps) {
     super(props);
-    this.walletsContext = new WalletsContext(props.wallets);
-    this.state = new PageState(props.defaultWalletCode, false);
-    this.showPreferences = this.showPreferences.bind(this);
+    this.walletsStore = new WalletStore(props.wallets, props.defaultWalletCode);
   }
 
   public componentDidMount() {
     this.updateActiveBalance();
-    this.timerID = setInterval(() => this.updateActiveBalance(), 10000);
+    this.timerID = setInterval(() => this.updateActiveBalance(), 30000);
   }
 
   public componentWillUnmount() {
     clearInterval(this.timerID);
   }
 
-  // If you don’t use something in render(), it shouldn’t be in the state.
   public render() {
-    const ws = this.getWalletState(this.state.walletCode);
+    const account = this.walletsStore.activeAccount;
     return (
       <div className="pane-group">
         <div className="pane-sm sidebar">
           <WalletMenu wallets={this.props.wallets} onClick={(wlt) => this.switchWallet(wlt)} />
           <ToolsMenu />
-          <PreferencesMenu onClick={this.showPreferences} />
+          <PreferencesMenu onClick={() => this.showPreferences = true} />
         </div>
         <div className="pane">
-          {this.state.showPrefs ? (
+          {this.showPreferences ? (
             <Preferences />
           ) : (
-            <WalletPane wallet={ws.wallet} address={ws.address} balance={ws.balance} />
+            <WalletPane wallet={account.wallet} address={account.address} balance={account.balance} />
           )}
         </div>
       </div>
     );
   }
 
-  private getWalletState(walletCode: string): WalletState {
-    const ws = this.walletsContext.getState(walletCode);
-    if (!ws) {
-      throw new Error("Invalid wallet code: " + walletCode);
-    }
-    return ws;
-  }
-
-  // Do Not Modify State Directly. Instead, use setState().
-  private switchWallet(wallet: IWallet) {
-    const ws = this.getWalletState(wallet.code);
-    this.setState(new PageState(wallet.code, false));
-    if (ws.address === NA_ADDRESS) {
-      this.updateBalance(wallet);
+  private switchWallet(wallet: IWalletType) {
+    console.log(`Switching wallet: ${wallet.code}`);
+    this.showPreferences = false;
+    const account = this.walletsStore.switchWallet(wallet.code);
+    if (account.address === WalletAccount.NA_ADDRESS) {
+      this.updateBalance(account.wallet);
     }
   }
 
   private updateActiveBalance() {
-    if (!this.state.showPrefs) {
-      const ws = this.getWalletState(this.state.walletCode);
-      this.updateBalance(ws.wallet);
+    if (!this.showPreferences) {
+      this.updateBalance(this.walletsStore.activeWallet);
     }
   }
 
   private updateBalance(wallet: IWallet) {
     wallet.update((address, balance) => {
-      const ws = new WalletState(wallet, address, balance);
-      this.walletsContext.setState(wallet.code, ws);
-      this.setState((prevState, props) => new PageState(wallet.code, prevState.showPrefs));
+      const walletAccount = this.walletsStore.getWalletAccount(wallet.code);
+      walletAccount.update(address, balance);
     });
-  }
-
-  private showPreferences() {
-    this.setState((prevState, props) => new PageState(prevState.walletCode, true));
   }
 }

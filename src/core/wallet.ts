@@ -1,8 +1,11 @@
 export type BalanceCallback = (address: string, balance: number) => void;
 
-export interface IWallet {
+export interface IWalletType {
   readonly code: string;
   readonly name: string;
+}
+
+export interface IWallet extends IWalletType {
   initialize(newWallet: boolean): Promise<any>;
   getTotalBalance(): number;
   update(callback?: BalanceCallback): void;
