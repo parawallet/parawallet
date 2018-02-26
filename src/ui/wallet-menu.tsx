@@ -3,16 +3,16 @@ import { IWalletType } from "../core/wallet";
 
 interface IWalletMenuProps {
   readonly wallets: IWalletType[];
-  onClick(wallet: IWalletType): void;
+  onMenuClick(wallet: IWalletType): void;
 }
 
 export class WalletMenu extends React.Component<IWalletMenuProps, any> {
   public render() {
     return (
       <nav className="nav-group">
-        <h5 className="nav-group-title">Funds</h5>
+        <h5 className="nav-group-title">Wallets</h5>
         {this.props.wallets.map((wlt) =>
-          <WalletMenuItem wallet={wlt} onClick={() => this.props.onClick(wlt)} key={wlt.code} />,
+          <WalletMenuItem wallet={wlt} onClick={() => this.props.onMenuClick(wlt)} key={wlt.code} />,
         )}
       </nav>
     );

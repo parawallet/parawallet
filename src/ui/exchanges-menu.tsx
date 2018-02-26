@@ -1,13 +1,13 @@
 import * as React from "react";
 
-export class ToolsMenu extends React.Component {
-  render() {
+export class ExchangesMenu extends React.Component {
+  public render() {
     return (
       <nav className="nav-group">
-        <h5 className="nav-group-title">Tools Menu</h5>
+        <h5 className="nav-group-title">Exchanges</h5>
         <a className="nav-group-item">
           <span className="icon icon-home" />
-                    Exchange
+                    Shapeshift
         </a>
         <span className="nav-group-item">
           <span className="icon icon-download" />
@@ -19,7 +19,7 @@ export class ToolsMenu extends React.Component {
         </span>
         <span className="nav-group-item">
           <span className="icon icon-cloud" />
-    Gemini
+    Binance
         </span>
       </nav>
     );

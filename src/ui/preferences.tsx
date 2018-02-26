@@ -9,9 +9,13 @@ export class PreferencesMenu extends React.Component<any, any> {
 
   public render() {
     return (
-      <nav className="nav-group">
-        <h5 className="nav-group-title"><a onClick={this.props.onClick}>Settings</a></h5>
-      </nav>
+        <nav className="nav-group">
+            <h5 className="nav-group-title">Settings</h5>
+            <a className="nav-group-item" onClick={this.props.onClick}>
+                <span className="icon icon-lock" />
+                Security
+            </a>
+        </nav>
     );
   }
 }

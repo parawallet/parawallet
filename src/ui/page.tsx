@@ -3,7 +3,8 @@ import {observer} from "mobx-react";
 import * as React from "react";
 import {IWallet, IWalletType} from "../core/wallet";
 import {Preferences, PreferencesMenu} from "./preferences";
-import {ToolsMenu} from "./tools-menu";
+import {PortfolioMenu} from "./portfolio-menu";
+import {ExchangesMenu} from "./exchanges-menu";
 import {WalletMenu} from "./wallet-menu";
 import {WalletPane} from "./wallet-pane";
 import {WalletAccount, WalletStore} from "./wallet-store";
@@ -13,14 +14,14 @@ interface IPageProps {
     readonly wallets: IWallet[];
 }
 
-enum PaneId { PANE_WALLET, PANE_PREF }
+export enum PaneId { PANE_TIMELINE, PANE_PERCENTAGES, PANE_WALLET, PANE_PREF }
 
 @observer
 export class Page extends React.Component<IPageProps, any> {
     private walletsStore: WalletStore;
     private timerID: NodeJS.Timer;
     @observable
-    private activePaneId: PaneId = PaneId.PANE_WALLET;
+    private activePaneId: PaneId = PaneId.PANE_TIMELINE;
 
     constructor(props: IPageProps) {
         super(props);
@@ -37,11 +38,18 @@ export class Page extends React.Component<IPageProps, any> {
     }
 
     public render() {
-        const account = this.walletsStore.activeAccount;
         let activePane;
-
         switch ( this.activePaneId ) {
+            case PaneId.PANE_TIMELINE: {
+                activePane = <div>timeline</div>;
+                break;
+            }
+            case PaneId.PANE_PERCENTAGES: {
+                activePane = <div>percentages</div>;
+                break;
+            }
             case PaneId.PANE_WALLET: {
+                const account = this.walletsStore.activeAccount;
                 activePane = <WalletPane wallet={account.wallet} address={account.address} balance={account.balance}/>;
                 break;
             }
@@ -57,8 +65,9 @@ export class Page extends React.Component<IPageProps, any> {
         return (
             <div className="pane-group">
                 <div className="pane-sm sidebar">
-                    <WalletMenu wallets={this.props.wallets} onClick={(wlt) => this.switchWallet(wlt)}/>
-                    <ToolsMenu/>
+                    <PortfolioMenu onMenuClick={(paneId: PaneId) => this.showPane(paneId)}/>
+                    <WalletMenu wallets={this.props.wallets} onMenuClick={(wlt) => this.switchWallet(wlt)}/>
+                    <ExchangesMenu/>
                     <PreferencesMenu onClick={() => this.activePaneId = PaneId.PANE_PREF}/>
                 </div>
                 <div className="pane">
@@ -66,6 +75,10 @@ export class Page extends React.Component<IPageProps, any> {
                 </div>
             </div>
         );
+    }
+
+    private showPane(paneId: PaneId) {
+        this.activePaneId = paneId;
     }
 
     private switchWallet(wallet: IWalletType) {
