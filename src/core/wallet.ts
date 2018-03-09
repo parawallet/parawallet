@@ -6,10 +6,11 @@ export interface IWalletType {
 }
 
 export interface IWallet extends IWalletType {
-  initialize(newWallet: boolean): Promise<any>;
+  initialize(createEmpty: boolean): Promise<any>;
   getTotalBalance(): number;
   update(callback?: BalanceCallback): void;
-  send(toAddress: string, amount: number, callback?: any): void;
+  send(toAddress: string, amount: number): Promise<string>;
+  getExporerURL(): string;
 }
 
 export abstract class AbstractWallet /*implements IWallet*/ {

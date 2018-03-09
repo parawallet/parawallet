@@ -57,8 +57,6 @@ class TransferPane extends React.Component<ITransferPaneProps, any> {
     @observable
     private verifyToken: boolean = false;
     @observable
-    private explorerUrl: string;
-    @observable
     private txnId: string;
 
     public constructor(props: ITransferPaneProps) {
@@ -89,7 +87,7 @@ class TransferPane extends React.Component<ITransferPaneProps, any> {
                         <input className="btn btn-large btn-default" type="submit" value="Submit"/>
                     </div>
                 </form>
-                <a className="txn-result" href="#" onClick={(event) => this.handleTxnResult(event, this.explorerUrl, this.txnId )}>
+                <a className="txn-result" href="#" onClick={(event) => this.handleTxnResult(event, this.txnId)}>
                     {this.txnId ? "Transaction completed click for details." : ""}
                 </a>
                 <br/>
@@ -99,9 +97,11 @@ class TransferPane extends React.Component<ITransferPaneProps, any> {
         );
     }
 
-    private handleTxnResult(event: any, explorerUrl: string, txnResult: string) {
+    private handleTxnResult(event: any, txnResult: string) {
         event.preventDefault();
-        shell.openExternal(explorerUrl + txnResult);
+        const url = this.wallet.getExporerURL() + txnResult;
+        console.log(`Opening ${url}`);
+        shell.openExternal(url);
     }
 
     private handleSubmit(event: React.FormEvent<any>) {
@@ -116,10 +116,11 @@ class TransferPane extends React.Component<ITransferPaneProps, any> {
 
     // TODO: update balance in main UI
     private transfer() {
-        this.wallet.send(this.address, Number(this.amount), (explorerUrl: string, txnResult: string) => {
-            this.explorerUrl = explorerUrl;
-            this.txnId = txnResult;
-        });
+        this.wallet.send(this.address, Number(this.amount))
+            .then((txnResult) => {
+                this.txnId = txnResult;
+            })
+            .catch((e) => alert(e));
     }
 
     private onVerifyToken(valid: boolean) {

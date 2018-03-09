@@ -1,5 +1,5 @@
-export {BtcNetworkType, BtcWallet} from "../core/btc-wallet";
-export {EthNetworkType, EthWallet} from "../core/eth-wallet";
+export {BtcNetworkType, BtcWallet} from "../core/btc/btc-wallet";
+export {EthNetworkType, EthWallet} from "../core/eth/eth-wallet";
 export {IWallet} from "../core/wallet";
 export {getOrInitializeMnemonic} from "../core/mnemonic";
-export {XrpWallet} from "../core/xrp-wallet";
+export {XrpNetworkType, XrpWallet} from "../core/xrp/xrp-wallet";

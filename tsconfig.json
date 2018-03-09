@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "outDir": "app",
+        "declaration": false,
         "sourceMap": false,
         "strictNullChecks": true,
         "alwaysStrict": true,

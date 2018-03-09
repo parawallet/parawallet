@@ -28,7 +28,7 @@ export interface IBtcWalletRpc {
   queryTransactions: QueryTransactionsFunc;
   queryBalance(addresses: string[]): Promise<Array<[string, number]>>;
   getUnspentOutputs(keyPairs: ECPair[]): Promise<Array<[ECPair, UnspentTxOutput[]]>>;
-  pushTransaction(txHex: string): Promise<any>;
+  pushTransaction(txHex: string): Promise<string>;
 }
 
 const unspentTxOutputMinConfirmations = 5;
@@ -121,7 +121,7 @@ class SmartbitBtcWalletRpc implements IBtcWalletRpc {
     });
   }
 
-  public pushTransaction(txHex: string) {
+  public pushTransaction(txHex: string): Promise<string> {
     return new Promise((resolve, reject) => {
       request.post({
         body: '{"hex":"' + txHex + '"}',
@@ -258,7 +258,7 @@ class BitpayInsightBtcWalletRpc implements IBtcWalletRpc {
   }
 
   // TODO: fails with HTTP 500 Internal Server Error
-  public pushTransaction(txHex: string) {
+  public pushTransaction(txHex: string): Promise<string> {
     console.log("Pushing tx: " + txHex);
     return new Promise((resolve, reject) => {
       request.post({

@@ -1,10 +1,10 @@
 import * as bip39 from "bip39";
 import {ECPair, HDNode, Network, networks, TransactionBuilder} from "bitcoinjs-lib";
 import SecoKeyval from "seco-keyval";
-import * as C from "../constants";
-import {ChainType, CoinType, generatePath} from "./bip44-path";
+import * as C from "../../constants";
+import {ChainType, CoinType, generatePath} from "../bip44-path";
 import { BtcNetworkType } from "./btc-wallet";
-import { QueryTransactionsFunc } from "./btc-wallet-rpc";
+import { QueryTransactionsFunc } from "./wallet-rpc";
 
 const GAP_LIMIT = 20;
 
@@ -46,8 +46,8 @@ export class BtcAddressGenerator {
         this.queryTxFunc = queryTxFunc;
     }
 
-    public initialize(isNewWallet: boolean) {
-        if (isNewWallet) {
+    public initialize(createEmpty: boolean) {
+        if (createEmpty) {
             this.params = new Params(0, 0);
             this.currentReceiveAddress = this.prepareAddress(ChainType.EXTERNAL, 0);
             console.log("Creating new wallet... Current receive address: " + this.currentReceiveAddress);

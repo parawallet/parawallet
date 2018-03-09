@@ -1,4 +1,4 @@
-import {ChainType, CoinType, generatePath} from "./bip44-path";
+import {ChainType, CoinType, generatePath} from "../bip44-path";
 import { EthNetworkType } from "./eth-wallet";
 
 var ethers = require("ethers");
@@ -10,7 +10,6 @@ export class EthWalletRpc {
     constructor(mnemonic, pass, networkType) {
         this.coinType = CoinType.ETH;
         this.pass = pass || "";
-        this.receiveAddress = "";
         if (!mnemonic) {
             throw new Error("no mnemonic");
         }
@@ -30,7 +29,6 @@ export class EthWalletRpc {
             const hdnode = HDNode.fromSeed(HDNode.mnemonicToSeed(this.mnemonic, this.pass)).derivePath(path);
 
             this.wallet = new Wallet(hdnode.privateKey, this.provider);
-            this.receiveAddress = this.wallet.address;
             resolve("success");
         });
         return promise;
@@ -40,7 +38,7 @@ export class EthWalletRpc {
         return this.provider.getBalance(this.receiveAddress);
     }
 
-    send(toAddr, etherAmount, callback) {
+    send(toAddr, etherAmount) {
         // todo check if we need to do something related to big numbers
         var options = {
             gasLimit: 30000,
@@ -48,12 +46,19 @@ export class EthWalletRpc {
         };
         var amount = etherAmount * 1e18;
         var sendPromise = this.wallet.send(toAddr, amount, options);
-        sendPromise.then(function(transactionResult) {
-            console.log("txn hash:" );
-            console.log(transactionResult);
-            callback(transactionResult.hash);
+        return sendPromise.then((transactionResult) => {
+            console.log("txn hash: " + JSON.stringify(transactionResult));
+            return transactionResult.hash;
         });
         // todo return the receipt, tx hash etc
+    }
+
+    get receiveAddress() {
+        return this.wallet ? this.wallet.address : "";
+    }
+
+    get explorerURL() {
+        return this.provider ? this.provider.baseUrl + "/tx/" : "";
     }
 
 }

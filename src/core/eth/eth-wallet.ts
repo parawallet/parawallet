@@ -1,5 +1,5 @@
-import {EthWalletRpc} from "./eth-wallet-rpc";
-import {AbstractWallet, BalanceCallback, IWallet} from "./wallet";
+import {EthWalletRpc} from "./wallet-rpc";
+import {AbstractWallet, BalanceCallback, IWallet} from "../wallet";
 
 export enum EthNetworkType {
     mainnet, homestead, ropsten, testnet, rinkeby,
@@ -13,7 +13,7 @@ export class EthWallet extends AbstractWallet implements IWallet {
         this.rpc = new EthWalletRpc(mnemonic, mnemonicPass, network);
     }
 
-    public initialize(isNewWallet: boolean) {
+    public initialize(createEmpty: boolean) {
         return this.rpc.initialize();
     }
 
@@ -26,10 +26,11 @@ export class EthWallet extends AbstractWallet implements IWallet {
         });
     }
 
-    public send(toAddress: string, amount: number, callback: any) {
-        this.rpc.send(toAddress, amount, (transactionHash: string) => {
-            // todo move the static url to network type
-            callback("https://rinkeby.etherscan.io/tx/", transactionHash);
-        });
+    public send(toAddress: string, amount: number) {
+        return this.rpc.send(toAddress, amount);
+    }
+
+    public getExporerURL() {
+        return this.rpc.explorerURL;
     }
 }

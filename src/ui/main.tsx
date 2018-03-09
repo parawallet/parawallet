@@ -9,7 +9,7 @@ import {Page} from "./page";
 import { TotpSetup, totpValidator } from "./totp";
 import {BtcNetworkType, BtcWallet,
     EthNetworkType, EthWallet,
-    getOrInitializeMnemonic, IWallet, XrpWallet} from "./wallets";
+    getOrInitializeMnemonic, IWallet, XrpNetworkType, XrpWallet} from "./wallets";
 
 enum NextState {
     AUTH,
@@ -76,18 +76,18 @@ class Main extends React.Component<any, any> {
         });
     }
 
-    private initializeWallets(mnemonicPass: string, isNewWallet: boolean) {
+    private initializeWallets(mnemonicPass: string, createEmpty: boolean) {
         const kv = DB.get(C.WALLET_DB)!;
         getOrInitializeMnemonic(kv).then((mnemonic) => {
             const BTC = new BtcWallet(kv, mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
             const ETH = new EthWallet(mnemonic, mnemonicPass, EthNetworkType.rinkeby);
-            const XRP = new XrpWallet(mnemonic);
+            const XRP = new XrpWallet(mnemonic, mnemonicPass, XrpNetworkType.TEST);
             this.wallets.push(BTC, ETH, XRP);
 
             const promises: Array<Promise<any>> = [];
-            promises.push(BTC.initialize(isNewWallet));
-            promises.push(ETH.initialize(isNewWallet));
-            promises.push(XRP.initialize(isNewWallet));
+            promises.push(BTC.initialize(createEmpty));
+            promises.push(ETH.initialize(createEmpty));
+            promises.push(XRP.initialize(createEmpty));
             Promise.all(promises).then(() => this.next = NextState.SHOW_MAIN_PAGE);
         });
     }
