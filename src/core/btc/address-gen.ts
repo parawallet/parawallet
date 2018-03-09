@@ -124,7 +124,7 @@ export class BtcAddressGenerator {
         return keypairs;
     }
 
-    public getReceiveAddress() {
+    public get receiveAddress() {
         return this.currentReceiveAddress;
     }
 

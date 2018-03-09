@@ -1,9 +1,9 @@
 import * as React from "react";
-import { IWalletType } from "../core/wallet";
+import { WalletType } from "../core/wallet";
 
 interface IWalletMenuProps {
-  readonly wallets: IWalletType[];
-  onMenuClick(wallet: IWalletType): void;
+  readonly wallets: WalletType[];
+  onMenuClick(wallet: WalletType): void;
 }
 
 export class WalletMenu extends React.Component<IWalletMenuProps, any> {
@@ -20,7 +20,7 @@ export class WalletMenu extends React.Component<IWalletMenuProps, any> {
 }
 
 interface IWalletMenuItemProps {
-  readonly wallet: IWalletType;
+  readonly wallet: WalletType;
   onClick(): void;
 }
 

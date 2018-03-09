@@ -2,15 +2,15 @@ import {ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
 import SecoKeyval from "seco-keyval";
 import {BtcAddressGenerator} from "./address-gen";
-import {createBtcWalletRpc, IBtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
-import {AbstractWallet, BalanceCallback, IWallet} from "../wallet";
+import {createBtcWalletRpc, BtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
+import {AbstractWallet, Balance, Wallet} from "../wallet";
 
 export enum BtcNetworkType {
     MAINNET, TESTNET,
 }
 
-export class BtcWallet extends AbstractWallet implements IWallet {
-    private readonly rpc: IBtcWalletRpc;
+export class BtcWallet extends AbstractWallet implements Wallet {
+    private readonly rpc: BtcWalletRpc;
     private readonly addressGen: BtcAddressGenerator;
     private readonly networkType: BtcNetworkType;
 
@@ -25,20 +25,23 @@ export class BtcWallet extends AbstractWallet implements IWallet {
         return this.addressGen.initialize(createEmpty);
     }
 
-    public update(callback?: BalanceCallback) {
-        const addresses = this.addressGen.getKeypairs().map((keypair) => keypair.getAddress());
-        this.rpc.queryBalance(addresses).then((balances) => {
+    public addresses(): string[] {
+        return [this.addressGen.receiveAddress];
+    }
+
+    public totalBalance() {
+        return this.detailedBalance().then((balances) => {
             let total = 0;
             balances.forEach((balance) => {
-                const address = balance[0];
-                const value = balance[1];
-                total += value;
+                total += balance.amount;
             });
-            this.totalBalance = total;
-            if (callback) {
-                callback(this.addressGen.getReceiveAddress(), this.totalBalance);
-            }
+            return total;
         });
+    }
+
+    public detailedBalance() {
+        const addresses = this.addressGen.getKeypairs().map((keypair) => keypair.getAddress());
+        return this.rpc.queryBalance(addresses);
     }
 
     public send(toAddress: string, amount: number) {

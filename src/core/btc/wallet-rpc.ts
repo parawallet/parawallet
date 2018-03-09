@@ -2,8 +2,9 @@ import { ECPair, Network } from "bitcoinjs-lib";
 import * as request from "request";
 import { RequestResponse as Response } from "request";
 import { BtcNetworkType } from "./btc-wallet";
+import { Balance } from "../wallet";
 
-export function createBtcWalletRpc(network: BtcNetworkType): IBtcWalletRpc {
+export function createBtcWalletRpc(network: BtcNetworkType): BtcWalletRpc {
   if (network === BtcNetworkType.MAINNET) {
     return notImplemented();
   }
@@ -24,9 +25,9 @@ function illegalArgument(arg: any): never {
 
 export type QueryTransactionsFunc = (address: string) => Promise<string[]>;
 
-export interface IBtcWalletRpc {
+export interface BtcWalletRpc {
   queryTransactions: QueryTransactionsFunc;
-  queryBalance(addresses: string[]): Promise<Array<[string, number]>>;
+  queryBalance(addresses: string[]): Promise<Balance[]>;
   getUnspentOutputs(keyPairs: ECPair[]): Promise<Array<[ECPair, UnspentTxOutput[]]>>;
   pushTransaction(txHex: string): Promise<string>;
 }
@@ -36,14 +37,14 @@ const unspentTxOutputMinConfirmations = 5;
 
 // https://en.bitcoin.it/wiki/Transaction_broadcasting
 // https://www.smartbit.com.au/api
-class SmartbitBtcWalletRpc implements IBtcWalletRpc {
+class SmartbitBtcWalletRpc implements BtcWalletRpc {
   private readonly baseUrl = "https://testnet-api.smartbit.com.au/v1/blockchain/";
   private readonly txPushUrl = this.baseUrl + "pushtx";
   private readonly queryUrl = this.baseUrl + "address/";
 
   public queryBalance(addresses: string[]) {
     const url = this.queryUrl + addresses.join(",");
-    return new Promise<Array<[string, number]>>((resolve, reject) => {
+    return new Promise<Balance[]>((resolve, reject) => {
       request.get(url, (error: any, response: Response, body: any) => {
         if (error) {
           console.error(error);
@@ -51,7 +52,7 @@ class SmartbitBtcWalletRpc implements IBtcWalletRpc {
           return;
         }
 
-        const balances: Array<[string, number]> = [];
+        const balances: Balance[] = [];
         const bodyObj = JSON.parse(body);
         const results: any[] = bodyObj.addresses || [bodyObj.address];
 
@@ -61,7 +62,7 @@ class SmartbitBtcWalletRpc implements IBtcWalletRpc {
             + ", total: " + result.total.balance_int
             + ", confirmed: " + result.confirmed.balance_int
             + ", unconfirmed: " + result.unconfirmed.balance_int);
-            balances.push([result.address, result.total.balance_int / 1e8]);
+            balances.push({address: result.address, amount: result.total.balance_int / 1e8});
           }
         });
 
@@ -144,7 +145,7 @@ class SmartbitBtcWalletRpc implements IBtcWalletRpc {
 // https://test-insight.bitpay.com/api
 // https://github.com/bitpay/insight-api
 // we can deploy ourselves, public one has a rate-limiter
-class BitpayInsightBtcWalletRpc implements IBtcWalletRpc {
+class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
   private readonly baseUrl = "https://test-insight.bitpay.com/api/";
   private readonly txPushUrl = this.baseUrl + "tx/send";
   private readonly queryUrl = this.baseUrl + "addr/";
@@ -167,10 +168,10 @@ class BitpayInsightBtcWalletRpc implements IBtcWalletRpc {
   // }
 
   public queryBalance(addresses: string[]) {
-    const promises: Array<Promise<any>> = [];
+    const promises: Array<Promise<Balance>> = [];
     addresses.forEach((address) => {
       const url = this.queryUrl + address;
-      promises.push(new Promise<[string, number]>((resolve, reject) => {
+      promises.push(new Promise<Balance>((resolve, reject) => {
         request.get(url, (error: any, response: Response, body: any) => {
           if (error) {
             console.error(error);
@@ -183,7 +184,7 @@ class BitpayInsightBtcWalletRpc implements IBtcWalletRpc {
           + ", total: " + bodyObj.balance
           + ", unconfirmed: " + bodyObj.unconfirmedBalance);
 
-          resolve([address, bodyObj.balance]);
+          resolve({address, amount: bodyObj.balance});
         });
       }));
     });

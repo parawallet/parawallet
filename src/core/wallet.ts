@@ -1,14 +1,18 @@
-export type BalanceCallback = (address: string, balance: number) => void;
+export interface Balance {
+  readonly address: string;
+  readonly amount: number;
+}
 
-export interface IWalletType {
+export interface WalletType {
   readonly code: string;
   readonly name: string;
 }
 
-export interface IWallet extends IWalletType {
+export interface Wallet extends WalletType {
   initialize(createEmpty: boolean): Promise<any>;
-  getTotalBalance(): number;
-  update(callback?: BalanceCallback): void;
+  addresses(): string[];
+  totalBalance(): Promise<number>;
+  detailedBalance(): Promise<Balance[]>;
   send(toAddress: string, amount: number): Promise<string>;
   getExporerURL(): string;
 }
@@ -16,15 +20,9 @@ export interface IWallet extends IWalletType {
 export abstract class AbstractWallet /*implements IWallet*/ {
   public readonly code: string;
   public readonly name: string;
-  protected totalBalance: number;
 
   constructor(code: string, name: string) {
     this.code = code;
     this.name = name;
-    this.totalBalance = 0;
-  }
-
-  public getTotalBalance() {
-    return this.totalBalance;
   }
 }

@@ -9,7 +9,7 @@ import {Page} from "./page";
 import { TotpSetup, totpValidator } from "./totp";
 import {BtcNetworkType, BtcWallet,
     EthNetworkType, EthWallet,
-    getOrInitializeMnemonic, IWallet, XrpNetworkType, XrpWallet} from "./wallets";
+    getOrInitializeMnemonic, Wallet, XrpNetworkType, XrpWallet} from "./wallets";
 
 enum NextState {
     AUTH,
@@ -20,7 +20,7 @@ enum NextState {
 
 @observer
 class Main extends React.Component<any, any> {
-    private wallets: IWallet[] = [];
+    private wallets: Wallet[] = [];
     private credentials: LoginCredentials;
     private loginType: LoginType;
     @observable

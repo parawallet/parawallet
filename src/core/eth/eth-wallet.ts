@@ -1,11 +1,11 @@
 import {EthWalletRpc} from "./wallet-rpc";
-import {AbstractWallet, BalanceCallback, IWallet} from "../wallet";
+import {AbstractWallet, Balance, Wallet} from "../wallet";
 
 export enum EthNetworkType {
     mainnet, homestead, ropsten, testnet, rinkeby,
 }
 
-export class EthWallet extends AbstractWallet implements IWallet {
+export class EthWallet extends AbstractWallet implements Wallet {
     private readonly rpc: EthWalletRpc;
 
     constructor(mnemonic: string, mnemonicPass: string, network: EthNetworkType) {
@@ -17,13 +17,18 @@ export class EthWallet extends AbstractWallet implements IWallet {
         return this.rpc.initialize();
     }
 
-    public update(callback?: BalanceCallback) {
+    public addresses(): string[] {
+        return [this.rpc.receiveAddress];
+    }
+
+    public totalBalance() {
         const promise: Promise<number> = this.rpc.getBalance();
-        promise.then((balance: number) => {
-            if (callback) {
-                callback(this.rpc.receiveAddress, balance / 1.0e18);
-            }
-        });
+        return promise.then((balance: number) => balance / 1.0e18);
+    }
+
+    public detailedBalance() {
+        const promise: Promise<number> = this.rpc.getBalance();
+        return promise.then((balance: number) => [{address: this.rpc.receiveAddress, amount: balance / 1.0e18}]);
     }
 
     public send(toAddress: string, amount: number) {

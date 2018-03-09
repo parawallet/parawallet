@@ -1,11 +1,11 @@
 import {XrpWalletRpc} from "./wallet-rpc";
-import {AbstractWallet, BalanceCallback, IWallet} from "../wallet";
+import {AbstractWallet, Balance, Wallet} from "../wallet";
 
 export enum XrpNetworkType {
     MAIN, TEST,
 }
 
-export class XrpWallet extends AbstractWallet implements IWallet {
+export class XrpWallet extends AbstractWallet implements Wallet {
     private readonly rpc: XrpWalletRpc;
 
     constructor(mnemonic: string, pass: string, networkType: XrpNetworkType) {
@@ -17,13 +17,16 @@ export class XrpWallet extends AbstractWallet implements IWallet {
         return this.rpc.initialize();
     }
 
-    public update(callback?: BalanceCallback) {
-        const promise = this.rpc.getBalance();
-        promise.then((balance) => {
-            if (callback) {
-                callback(this.rpc.publicAddress, balance);
-            }
-        });
+    public addresses(): string[] {
+        return [this.rpc.publicAddress];
+    }
+
+    public totalBalance() {
+        return this.rpc.getBalance();
+    }
+
+    public detailedBalance() {
+        return this.rpc.getBalance().then((amount: number) => [{address: this.rpc.publicAddress, amount}]);
     }
 
     public send(toAddress: string, amount: number): Promise<string> {

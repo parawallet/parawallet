@@ -1,7 +1,7 @@
 import {action, computed, observable} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
-import {IWallet, IWalletType} from "../core/wallet";
+import {Wallet, WalletType} from "../core/wallet";
 import {Preferences, PreferencesMenu} from "./preferences";
 import {PortfolioMenu} from "./portfolio-menu";
 import {ExchangesMenu} from "./exchanges-menu";
@@ -9,21 +9,21 @@ import {WalletMenu} from "./wallet-menu";
 import {WalletPane} from "./wallet-pane";
 import {WalletAccount, WalletStore} from "./wallet-store";
 
-interface IPageProps {
+interface PageProps {
     readonly defaultWalletCode: string;
-    readonly wallets: IWallet[];
+    readonly wallets: Wallet[];
 }
 
 export enum PaneId { PANE_TIMELINE, PANE_PERCENTAGES, PANE_WALLET, PANE_PREF }
 
 @observer
-export class Page extends React.Component<IPageProps, any> {
+export class Page extends React.Component<PageProps, any> {
     private walletsStore: WalletStore;
     private timerID: NodeJS.Timer;
     @observable
     private activePaneId: PaneId = PaneId.PANE_TIMELINE;
 
-    constructor(props: IPageProps) {
+    constructor(props: PageProps) {
         super(props);
         this.walletsStore = new WalletStore(props.wallets, props.defaultWalletCode);
     }
@@ -81,7 +81,7 @@ export class Page extends React.Component<IPageProps, any> {
         this.activePaneId = paneId;
     }
 
-    private switchWallet(wallet: IWalletType) {
+    private switchWallet(wallet: WalletType) {
         console.log(`Switching wallet: ${wallet.code}`);
         this.activePaneId = PaneId.PANE_WALLET;
         const account = this.walletsStore.switchWallet(wallet.code);
@@ -96,10 +96,10 @@ export class Page extends React.Component<IPageProps, any> {
         }
     }
 
-    private updateBalance(wallet: IWallet) {
-        wallet.update((address, balance) => {
+    private updateBalance(wallet: Wallet) {
+        wallet.totalBalance().then((balance) => {
             const walletAccount = this.walletsStore.getWalletAccount(wallet.code);
-            walletAccount.update(address, balance);
+            walletAccount.update(wallet.addresses()[0], balance);
         });
     }
 }

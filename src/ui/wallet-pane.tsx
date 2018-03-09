@@ -2,19 +2,19 @@ import { action, autorun, computed, observable } from "mobx";
 import { observer } from "mobx-react";
 import {clipboard, shell} from "electron";
 import * as React from "react";
-import {IWallet} from "../core/wallet";
+import {Wallet} from "../core/wallet";
 import {totpValidator, TotpVerifyDialog} from "./totp";
 
 
-interface IContentPaneProps {
-    readonly wallet: IWallet;
+interface ContentPaneProps {
+    readonly wallet: Wallet;
     readonly address: string;
     readonly balance: number;
 }
 
 @observer
-export class WalletPane extends React.Component<IContentPaneProps, any> {
-    constructor(props: IContentPaneProps) {
+export class WalletPane extends React.Component<ContentPaneProps, any> {
+    constructor(props: ContentPaneProps) {
         super(props);
         this.copyAddress = this.copyAddress.bind(this);
     }
@@ -42,13 +42,13 @@ export class WalletPane extends React.Component<IContentPaneProps, any> {
     }
 }
 
-interface ITransferPaneProps {
-    readonly wallet: IWallet;
+interface TransferPaneProps {
+    readonly wallet: Wallet;
 }
 
 @observer
-class TransferPane extends React.Component<ITransferPaneProps, any> {
-    private readonly wallet: IWallet;
+class TransferPane extends React.Component<TransferPaneProps, any> {
+    private readonly wallet: Wallet;
 
     @observable
     private address: string = "";
@@ -59,7 +59,7 @@ class TransferPane extends React.Component<ITransferPaneProps, any> {
     @observable
     private txnId: string;
 
-    public constructor(props: ITransferPaneProps) {
+    public constructor(props: TransferPaneProps) {
         super(props);
         this.wallet = props.wallet;
         this.handleSubmit = this.handleSubmit.bind(this);

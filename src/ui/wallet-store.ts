@@ -1,12 +1,12 @@
 import { action, computed, observable } from "mobx";
-import { IWallet } from "../core/wallet";
+import { Wallet } from "../core/wallet";
 
 
 export class WalletAccount {
 
   public static readonly NA_ADDRESS = "Loading...";
 
-  public readonly wallet: IWallet;
+  public readonly wallet: Wallet;
   @observable
   private walletAddress: string;
   @observable
@@ -14,7 +14,7 @@ export class WalletAccount {
 
   // private transactions: any[];
 
-  constructor(wallet: IWallet, address?: string, balance?: number) {
+  constructor(wallet: Wallet, address?: string, balance?: number) {
     this.wallet = wallet;
     this.walletAddress = address || WalletAccount.NA_ADDRESS;
     this.totalBalance = balance || 0;
@@ -43,7 +43,7 @@ export class WalletStore {
   @observable
   private activeWalletAccount: WalletAccount;
 
-  constructor(wallets: IWallet[], activeWalletCode: string) {
+  constructor(wallets: Wallet[], activeWalletCode: string) {
     for (const w of wallets) {
       this.walletAccounts.set(w.code, new WalletAccount(w));
     }
@@ -64,7 +64,7 @@ export class WalletStore {
   }
 
   @computed
-  public get activeWallet(): IWallet {
+  public get activeWallet(): Wallet {
     return this.activeWalletAccount.wallet;
   }
 

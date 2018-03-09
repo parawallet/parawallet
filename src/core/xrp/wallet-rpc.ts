@@ -77,7 +77,7 @@ export class XrpWalletRpc {
             server: serverAddress(this.networkType),
         });
 
-        const txPromise = api.connect()
+        const signPromise = api.connect()
             .then(() => api.preparePayment(this.address, payment))
             .then((prepared) => {
                 const signedTxn = (this.secret)
@@ -87,14 +87,14 @@ export class XrpWalletRpc {
                 return signedTxn;
             });
 
-        const submitPromise = txPromise
+        const submitPromise = signPromise
             .then((signedTxn) => api.submit(signedTxn.signedTransaction));
 
-        return Promise.all([txPromise, submitPromise])
+        return Promise.all([signPromise, submitPromise])
             .then((result) => {
                 api.disconnect();
-                const txResult = result[1];
-                alert(`RESULT: ${JSON.stringify(txResult)}`);
+                const submitResult = result[1];
+                alert(`RESULT: ${JSON.stringify(submitResult)}`);
 
                 const signedTxn = result[0];
                 return signedTxn.id;
