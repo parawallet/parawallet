@@ -49,6 +49,10 @@ export class EthWalletRpc {
         return sendPromise.then((transactionResult) => {
             console.log("txn hash: " + JSON.stringify(transactionResult));
             return transactionResult.hash;
+        })
+        .catch((e) => {
+            console.error(JSON.stringify(e));
+            return "<invalid-tx>";
         });
         // todo return the receipt, tx hash etc
     }

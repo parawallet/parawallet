@@ -26,10 +26,8 @@ export class XrpWallet extends AbstractWallet implements IWallet {
         });
     }
 
-    public send(toAddress: string, amount: number) {
-        return new Promise<string>((resolve, reject) => {
-            this.rpc.send(toAddress, amount, (txnid: string) => resolve(txnid));
-        });
+    public send(toAddress: string, amount: number): Promise<string> {
+        return this.rpc.send(toAddress, amount);
     }
 
     public getExporerURL() {

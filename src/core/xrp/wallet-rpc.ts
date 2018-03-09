@@ -55,42 +55,54 @@ export class XrpWalletRpc {
         const api = new RippleAPI({
             server: serverAddress(this.networkType),
         });
-        // TODO: handle failures
-        const promise = api.connect().then(() => {
+
+        return api.connect()
+        .then(() => {
             return api.getAccountInfo(this.address);
         }).then((info) => {
             api.disconnect();
             return Number(info.xrpBalance);
         }).catch((e) => {
+            api.disconnect();
             console.error(JSON.stringify(e));
             return 0;
         });
-        return promise;
     }
 
-    public send(toAddress: string, amount: number, callback: any) {
+    public send(toAddress: string, amount: number) {
         // TODO: explicitly typed as any. see https://github.com/ripple/ripple-lib/issues/866
         const payment: any = this.createPayment(toAddress, String(amount));
 
         const api = new RippleAPI({
             server: serverAddress(this.networkType),
         });
-        // TODO: handle failures
-        api.connect().then(() => {
-            api.preparePayment(this.address, payment)
-              .then((prepared) => {
-                    const signedTxn = (this.secret)
-                        ? api.sign(prepared.txJSON, this.secret)
-                        : signWithKeypair(prepared.txJSON, {privateKey: this.privateKey, publicKey: this.publicKey});
-                    console.log("ripple txn id:" + signedTxn.id);
-                    api.submit(signedTxn.signedTransaction)
-                        .then((result) => {
-                            alert(`RESULT: ${JSON.stringify(result)}`);
-                            callback(signedTxn.id);
-                        });
-                },
-            );
-        });
+
+        const txPromise = api.connect()
+            .then(() => api.preparePayment(this.address, payment))
+            .then((prepared) => {
+                const signedTxn = (this.secret)
+                    ? api.sign(prepared.txJSON, this.secret)
+                    : signWithKeypair(prepared.txJSON, {privateKey: this.privateKey, publicKey: this.publicKey});
+                console.log("ripple txn id:" + signedTxn.id);
+                return signedTxn;
+            });
+
+        const submitPromise = txPromise
+            .then((signedTxn) => api.submit(signedTxn.signedTransaction));
+
+        return Promise.all([txPromise, submitPromise])
+            .then((result) => {
+                api.disconnect();
+                const txResult = result[1];
+                alert(`RESULT: ${JSON.stringify(txResult)}`);
+
+                const signedTxn = result[0];
+                return signedTxn.id;
+            }).catch((e) => {
+                api.disconnect();
+                console.error(JSON.stringify(e));
+                return "<invalid-tx>";
+            });
     }
 
     public get publicAddress(): string {

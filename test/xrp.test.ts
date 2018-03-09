@@ -16,4 +16,13 @@ describe("XRP", () => {
     const a = keypairs.deriveAddress(kp.publicKey);
     console.log(`Address: ${a}`);
   });
+
+  it("Test", () => {
+    const promise = Promise.all([Promise.resolve("INFO"), "test"])
+      .then((x) => {throw new Error("error"); })
+      .then((x) => console.log("Resolved: " + x))
+      .catch((e) => console.error("Catch: " + e));
+
+
+  });
 });
