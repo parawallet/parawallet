@@ -8,7 +8,7 @@ let mainWindow;
 
 function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600, title: "The Wallet", show: false});
+  mainWindow = new BrowserWindow({width: 1200, height: 900, title: "Para Wallet", show: false});
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({

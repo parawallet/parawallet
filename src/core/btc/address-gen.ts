@@ -183,7 +183,6 @@ export class BtcAddressGenerator {
     private generateChangeAddress() {
         const index = this.changeAddressIndex++;
 
-        // TODO: the kv.set methods are async. check if they needs to be synchronized
         this.persistParams();
 
         const address = this.prepareAddress(ChainType.CHANGE, index);

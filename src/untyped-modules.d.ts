@@ -15,6 +15,7 @@ declare module "seco-keyval" {
     export default SecoKeyval;
 }
 
+
 declare module "coinselect" {
 
     function coinSelect(utxos: { txId: string, vout: number, value: number }[], outputs: { address: string, value: number }[], feeRate: number): { inputs: { txId: string, vout: number, value: number }[], outputs: { address: string, value: number }[], fee: number };

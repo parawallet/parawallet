@@ -6,3 +6,7 @@ export const BTC_PARAMS = "btc-params";
 export const ETH_PARAMS = "eth-params";
 export const XRP_PARAMS = "xrp-params";
 export const GAP_LIMIT = 20;
+export const PORTFOLIO_HISTORY = "portfolio_history";
+export const DATE_FORMAT = "YYYY-MM-DD";
+export const ACTIVE_WALLETS = "active-wallets";
+export const TRADE_START_DATE = "trade-start-date";

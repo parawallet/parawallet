@@ -11,11 +11,14 @@ import { TotpSetup, totpValidator } from "./totp";
 import {BtcNetworkType, BtcWallet,
     EthNetworkType, EthWallet,
     getOrInitializeMnemonic, Wallet, XrpNetworkType, XrpWallet} from "./wallets";
+import {getAndUpdatePortfolioHistory} from "../core/portfolio";
+
 
 enum NextState {
     AUTH,
     SETUP_2FA,
     INIT_WALLETS,
+    INIT_PORTFOLIO,
     SHOW_MAIN_PAGE,
 }
 
@@ -46,7 +49,13 @@ class Main extends React.Component<any, any> {
             case NextState.INIT_WALLETS:
                 return (
                     <div style={{padding: "30px"}}>
-                        ... LOADING PAGE ... INITIALIZING ...
+                        ... LOADING PAGE ... INITIALIZING WALLETS...
+                    </div>
+                );
+            case NextState.INIT_PORTFOLIO:
+                return (
+                    <div style={{padding: "30px"}}>
+                        ... LOADING PAGE ... INITIALIZING PORTFOLIO...
                     </div>
                 );
             case NextState.SHOW_MAIN_PAGE:
@@ -94,6 +103,13 @@ class Main extends React.Component<any, any> {
 
         const promises = this.wallets.map((w) => w.initialize(createEmpty));
         await Promise.all(promises);
+        this.next = NextState.INIT_PORTFOLIO;
+        await this.initializePortfolio();
+    }
+
+    private async initializePortfolio() {
+        const kv = DB.get(C.WALLET_DB);
+        await getAndUpdatePortfolioHistory(kv, this.wallets);
         this.next = NextState.SHOW_MAIN_PAGE;
     }
 

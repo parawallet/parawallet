@@ -9,6 +9,8 @@ import {ExchangesMenu} from "./exchanges-menu";
 import {WalletMenu} from "./wallet-menu";
 import {WalletPane} from "./wallet-pane";
 import {WalletAccount, WalletStore} from "./wallet-store";
+import {TimelineChart} from "./timeline-chart";
+import {PieChart} from "./pie-chart";
 
 interface PageProps {
     readonly defaultWalletCode: string;
@@ -42,11 +44,11 @@ export class Page extends React.Component<PageProps, any> {
         let activePane;
         switch ( this.activePaneId ) {
             case PaneId.PANE_TIMELINE: {
-                activePane = <div>timeline</div>;
+                activePane = <TimelineChart/>;
                 break;
             }
             case PaneId.PANE_PERCENTAGES: {
-                activePane = <div>percentages</div>;
+                activePane = <PieChart/>;
                 break;
             }
             case PaneId.PANE_WALLET: {

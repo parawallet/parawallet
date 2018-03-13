@@ -2,7 +2,6 @@ import * as React from "react";
 import {PaneId} from "./page";
 
 
-
 interface IPortfolioMenuProps {
     onMenuClick(paneId: PaneId): void;
 }
