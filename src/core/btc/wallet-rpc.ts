@@ -1,8 +1,8 @@
 import { ECPair, Network } from "bitcoinjs-lib";
 import * as request from "request";
 import { RequestResponse as Response } from "request";
-import { BtcNetworkType } from "./btc-wallet";
 import { Balance } from "../wallet";
+import { BtcNetworkType } from "./btc-wallet";
 
 export function createBtcWalletRpc(network: BtcNetworkType): BtcWalletRpc {
   if (network === BtcNetworkType.MAINNET) {

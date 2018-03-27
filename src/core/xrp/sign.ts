@@ -1,9 +1,9 @@
 // See https://github.com/ripple/ripple-lib/blob/develop/src/transaction/sign.ts
 // See https://github.com/LedgerHQ/ripple-lib/blob/develop/src/transaction/sign.js
 
-import * as keypairs from "ripple-keypairs";
 import * as binary from "ripple-binary-codec";
 import {computeBinaryTransactionHash} from "ripple-hashes";
+import * as keypairs from "ripple-keypairs";
 // const validate = utils.common.validate;
 
 function computeSignature(tx: any, privateKey: string, signAs?: string) {

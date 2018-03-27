@@ -16,7 +16,24 @@ function convertRipplePrivate(privateKey: string): string {
   return basex(B58_DICT).decode(privateKey).toString("hex").toUpperCase().slice(2, 66);
 }
 
-export function generateAddress(mnemonic: string, pass: string, index: number) {
+export class XrpAccount {
+  public readonly address: string;
+  public readonly publicKey: string;
+  public readonly privateKey: string;
+  public readonly secret: string;
+
+  constructor(address: string, secret: string);
+  // tslint:disable-next-line:unified-signatures
+  constructor(address: string, publicKey: string, privateKey: string);
+  constructor(address: string, publicKey: string = "", privateKey: string= "", secret: string = "") {
+      this.address = address;
+      this.publicKey = publicKey;
+      this.privateKey = privateKey;
+      this.secret = secret;
+  }
+}
+
+export function generateAddress(mnemonic: string, pass: string, index: number): XrpAccount {
   const path = generatePath(CoinType.XRP, ChainType.EXTERNAL, index);
   const seed = bip39.mnemonicToSeed(mnemonic, pass);
   const root = HDNode.fromSeedBuffer(seed);
@@ -26,5 +43,5 @@ export function generateAddress(mnemonic: string, pass: string, index: number) {
   const address = convertRippleAdrress(node.getAddress());
   const privateKey = "00" + convertRipplePrivate(node.keyPair.toWIF());
 
-  return {address, publicKey, privateKey};
+  return new XrpAccount(address, publicKey, privateKey);
 }

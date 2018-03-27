@@ -1,5 +1,6 @@
-import {XrpWalletRpc} from "./wallet-rpc";
+import SecoKeyval from "seco-keyval";
 import {AbstractWallet, Balance, Wallet} from "../wallet";
+import {XrpWalletRpc} from "./wallet-rpc";
 
 export enum XrpNetworkType {
     MAIN, TEST,
@@ -8,29 +9,34 @@ export enum XrpNetworkType {
 export class XrpWallet extends AbstractWallet implements Wallet {
     private readonly rpc: XrpWalletRpc;
 
-    constructor(mnemonic: string, pass: string, networkType: XrpNetworkType) {
+    constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: XrpNetworkType) {
         super("XRP", "Ripple");
-        this.rpc = new XrpWalletRpc(mnemonic, pass, networkType);
+        this.rpc = new XrpWalletRpc(kv, mnemonic, pass, networkType);
+        console.info(`XRP using ${XrpNetworkType[networkType]} network`);
     }
 
     public initialize(createEmpty: boolean) {
-        return this.rpc.initialize();
+        return this.rpc.initialize(createEmpty);
     }
 
-    public addresses(): string[] {
-        return [this.rpc.publicAddress];
+    public defaultAddress() {
+        return this.rpc.defaultAddress;
     }
 
-    public totalBalance() {
-        return this.rpc.getBalance();
+    public allAddresses(): ReadonlyArray<string> {
+        return [this.rpc.defaultAddress];
     }
 
-    public detailedBalance() {
-        return this.rpc.getBalance().then((amount: number) => [{address: this.rpc.publicAddress, amount}]);
+    public addNewAddress() {
+        return this.rpc.addNewAddress();
     }
 
-    public send(toAddress: string, amount: number): Promise<string> {
-        return this.rpc.send(toAddress, amount);
+    public detailedBalance(): Promise<Balance[]> {
+        return this.rpc.getAccountBalances();
+    }
+
+    public sendFrom(from: string, toAddress: string, amount: number): Promise<string> {
+        return this.rpc.send(from, toAddress, amount);
     }
 
     public getExporerURL() {

@@ -2,6 +2,7 @@ import * as bip39 from "bip39";
 import { action, computed, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { toast } from "react-toastify";
 import * as C from "../constants";
 import { restoreMnemonic } from "../core/mnemonic";
 import * as DB from "../db/secure-db";
@@ -193,11 +194,11 @@ class CreateNewWallet extends React.Component<any, any> {
     const confirmMnemonicPass = this.confirmMnemonicPassInput ? this.confirmMnemonicPassInput.value : "";
 
     if (!appPass || appPass !== confirmAppPass) {
-      alert("Application passwords do not match!");
+      toast.error("Application passwords do not match!", {autoClose: 5000});
       return;
     }
     if (mnemonicPass !== confirmMnemonicPass) {
-      alert("Mnemonic passwords do not match!");
+      toast.error("Mnemonic passwords do not match!", {autoClose: 5000});
       return;
     }
 
@@ -256,12 +257,12 @@ class ImportWallet extends React.Component<any, any> {
     const mnemonicPass = this.mnemonicPassInput ? this.mnemonicPassInput.value : "";
 
     if (!appPass || appPass !== confirmAppPass) {
-      alert("Application passwords do not match!");
+      toast.error("Application passwords do not match!", {autoClose: 5000});
       return;
     }
     if (!bip39.validateMnemonic(mnemonic)) {
       // TODO: we can allow invalid mnemonics
-      alert("Invalid mnemonic!");
+      toast.error("Invalid mnemonic!", {autoClose: 5000});
       return;
     }
 

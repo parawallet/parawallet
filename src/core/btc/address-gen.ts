@@ -6,8 +6,6 @@ import {ChainType, CoinType, generatePath} from "../bip44-path";
 import { BtcNetworkType } from "./btc-wallet";
 import { QueryTransactionsFunc } from "./wallet-rpc";
 
-const GAP_LIMIT = 20;
-
 class Params {
     public readonly receiveAddressIndex: number;
     public readonly changeAddressIndex: number;
@@ -26,7 +24,7 @@ export class BtcAddressGenerator {
     private readonly pass: string;
     private readonly queryTxFunc: QueryTransactionsFunc;
     private params: Params = new Params(0, 0);
-    private currentReceiveAddress = "";
+    private readonly receiveAddresses: string[] = [];
 
     constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: BtcNetworkType, queryTxFunc: QueryTransactionsFunc) {
         if (!kv) {
@@ -49,8 +47,8 @@ export class BtcAddressGenerator {
     public initialize(createEmpty: boolean) {
         if (createEmpty) {
             this.params = new Params(0, 0);
-            this.currentReceiveAddress = this.prepareAddress(ChainType.EXTERNAL, 0);
-            console.log("Creating new wallet... Current receive address: " + this.currentReceiveAddress);
+            this.receiveAddresses[0] = this.prepareAddress(ChainType.EXTERNAL, 0);
+            console.log("Creating new wallet... Current receive address: " + this.receiveAddresses);
             return this.persistParams();
         }
 
@@ -60,12 +58,12 @@ export class BtcAddressGenerator {
             console.log("BTC PARAMS: " + JSON.stringify(params));
             if (params) {
                 this.params = params;
-                this.currentReceiveAddress = this.prepareAddress(ChainType.EXTERNAL, this.receiveAddressIndex);
+                this.fillReceiveAddresses();
             } else {
                 return this.discover(ChainType.EXTERNAL).then((receiveIndex: number) => {
-                    console.log("EXTERNAL ADDRESS INDEX: " + receiveIndex);
+                    console.log("BTC EXTERNAL ADDRESS INDEX: " + receiveIndex);
                     this.receiveAddressIndex = receiveIndex;
-                    this.currentReceiveAddress = this.generateReceiveAddress();
+                    this.fillReceiveAddresses();
                 });
             }
         });
@@ -74,7 +72,7 @@ export class BtcAddressGenerator {
             console.log("BTC PARAMS: " + JSON.stringify(params));
             if (!params) {
                 return this.discover(ChainType.CHANGE).then((changeIndex: number) => {
-                    console.log("CHANGE ADDRESS INDEX: " + changeIndex);
+                    console.log("BTC CHANGE ADDRESS INDEX: " + changeIndex);
                     this.changeAddressIndex = changeIndex;
                 });
             }
@@ -86,6 +84,24 @@ export class BtcAddressGenerator {
         });
     }
 
+    public get defaultReceiveAddress() {
+        return this.receiveAddresses[this.receiveAddressIndex];
+    }
+
+    public get allReceiveAddresses() {
+        return this.receiveAddresses;
+    }
+
+    public addNewReceiveAddress(): Promise<string> {
+        const index = this.receiveAddressIndex++;
+        return this.persistParams().then(() => {
+            const address = this.prepareAddress(ChainType.EXTERNAL, index);
+            console.log(`generated receive address[${index}]: ${address}`);
+            this.receiveAddresses.push(address);
+            return address;
+        });
+    }
+
     public pickChangeAddress(usedAddresses: string[]): string {
         // Since we scan transactions for external and change addresses separately,
         // we shouldn't generate new change addresses more than gap limit
@@ -93,7 +109,7 @@ export class BtcAddressGenerator {
         // Reason is, if at least gap limit number of transactions fail somehow,
         // then we may create empty (without transaction) change addresses more than gap limit.
         // This will cause partial discovery of account when restored from mnemonic initially.
-        if (this.changeAddressIndex < GAP_LIMIT) {
+        if (this.changeAddressIndex < C.GAP_LIMIT) {
             return this.generateChangeAddress();
         }
 
@@ -124,10 +140,6 @@ export class BtcAddressGenerator {
         return keypairs;
     }
 
-    public get receiveAddress() {
-        return this.currentReceiveAddress;
-    }
-
     public getNetwork() {
         return this.network;
     }
@@ -144,12 +156,12 @@ export class BtcAddressGenerator {
         this.queryTxFunc(address).then((txIds) => {
             if (!txIds || txIds.length === 0) {
                 gap++;
-                console.error(chainType + ": " + index + " -> " + address + " has NO transactions. gap: " + gap);
+                console.error(`BTC ${chainType}: ${index} -> ${address} has NO transactions. gap: ${gap}`);
             } else {
-                console.error(chainType + ": " + index + " -> " + address + " has transactions.");
+                console.info(`BTC ${chainType}: ${index} -> ${address} has transactions.`);
                 gap = 0;
             }
-            if (gap < GAP_LIMIT) {
+            if (gap < C.GAP_LIMIT) {
                 this.discoverTransactions(chainType, index + 1, gap, resolve, reject);
             } else {
                 resolve(Math.max(0, index - gap));
@@ -171,10 +183,12 @@ export class BtcAddressGenerator {
         return this.getNode(type, index).getAddress();
     }
 
-    private generateReceiveAddress() {
-        const address = this.prepareAddress(ChainType.EXTERNAL, this.receiveAddressIndex);
-        console.log("generated receive address:" + address);
-        return address;
+    private fillReceiveAddresses() {
+        for (let i = 0; i <= this.receiveAddressIndex; i++) {
+            const address = this.prepareAddress(ChainType.EXTERNAL, i);
+            console.log(`generated receive address[${i}]: ${address}`);
+            this.receiveAddresses.push(address);
+        }
     }
 
     private generateChangeAddress() {

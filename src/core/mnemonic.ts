@@ -25,7 +25,6 @@ export function getOrInitializeMnemonic(kv: SecoKeyval) {
       console.log("generated mnemonic:" + mnemonic);
       kv.set(C.MNEMONIC, mnemonic).then(() => {
         resolve(mnemonic);
-        alert("Please write down following words to backup your wallet: " + mnemonic);
       });
     });
   });

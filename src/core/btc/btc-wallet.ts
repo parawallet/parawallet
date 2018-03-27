@@ -1,9 +1,9 @@
 import {ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
 import SecoKeyval from "seco-keyval";
-import {BtcAddressGenerator} from "./address-gen";
-import {createBtcWalletRpc, BtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
 import {AbstractWallet, Balance, Wallet} from "../wallet";
+import {BtcAddressGenerator} from "./address-gen";
+import {BtcWalletRpc, createBtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
 
 export enum BtcNetworkType {
     MAINNET, TESTNET,
@@ -19,24 +19,27 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         this.networkType = networkType;
         this.rpc = createBtcWalletRpc(networkType);
         this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType, this.rpc.queryTransactions.bind(this.rpc));
+        console.info(`BTC using ${BtcNetworkType[networkType]} network`);
     }
 
     public initialize(createEmpty: boolean) {
         return this.addressGen.initialize(createEmpty);
     }
 
-    public addresses(): string[] {
-        return [this.addressGen.receiveAddress];
+    public supportsMultiAddress(): boolean {
+        return true;
+      }
+
+    public defaultAddress() {
+        return this.addressGen.defaultReceiveAddress;
     }
 
-    public totalBalance() {
-        return this.detailedBalance().then((balances) => {
-            let total = 0;
-            balances.forEach((balance) => {
-                total += balance.amount;
-            });
-            return total;
-        });
+    public allAddresses(): ReadonlyArray<string> {
+        return this.addressGen.allReceiveAddresses;
+    }
+
+    public addNewAddress() {
+        return this.addressGen.addNewReceiveAddress();
     }
 
     public detailedBalance() {

@@ -18,6 +18,7 @@
       "jsx-no-lambda": false,
       "jsx-alignment": false,
       "ordered-imports": false,
+      "member-ordering": false,
       "no-console": [false, "log", "error"]
     },
     "jsRules": {

@@ -2,6 +2,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import { ToastContainer, toast } from "react-toastify";
 import * as C from "../constants";
 import * as DB from "../db/secure-db";
 import {Login, LoginCredentials, LoginType} from "./login";
@@ -32,6 +33,11 @@ class Main extends React.Component<any, any> {
     }
 
     public render() {
+        return [this.renderNext(),
+            (<ToastContainer position={toast.POSITION.TOP_CENTER} autoClose={false} hideProgressBar={true} />)];
+    }
+
+    private renderNext() {
         switch (this.next) {
             case NextState.AUTH:
                 return (<Login onLogin={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)}/>);
@@ -70,18 +76,20 @@ class Main extends React.Component<any, any> {
                 this.next = NextState.INIT_WALLETS;
                 this.initializeWallets(loginCreds.mnemonicPass, false);
             }
-        }, (e: Error) => {
+        }).catch((e: Error) => {
             console.log(e);
-            alert("Wrong password: " + e);
+            toast.error("Wrong password!", {position: toast.POSITION.TOP_CENTER});
         });
     }
 
     private initializeWallets(mnemonicPass: string, createEmpty: boolean) {
         const kv = DB.get(C.WALLET_DB)!;
         getOrInitializeMnemonic(kv).then((mnemonic) => {
+            toast.info("Please write down following words to backup your wallet: " + mnemonic);
+
             const BTC = new BtcWallet(kv, mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
-            const ETH = new EthWallet(mnemonic, mnemonicPass, EthNetworkType.rinkeby);
-            const XRP = new XrpWallet(mnemonic, mnemonicPass, XrpNetworkType.TEST);
+            const ETH = new EthWallet(kv, mnemonic, mnemonicPass, EthNetworkType.rinkeby);
+            const XRP = new XrpWallet(kv, mnemonic, mnemonicPass, XrpNetworkType.TEST);
             this.wallets.push(BTC, ETH, XRP);
 
             const promises: Array<Promise<any>> = [];

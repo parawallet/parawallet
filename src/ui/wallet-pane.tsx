@@ -2,6 +2,7 @@ import { action, autorun, computed, observable } from "mobx";
 import { observer } from "mobx-react";
 import {clipboard, shell} from "electron";
 import * as React from "react";
+import { toast } from "react-toastify";
 import {Wallet} from "../core/wallet";
 import {totpValidator, TotpVerifyDialog} from "./totp";
 
@@ -49,6 +50,8 @@ interface TransferPaneProps {
 @observer
 class TransferPane extends React.Component<TransferPaneProps, any> {
     @observable
+    private from: string = "";
+    @observable
     private address: string = "";
     @observable
     private amount: number | string = 0;
@@ -74,6 +77,8 @@ class TransferPane extends React.Component<TransferPaneProps, any> {
                 <h5>Send {wallet.name}:</h5>
 
                 <form onSubmit={this.handleSubmit}>
+                    {this.renderWalletAddresses(wallet)}
+
                     <div className="form-group">
                         <label>To Address:</label>
                         <input type="text" className="form-control" value={this.address} onChange={(event) => this.address = event.target.value}/>
@@ -92,6 +97,21 @@ class TransferPane extends React.Component<TransferPaneProps, any> {
                 <br/>
                 {this.txnId ? "Transaction id: " + this.txnId : ""}
 
+            </div>
+        );
+    }
+
+    private renderWalletAddresses(wallet: Wallet) {
+        if (wallet.supportsMultiAddress()) {
+            return null;
+        }
+        const addresses = wallet.allAddresses().map((address) => (<option value={address} key={address}>{address}</option>));
+        return (
+            <div className="form-group">
+                <label>From Address:</label>
+                <select className="form-control" onChange={(event) => this.from = event.target.value}>
+                    {addresses}
+                </select>
             </div>
         );
     }
@@ -115,11 +135,16 @@ class TransferPane extends React.Component<TransferPaneProps, any> {
 
     // TODO: update balance in main UI
     private transfer() {
-        this.props.wallet.send(this.address, Number(this.amount))
-            .then((txnResult) => {
-                this.txnId = txnResult;
-            })
-            .catch((e) => alert(e));
+        const wallet = this.props.wallet;
+        let p: Promise<string>;
+        if (wallet.supportsMultiAddress()) {
+            p = wallet.send(this.address, Number(this.amount));
+        } else {
+            p = wallet.sendFrom(this.from, this.address, Number(this.amount));
+        }
+
+        p.then((txnResult) => this.txnId = txnResult)
+            .catch((e) => toast.error(JSON.stringify(e)));
     }
 
     private onVerifyToken(valid: boolean) {

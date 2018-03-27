@@ -47,17 +47,18 @@
   "dependencies": {
     "bip39": "^2.5.0",
     "bitcoinjs-lib": "^3.3.2",
-    "coinselect": "^3.1.1",
+    "coinselect": "^3.1.11",
     "cryptocoins-icons": "^2.6.0",
-    "ethers": "^2.2.0",
+    "ethers": "^3.0.1",
     "mobx": "^3.5.1",
     "mobx-react": "^4.4.2",
     "qrcode": "^1.2.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "react-modal": "^3.1.11",
-    "ripple-lib": "^0.19.0",
-    "seco-keyval": "^0.3.0",
+    "react-modal": "^3.3.2",
+    "react-toastify": "^3.4.3",
+    "ripple-lib": "^0.19.1",
+    "seco-keyval": "^0.4.0",
     "speakeasy": "^2.0.0"
   },
   "build": {

@@ -97,9 +97,9 @@ export class Page extends React.Component<PageProps, any> {
     }
 
     private updateBalance(wallet: Wallet) {
-        wallet.totalBalance().then((balance) => {
+        wallet.totalBalanceAmount().then((balance) => {
             const walletAccount = this.walletsStore.getWalletAccount(wallet.code);
-            walletAccount.update(wallet.addresses()[0], balance);
+            walletAccount.update(wallet.defaultAddress(), balance);
         });
     }
 }
