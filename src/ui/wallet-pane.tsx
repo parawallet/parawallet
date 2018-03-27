@@ -48,8 +48,6 @@ interface TransferPaneProps {
 
 @observer
 class TransferPane extends React.Component<TransferPaneProps, any> {
-    private readonly wallet: Wallet;
-
     @observable
     private address: string = "";
     @observable
@@ -61,18 +59,19 @@ class TransferPane extends React.Component<TransferPaneProps, any> {
 
     public constructor(props: TransferPaneProps) {
         super(props);
-        this.wallet = props.wallet;
         this.handleSubmit = this.handleSubmit.bind(this);
         this.onVerifyToken = this.onVerifyToken.bind(this);
     }
 
     public render() {
+        const wallet = this.props.wallet;
+
         if (this.verifyToken) {
             return <TotpVerifyDialog show={true} onVerify={this.onVerifyToken}/>;
         }
         return (
             <div>
-                <h5>Send {this.props.wallet.name}:</h5>
+                <h5>Send {wallet.name}:</h5>
 
                 <form onSubmit={this.handleSubmit}>
                     <div className="form-group">
@@ -99,14 +98,14 @@ class TransferPane extends React.Component<TransferPaneProps, any> {
 
     private handleTxnResult(event: any, txnResult: string) {
         event.preventDefault();
-        const url = this.wallet.getExporerURL() + txnResult;
+        const url = this.props.wallet.getExporerURL() + txnResult;
         console.log(`Opening ${url}`);
         shell.openExternal(url);
     }
 
     private handleSubmit(event: React.FormEvent<any>) {
         event.preventDefault();
-        console.log(`Transfering ${this.amount} ${this.wallet.code} to ${this.address}`);
+        console.log(`Transfering ${this.amount} ${this.props.wallet.code} to ${this.address}`);
         if (totpValidator.enabled) {
             this.verifyToken = true;
         } else {
@@ -116,7 +115,7 @@ class TransferPane extends React.Component<TransferPaneProps, any> {
 
     // TODO: update balance in main UI
     private transfer() {
-        this.wallet.send(this.address, Number(this.amount))
+        this.props.wallet.send(this.address, Number(this.amount))
             .then((txnResult) => {
                 this.txnId = txnResult;
             })
