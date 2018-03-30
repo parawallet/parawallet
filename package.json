@@ -33,6 +33,7 @@
     "@types/react-dom": "^16.0.3",
     "@types/react-modal": "^3.1.1",
     "@types/request": "^2.0.9",
+    "@types/request-promise-native": "^1.0.14",
     "@types/speakeasy": "^2.0.2",
     "chai": "^4.1.2",
     "electron": "^1.7.11",
@@ -57,6 +58,7 @@
     "react-dom": "^16.2.0",
     "react-modal": "^3.3.2",
     "react-toastify": "^3.4.3",
+    "request-promise-native": "^1.0.5",
     "ripple-lib": "^0.19.1",
     "seco-keyval": "^0.4.0",
     "speakeasy": "^2.0.0"

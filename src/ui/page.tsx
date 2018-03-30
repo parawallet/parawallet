@@ -1,6 +1,7 @@
 import {action, computed, observable} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
+import { toast } from "react-toastify";
 import {Wallet, WalletType} from "../core/wallet";
 import {Preferences, PreferencesMenu} from "./preferences";
 import {PortfolioMenu} from "./portfolio-menu";
@@ -96,10 +97,13 @@ export class Page extends React.Component<PageProps, any> {
         }
     }
 
-    private updateBalance(wallet: Wallet) {
-        wallet.totalBalanceAmount().then((balance) => {
+    private async updateBalance(wallet: Wallet) {
+        try {
+            const balance = await wallet.totalBalanceAmount();
             const walletAccount = this.walletsStore.getWalletAccount(wallet.code);
             walletAccount.update(wallet.defaultAddress(), balance);
-        });
+        } catch (error) {
+            toast.error(JSON.stringify(error));
+        }
     }
 }

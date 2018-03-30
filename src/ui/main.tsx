@@ -59,45 +59,42 @@ class Main extends React.Component<any, any> {
         this.initializeWallets(this.credentials.mnemonicPass, this.loginType === LoginType.NEW);
     }
 
-    private onLogin(loginCreds: LoginCredentials, loginType: LoginType) {
+    private async onLogin(loginCreds: LoginCredentials, loginType: LoginType) {
         this.credentials = loginCreds;
         this.loginType = loginType;
-        const p = DB.open(C.WALLET_DB, loginCreds.appPass).then(() => {
-            return DB.open(C.CONFIG_DB, loginCreds.appPass).then(() => {
-                totpValidator.restore(DB.get(C.CONFIG_DB)!);
-            });
-        });
 
-        p.then(() => {
-            console.log("DB is ready now -> " + DB.get(C.WALLET_DB)!.hasOpened);
+        try {
+            const walletKv = await DB.open(C.WALLET_DB, loginCreds.appPass);
+            const configKv = await DB.open(C.CONFIG_DB, loginCreds.appPass);
+            totpValidator.restore(configKv!);
+
+            console.log("DB is ready now -> " + walletKv!.hasOpened);
             if (loginType === LoginType.NEW || loginType === LoginType.IMPORT) {
                 this.next = NextState.SETUP_2FA;
             } else {
                 this.next = NextState.INIT_WALLETS;
                 this.initializeWallets(loginCreds.mnemonicPass, false);
             }
-        }).catch((e: Error) => {
-            console.log(e);
+        } catch (error) {
+            console.log(error);
             toast.error("Wrong password!", {position: toast.POSITION.TOP_CENTER});
-        });
+        }
     }
 
-    private initializeWallets(mnemonicPass: string, createEmpty: boolean) {
+    private async initializeWallets(mnemonicPass: string, createEmpty: boolean) {
         const kv = DB.get(C.WALLET_DB)!;
-        getOrInitializeMnemonic(kv).then((mnemonic) => {
-            toast.info("Please write down following words to backup your wallet: " + mnemonic);
+        const mnemonic = await getOrInitializeMnemonic(kv);
 
-            const BTC = new BtcWallet(kv, mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
-            const ETH = new EthWallet(kv, mnemonic, mnemonicPass, EthNetworkType.rinkeby);
-            const XRP = new XrpWallet(kv, mnemonic, mnemonicPass, XrpNetworkType.TEST);
-            this.wallets.push(BTC, ETH, XRP);
+        toast.info("Please write down following words to backup your wallet: " + mnemonic);
 
-            const promises: Array<Promise<any>> = [];
-            promises.push(BTC.initialize(createEmpty));
-            promises.push(ETH.initialize(createEmpty));
-            promises.push(XRP.initialize(createEmpty));
-            Promise.all(promises).then(() => this.next = NextState.SHOW_MAIN_PAGE);
-        });
+        const BTC = new BtcWallet(kv, mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
+        const ETH = new EthWallet(kv, mnemonic, mnemonicPass, EthNetworkType.rinkeby);
+        const XRP = new XrpWallet(kv, mnemonic, mnemonicPass, XrpNetworkType.TEST);
+        this.wallets.push(BTC, ETH, XRP);
+
+        const promises = this.wallets.map((w) => w.initialize(createEmpty));
+        await Promise.all(promises);
+        this.next = NextState.SHOW_MAIN_PAGE;
     }
 
     private renderPage() {

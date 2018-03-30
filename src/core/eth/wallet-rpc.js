@@ -28,31 +28,25 @@ export class EthWalletRpc {
         this.provider = new providers.EtherscanProvider(network);
     }
 
-    initialize(createEmpty) {
+    async initialize(createEmpty) {
         if (createEmpty) {
             this.params = new Params(0);
             this.fillWallets();
             return this.persistParams();
         }
 
-        const promise = new Promise((resolve, reject) => {
-            this.kv.get(C.ETH_PARAMS).then((params) => {
-                if (params) {
-                    console.log("ETH PARAMS: " + JSON.stringify(params));
-                    this.params = params;
-                    this.fillWallets();
-                    resolve("success");
-                } else {
-                    this.discover().then((index) => {
-                        console.info(`ETH discovered index=${index}`);
-                        this.addressIndex = index;
-                        this.fillWallets();
-                        this.persistParams().then(() => resolve("success"));
-                    });
-                }
-            }).catch((e) => reject(e));
-        });
-        return promise;
+        const params = await this.kv.get(C.ETH_PARAMS);
+        if (params) {
+            console.log("ETH PARAMS: " + JSON.stringify(params));
+            this.params = params;
+            this.fillWallets();
+        } else {
+            const index = await this.discover();
+            console.info(`ETH discovered index=${index}`);
+            this.addressIndex = index;
+            this.fillWallets();
+            return this.persistParams();
+        }
     }
 
     fillWallets() {
@@ -72,70 +66,74 @@ export class EthWalletRpc {
         return this.wallets[index] = this.createNewWallet(index);
     }
 
-    discover() {
+    async discover() {
         console.log("Discovering addresses for ETH");
-        return new Promise((resolve, reject) => {
-            this.discoverAccounts(0, 0, resolve, reject);
-        });
+        try {
+            return await this.discoverAccounts(0, 0);
+        } catch (error) {
+            console.error(JSON.stringify(error));
+            return 0;
+        }
     }
 
-    discoverAccounts(index, gap, resolve, reject) {
+    async discoverAccounts(index, gap) {
         const address = this.createNewWallet(index).address;
-        this.provider.getBalance(address).then((amount) => {
-            if (!amount || amount.isZero()) {
-                gap++;
-                console.error(`ETH ${index} -> ${address} has NO balance. gap: ${gap}`);
-            } else {
-                console.info(`ETH ${index} -> ${address} has balance=${amount}.`);
-                gap = 0;
-            }
-            if (gap < C.GAP_LIMIT) {
-                this.discoverAccounts(index + 1, gap, resolve, reject);
-            } else {
-                resolve(Math.max(0, index - gap));
-            }
-        }).catch((e) => reject());
+        const amount = await this.provider.getBalance(address);
+        if (!amount || amount.isZero()) {
+            gap++;
+            console.error(`ETH ${index} -> ${address} has NO balance. gap: ${gap}`);
+        } else {
+            console.info(`ETH ${index} -> ${address} has balance=${amount}.`);
+            gap = 0;
+        }
+        if (gap < C.GAP_LIMIT) {
+            return this.discoverAccounts(index + 1, gap);
+        } else {
+            return Math.max(0, index - gap);
+        }
     }
 
     getWalletBalances() {
-        return this.allAddresses.map((address) => {
-            return this.provider.getBalance(address)
-                .then((amount) => {
-                    console.info(`ETH Balance for ${address} = ${amount}`);
-                    return {address: address, amount: amount / 1.0e18};
-                });
+        return this.wallets.map((wallet) => {
+            const address = wallet.address;
+            return this.provider.getBalance(address).then((amount) => {
+                console.info(`ETH Balance for ${address} = ${amount}`);
+                return {address: address, amount: amount / 1.0e18};
+            }).catch((e) => {
+                console.error(JSON.stringify(e));
+                return {address: address, amount: 0};
+            });
         });
     }
 
-    addNewAddress() {
+    async addNewAddress() {
         this.addressIndex++;
-        return this.persistParams().then(() => {
-            return this.addNewWallet(this.addressIndex).address;
-        });
+        await this.persistParams();
+        return this.addNewWallet(this.addressIndex).address;
     }
 
-    send(from, toAddr, etherAmount) {
+    async send(from, toAddr, etherAmount) {
         const wallet = this.wallets.find((w) => w.address === from);
         if (!wallet) {
-            return Promise.reject("<unknown-address>");
+            console.error(`ETH Wallet for address: ${from} not found!`);
+            return C.INVALID_TX_ID;
         }
 
         // todo check if we need to do something related to big numbers
-        var options = {
+        const options = {
             gasLimit: 30000,
             gasPrice: ethers.utils.bigNumberify("20000000000"),
         };
-        var amount = etherAmount * 1e18;
-        var sendPromise = this.wallets[this.addressIndex].send(toAddr, amount, options);
-        return sendPromise.then((transactionResult) => {
-            console.log("txn hash: " + JSON.stringify(transactionResult));
+        const amount = etherAmount * 1e18;
+
+        try {
+            const transactionResult = await wallet.send(toAddr, amount, options);
+            console.log("ETH txn hash: " + JSON.stringify(transactionResult));
             return transactionResult.hash;
-        })
-        .catch((e) => {
+        } catch (e) {
             console.error(JSON.stringify(e));
-            return "<invalid-tx>";
-        });
-        // todo return the receipt, tx hash etc
+            return C.INVALID_TX_ID;
+        }
     }
 
     get defaultAddress() {

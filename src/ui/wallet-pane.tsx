@@ -134,17 +134,17 @@ class TransferPane extends React.Component<TransferPaneProps, any> {
     }
 
     // TODO: update balance in main UI
-    private transfer() {
+    private async transfer() {
         const wallet = this.props.wallet;
-        let p: Promise<string>;
-        if (wallet.supportsMultiAddress()) {
-            p = wallet.send(this.address, Number(this.amount));
-        } else {
-            p = wallet.sendFrom(this.from, this.address, Number(this.amount));
+        try {
+            if (wallet.supportsMultiAddress()) {
+                this.txnId = await wallet.send(this.address, Number(this.amount));
+            } else {
+                this.txnId = await wallet.sendFrom(this.from, this.address, Number(this.amount));
+            }
+        } catch (error) {
+            toast.error(JSON.stringify(error));
         }
-
-        p.then((txnResult) => this.txnId = txnResult)
-            .catch((e) => toast.error(JSON.stringify(e)));
     }
 
     private onVerifyToken(valid: boolean) {

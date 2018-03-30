@@ -44,7 +44,7 @@ export class BtcAddressGenerator {
         this.queryTxFunc = queryTxFunc;
     }
 
-    public initialize(createEmpty: boolean) {
+    public async initialize(createEmpty: boolean) {
         if (createEmpty) {
             this.params = new Params(0, 0);
             this.receiveAddresses[0] = this.prepareAddress(ChainType.EXTERNAL, 0);
@@ -52,36 +52,23 @@ export class BtcAddressGenerator {
             return this.persistParams();
         }
 
-        const paramsPromise = this.kv.get(C.BTC_PARAMS);
+        const params: Params = await this.kv.get(C.BTC_PARAMS);
+        console.log("BTC PARAMS: " + JSON.stringify(params));
 
-        const receiveIndexPromise = paramsPromise.then((params) => {
-            console.log("BTC PARAMS: " + JSON.stringify(params));
-            if (params) {
-                this.params = params;
-                this.fillReceiveAddresses();
-            } else {
-                return this.discover(ChainType.EXTERNAL).then((receiveIndex: number) => {
-                    console.log("BTC EXTERNAL ADDRESS INDEX: " + receiveIndex);
-                    this.receiveAddressIndex = receiveIndex;
-                    this.fillReceiveAddresses();
-                });
-            }
-        });
+        if (params) {
+            this.params = params;
+            this.fillReceiveAddresses();
+        } else {
+            const receiveP = this.discover(ChainType.EXTERNAL);
+            const changeP = this.discover(ChainType.CHANGE);
+            const [receiveIndex, changeIndex] = await Promise.all([receiveP, changeP]);
 
-        const changeIndexPromise = paramsPromise.then((params) => {
-            console.log("BTC PARAMS: " + JSON.stringify(params));
-            if (!params) {
-                return this.discover(ChainType.CHANGE).then((changeIndex: number) => {
-                    console.log("BTC CHANGE ADDRESS INDEX: " + changeIndex);
-                    this.changeAddressIndex = changeIndex;
-                });
-            }
-        });
-
-        return Promise.all([receiveIndexPromise, changeIndexPromise])
-        .then(() => {
+            console.log("BTC EXTERNAL ADDRESS INDEX: " + receiveIndex);
+            console.log("BTC CHANGE ADDRESS INDEX: " + changeIndex);
+            this.params = new Params(receiveIndex, changeIndex);
+            this.fillReceiveAddresses();
             return this.persistParams();
-        });
+        }
     }
 
     public get defaultReceiveAddress() {
@@ -92,14 +79,13 @@ export class BtcAddressGenerator {
         return this.receiveAddresses;
     }
 
-    public addNewReceiveAddress(): Promise<string> {
+    public async addNewReceiveAddress(): Promise<string> {
         const index = this.receiveAddressIndex++;
-        return this.persistParams().then(() => {
-            const address = this.prepareAddress(ChainType.EXTERNAL, index);
-            console.log(`generated receive address[${index}]: ${address}`);
-            this.receiveAddresses.push(address);
-            return address;
-        });
+        await this.persistParams();
+        const address = this.prepareAddress(ChainType.EXTERNAL, index);
+        console.log(`generated receive address[${index}]: ${address}`);
+        this.receiveAddresses.push(address);
+        return address;
     }
 
     public pickChangeAddress(usedAddresses: string[]): string {
@@ -144,29 +130,32 @@ export class BtcAddressGenerator {
         return this.network;
     }
 
-    private discover(chainType: ChainType) {
-        console.log("Discovering addresses for chain: " + chainType);
-        return new Promise((resolve, reject) => {
-            this.discoverTransactions(chainType, 0, 0, resolve, reject);
-        });
+    private async discover(chainType: ChainType): Promise<number> {
+        console.log("BTC Discovering addresses for chain: " + chainType);
+        try {
+            return await this.discoverTransactions(chainType, 0, 0);
+        } catch (error) {
+            console.error(JSON.stringify(error));
+            return 0;
+        }
     }
 
-    private discoverTransactions(chainType: ChainType, index: number, gap: number, resolve: (index: number) => void, reject: () => void) {
+    private async discoverTransactions(chainType: ChainType, index: number, gap: number): Promise<number> {
         const address = this.prepareAddress(chainType, index);
-        this.queryTxFunc(address).then((txIds) => {
-            if (!txIds || txIds.length === 0) {
-                gap++;
-                console.error(`BTC ${chainType}: ${index} -> ${address} has NO transactions. gap: ${gap}`);
-            } else {
-                console.info(`BTC ${chainType}: ${index} -> ${address} has transactions.`);
-                gap = 0;
-            }
-            if (gap < C.GAP_LIMIT) {
-                this.discoverTransactions(chainType, index + 1, gap, resolve, reject);
-            } else {
-                resolve(Math.max(0, index - gap));
-            }
-        }).catch((e) => reject());
+        const txIds = await this.queryTxFunc(address);
+
+        if (!txIds || txIds.length === 0) {
+            gap++;
+            console.error(`BTC ${chainType}: ${index} -> ${address} has NO transactions. gap: ${gap}`);
+        } else {
+            console.info(`BTC ${chainType}: ${index} -> ${address} has transactions.`);
+            gap = 0;
+        }
+        if (gap < C.GAP_LIMIT) {
+            return this.discoverTransactions(chainType, index + 1, gap);
+        } else {
+            return Math.max(0, index - gap);
+        }
     }
 
     private getNode(type: ChainType, index: number) {

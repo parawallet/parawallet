@@ -2,7 +2,7 @@ import * as bip39 from "bip39";
 import SecoKeyval from "seco-keyval";
 import * as C from "../constants";
 
-export function getOrInitializeMnemonic(kv: SecoKeyval) {
+export async function getOrInitializeMnemonic(kv: SecoKeyval) {
   if (!kv) {
     throw new Error("KV is required");
   }
@@ -10,24 +10,21 @@ export function getOrInitializeMnemonic(kv: SecoKeyval) {
     throw new Error("KV is not ready yet!");
   }
 
-  return new Promise <string> ((resolve, reject) => {
-    kv.get(C.MNEMONIC).then((mnemonic: string) => {
-      if (mnemonic) {
-        console.log("read mnemonic:" + mnemonic);
-        if (!bip39.validateMnemonic(mnemonic)) {
-          alert("Invalid mnemonic!");
-        }
-        resolve(mnemonic);
-        return;
-      }
+  let mnemonic: string | undefined = await kv.get(C.MNEMONIC);
 
-      mnemonic = bip39.generateMnemonic();
-      console.log("generated mnemonic:" + mnemonic);
-      kv.set(C.MNEMONIC, mnemonic).then(() => {
-        resolve(mnemonic);
-      });
-    });
-  });
+  if (mnemonic) {
+    console.log("read mnemonic:" + mnemonic);
+
+    if (!bip39.validateMnemonic(mnemonic)) {
+      alert("Invalid mnemonic!");
+    }
+    return mnemonic;
+  }
+
+  mnemonic = bip39.generateMnemonic();
+  console.log("generated mnemonic:" + mnemonic);
+  await kv.set(C.MNEMONIC, mnemonic);
+  return mnemonic;
 }
 
 export function restoreMnemonic(mnemonic: string, kv: SecoKeyval) {

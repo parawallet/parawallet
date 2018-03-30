@@ -1,8 +1,9 @@
 import { ECPair, Network } from "bitcoinjs-lib";
-import * as request from "request";
+import * as request from "request-promise-native";
 import { RequestResponse as Response } from "request";
 import { Balance } from "../wallet";
 import { BtcNetworkType } from "./btc-wallet";
+import * as C from "../../constants";
 
 export function createBtcWalletRpc(network: BtcNetworkType): BtcWalletRpc {
   if (network === BtcNetworkType.MAINNET) {
@@ -42,102 +43,84 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
   private readonly txPushUrl = this.baseUrl + "pushtx";
   private readonly queryUrl = this.baseUrl + "address/";
 
-  public queryBalance(addresses: string[]) {
+  public async queryBalance(addresses: string[]) {
     const url = this.queryUrl + addresses.join(",");
-    return new Promise<Balance[]>((resolve, reject) => {
-      request.get(url, (error: any, response: Response, body: any) => {
-        if (error) {
-          console.error(error);
-          reject(error);
-          return;
-        }
+    try {
+      const body: string = await request.get(url);
+      const response = JSON.parse(body);
+      const results: any[] = response.addresses || [response.address];
 
-        const balances: Balance[] = [];
-        const bodyObj = JSON.parse(body);
-        const results: any[] = bodyObj.addresses || [bodyObj.address];
-
-        results.forEach((result) => {
-          if (result) {
-            console.log("Received query result for " + result.address
-            + ", total: " + result.total.balance_int
-            + ", confirmed: " + result.confirmed.balance_int
-            + ", unconfirmed: " + result.unconfirmed.balance_int);
-            balances.push({address: result.address, amount: result.total.balance_int / 1e8});
-          }
-        });
-
-        resolve(balances);
+      return results.map((result) => {
+          console.log("Received query result for " + result.address
+          + ", total: " + result.total.balance_int
+          + ", confirmed: " + result.confirmed.balance_int
+          + ", unconfirmed: " + result.unconfirmed.balance_int);
+          return {address: result.address, amount: result.total.balance_int / 1e8};
       });
-    });
+
+    } catch (error) {
+      console.error(JSON.stringify(error));
+      return [];
+    }
   }
 
-  public queryTransactions(address: string): Promise<string[]> {
+  public async queryTransactions(address: string): Promise<string[]> {
     const url = this.queryUrl + address;
-    return new Promise<string[]>((resolve, reject) => {
-      request.get(url, (error: any, response: Response, body: any) => {
-        if (error) {
-          console.error(error);
-          reject(error);
-          return;
-        }
+    try {
+      const body: string = await request.get(url);
+      const addressObj = JSON.parse(body).address;
+      const transactions: any[] = addressObj.transactions || [];
+      return transactions.map((tx) => tx.txid);
 
-        // const txIds: string[] = [];
-        const addressObj = JSON.parse(body).address;
-        const transactions: any[] = addressObj.transactions;
-        if (transactions) {
-          const txIds = transactions.map((tx) => tx.txid);
-          resolve(txIds);
-        } else {
-          resolve([]);
-        }
-      });
-    });
+    } catch (error) {
+      console.error(JSON.stringify(error));
+      return [];
+    }
   }
 
-  public getUnspentOutputs(keyPairs: ECPair[]) {
+  public async getUnspentOutputs(keyPairs: ECPair[]) {
     const url = this.queryUrl + keyPairs.map((keypair) => keypair.getAddress()).join(",") + "/unspent";
-    return new Promise<Array<[ECPair, UnspentTxOutput[]]>>((resolve, reject) => {
-      request.get(url, (error: any, response: Response, body: any) => {
-        if (error) {
-          console.error(error);
-          reject(error);
-          return;
-        }
-        // tslint:disable-next-line:interface-over-type-literal
-        type utxo = {addresses: string[], txid: string, n: number, value_int: number, confirmations: number};
-        const outputs: Array<[ECPair, UnspentTxOutput[]]> = [];
 
-        const result = JSON.parse(body);
-        const allUnspents: utxo[] = (result.unspent.filter((out: utxo) => out.confirmations > unspentTxOutputMinConfirmations) as utxo[]);
+    try {
+      const body = await request.get(url);
+      const result = JSON.parse(body);
 
-        keyPairs.forEach((keypair) => {
-          const unspents = allUnspents.filter((out) => keypair.getAddress() === out.addresses[0])
-            .map((out: utxo) => new UnspentTxOutput(out.txid, out.n, out.value_int));
-          outputs.push([keypair, unspents]);
-          console.log("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
-        });
+      const outputs: Array<[ECPair, UnspentTxOutput[]]> = [];
 
-        resolve(outputs);
+      // tslint:disable-next-line:interface-over-type-literal
+      type utxo = {addresses: string[], txid: string, n: number, value_int: number, confirmations: number};
+      const allUnspents: utxo[] = (result.unspent.filter((out: utxo) => out.confirmations > unspentTxOutputMinConfirmations) as utxo[]);
+
+      keyPairs.forEach((keypair) => {
+        const unspents = allUnspents.filter((out) => keypair.getAddress() === out.addresses[0])
+          .map((out: utxo) => new UnspentTxOutput(out.txid, out.n, out.value_int));
+        outputs.push([keypair, unspents]);
+        console.log("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
       });
-    });
+
+      return outputs;
+
+    } catch (error) {
+      console.error(JSON.stringify(error));
+      return [];
+    }
   }
 
-  public pushTransaction(txHex: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      request.post({
-        body: '{"hex":"' + txHex + '"}',
-        url: this.txPushUrl,
-      }, (error: any, res: Response, body: any) => {
-          const txid: string = JSON.parse(body).txid;
-          console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
-          if (error || res.statusCode !== 200) {
-            console.error(error);
-            reject(error);
-            return;
-          }
-          resolve(txid);
-      });
-    });
+  public async pushTransaction(txHex: string): Promise<string> {
+    const options = {
+      body: '{"hex":"' + txHex + '"}',
+      url: this.txPushUrl,
+    };
+
+    try {
+      const body = await request.post(options);
+      const txid: string = JSON.parse(body).txid;
+      console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
+      return txid;
+    } catch (error) {
+      console.error(JSON.stringify(error));
+      return C.INVALID_TX_ID;
+    }
   }
 }
 

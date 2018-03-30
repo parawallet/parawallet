@@ -24,7 +24,7 @@ export class XrpWallet extends AbstractWallet implements Wallet {
     }
 
     public allAddresses(): ReadonlyArray<string> {
-        return [this.rpc.defaultAddress];
+        return this.rpc.allAddresses;
     }
 
     public addNewAddress() {

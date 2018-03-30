@@ -3,6 +3,7 @@ import * as React from "react";
 import * as Modal from "react-modal";
 import SecoKeyval from "seco-keyval";
 import * as auth from "speakeasy";
+import { toast } from "react-toastify";
 import * as C from "../constants";
 import * as DB from "../db/secure-db";
 
@@ -116,21 +117,24 @@ export class TotpSetup extends React.Component<any, any> {
     this.setState({enable2FA: true});
   }
 
-  private validate(event: any) {
+  private async validate(event: any) {
     event.preventDefault();
     const userToken = this.userToken ? this.userToken.value : null;
     if (!userToken) {
-      alert("Please enter token!");
+      toast.error("Please enter token!");
       return;
     }
     const valid = verifyToken(this.secret.base32, userToken);
     if (!valid) {
-      alert("Invalid token!");
+      toast.error("Invalid token!");
       return;
     }
-    totpValidator.initialize(this.secret, DB.get(C.CONFIG_DB)!).then(() => {
+    try {
+      await totpValidator.initialize(this.secret, DB.get(C.CONFIG_DB)!);
       this.props.onValidToken();
-    });
+    } catch (error) {
+      toast.error(JSON.stringify(error));
+    }
   }
 }
 
@@ -178,12 +182,12 @@ export class TotpVerifyDialog extends React.Component<any, any> {
     event.preventDefault();
     const userToken = this.tokenInput ? this.tokenInput.value : null;
     if (!userToken) {
-      alert("Please enter token!");
+      toast.error("Please enter token!");
       return;
     }
     const valid = totpValidator.validate(userToken);
     if (!valid) {
-      alert("Invalid token!");
+      toast.error("Invalid token!");
     }
     this.closeDialog();
     this.props.onVerify(valid);
@@ -210,15 +214,18 @@ export class TotpRemove extends React.Component<any, any> {
       );
   }
 
-  private remove2Fa(valid: boolean) {
+  private async remove2Fa(valid: boolean) {
     if (!valid) {
       this.props.onRemove();
       return;
     }
 
-    totpValidator.remove(DB.get(C.CONFIG_DB)!).then(() => {
+    try {
+      await totpValidator.remove(DB.get(C.CONFIG_DB)!);
       this.props.onRemove();
-    });
+    } catch (error) {
+      toast.error(JSON.stringify(error));
+    }
   }
 }
 

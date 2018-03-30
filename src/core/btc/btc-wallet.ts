@@ -1,6 +1,7 @@
 import {ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
 import SecoKeyval from "seco-keyval";
+import * as C from "../../constants";
 import {AbstractWallet, Balance, Wallet} from "../wallet";
 import {BtcAddressGenerator} from "./address-gen";
 import {BtcWalletRpc, createBtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
@@ -47,15 +48,16 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         return this.rpc.queryBalance(addresses);
     }
 
-    public send(toAddress: string, amount: number) {
-        alert("You are about to send " + amount + " bitcoins to " + toAddress);
-
+    public async send(toAddress: string, amount: number) {
         const satoshiAmount = amount * 1e8;
-
-        const txnP = this.rpc.getUnspentOutputs(this.addressGen.getKeypairs())
-            .then((outputTuples) => this.createTransaction(toAddress, satoshiAmount, outputTuples));
-
-        return txnP.then((txnHex) => this.rpc.pushTransaction(txnHex)).catch((e) => e);
+        try {
+            const outputTuples = await this.rpc.getUnspentOutputs(this.addressGen.getKeypairs());
+            const txnHex = this.createTransaction(toAddress, satoshiAmount, outputTuples);
+            return await this.rpc.pushTransaction(txnHex);
+        } catch (error) {
+            console.error(JSON.stringify(error));
+            return C.INVALID_TX_ID;
+        }
     }
 
     public getExporerURL() {

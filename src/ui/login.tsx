@@ -86,20 +86,25 @@ export class Login extends React.Component<any, any> {
     this.shouldShowImportDialog = false;
   }
 
-  private handleCreateNew(credentials: LoginCredentials) {
-    DB.open(C.WALLET_DB, credentials.appPass).then(() => {
+  private async handleCreateNew(credentials: LoginCredentials) {
+    try {
+      await DB.open(C.WALLET_DB, credentials.appPass);
       this.reset();
       this.props.onLogin(credentials, LoginType.NEW);
-    });
+    } catch (error) {
+      toast.error(JSON.stringify(error));
+    }
   }
 
-  private handleImport(credentials: LoginCredentials, mnemonic: string) {
-    DB.open(C.WALLET_DB, credentials.appPass).then(() => {
-      restoreMnemonic(mnemonic, DB.get(C.WALLET_DB)!).then(() => {
-          this.reset();
-          this.props.onLogin(credentials, LoginType.IMPORT);
-        });
-    });
+  private async handleImport(credentials: LoginCredentials, mnemonic: string) {
+    try {
+      const walletKv = await DB.open(C.WALLET_DB, credentials.appPass);
+      restoreMnemonic(mnemonic, walletKv!);
+      this.reset();
+      this.props.onLogin(credentials, LoginType.IMPORT);
+    } catch (error) {
+      toast.error(JSON.stringify(error));
+    }
   }
 
   private handleLogin(credentials: LoginCredentials) {
