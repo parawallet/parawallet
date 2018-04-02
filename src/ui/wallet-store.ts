@@ -1,41 +1,43 @@
 import { action, computed, observable } from "mobx";
-import { Wallet } from "../core/wallet";
+import { Wallet, Balance } from "../core/wallet";
 
 
 export class WalletAccount {
 
-  public static readonly NA_ADDRESS = "Loading...";
-
   public readonly wallet: Wallet;
   @observable
-  private walletAddress: string;
-  @observable
-  private totalBalance: number;
+  private balances: Balance[] = [];
 
   // private transactions: any[];
 
-  constructor(wallet: Wallet, address?: string, balance?: number) {
+  constructor(wallet: Wallet) {
     this.wallet = wallet;
-    this.walletAddress = address || WalletAccount.NA_ADDRESS;
-    this.totalBalance = balance || 0;
   }
 
   @computed
-  public get address() {
-    return this.walletAddress;
+  public get isEmpty(): boolean {
+    return this.balances.length === 0;
   }
 
   @computed
-  public get balance() {
-    return this.totalBalance;
+  public get detailedBalances(): ReadonlyArray<Balance> {
+    return this.balances;
+  }
+
+  @computed
+  public get totalBalance(): number {
+    let total = 0;
+    this.balances.forEach((balance) => {
+        total += balance.amount;
+    });
+    return total;
   }
 
   @action
-  public update(address: string, balance: number) {
-    this.walletAddress = address;
-    this.totalBalance = balance;
+  public async update() {
+    const balances = await this.wallet.detailedBalances();
+    this.balances = balances;
   }
-
 }
 
 export class WalletStore {
@@ -61,11 +63,6 @@ export class WalletStore {
   @computed
   public get activeAccount(): WalletAccount {
     return this.activeWalletAccount;
-  }
-
-  @computed
-  public get activeWallet(): Wallet {
-    return this.activeWalletAccount.wallet;
   }
 
   @action

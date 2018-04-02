@@ -51,7 +51,7 @@ export class Page extends React.Component<PageProps, any> {
             }
             case PaneId.PANE_WALLET: {
                 const account = this.walletsStore.activeAccount;
-                activePane = <WalletPane wallet={account.wallet} address={account.address} balance={account.balance}/>;
+                activePane = <WalletPane account={account} />;
                 break;
             }
             case PaneId.PANE_PREF: {
@@ -86,22 +86,20 @@ export class Page extends React.Component<PageProps, any> {
         console.log(`Switching wallet: ${wallet.code}`);
         this.activePaneId = PaneId.PANE_WALLET;
         const account = this.walletsStore.switchWallet(wallet.code);
-        if (account.address === WalletAccount.NA_ADDRESS) {
-            this.updateBalance(account.wallet);
+        if (account.isEmpty) {
+            this.updateBalance(account);
         }
     }
 
     private updateActiveBalance() {
         if (this.activePaneId === PaneId.PANE_WALLET) {
-            this.updateBalance(this.walletsStore.activeWallet);
+            this.updateBalance(this.walletsStore.activeAccount);
         }
     }
 
-    private async updateBalance(wallet: Wallet) {
+    private async updateBalance(walletAccount: WalletAccount) {
         try {
-            const balance = await wallet.totalBalanceAmount();
-            const walletAccount = this.walletsStore.getWalletAccount(wallet.code);
-            walletAccount.update(wallet.defaultAddress(), balance);
+            await walletAccount.update();
         } catch (error) {
             toast.error(JSON.stringify(error));
         }

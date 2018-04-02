@@ -1,157 +1,91 @@
-import { action, autorun, computed, observable } from "mobx";
+import { computed, observable } from "mobx";
 import { observer } from "mobx-react";
-import {clipboard, shell} from "electron";
+import {clipboard} from "electron";
 import * as React from "react";
+import * as Modal from "react-modal";
 import { toast } from "react-toastify";
 import {Wallet} from "../core/wallet";
-import {totpValidator, TotpVerifyDialog} from "./totp";
+import {WalletAccount} from "./wallet-store";
+import {TransferPane} from "./transfer-pane";
 
 
-interface ContentPaneProps {
-    readonly wallet: Wallet;
-    readonly address: string;
-    readonly balance: number;
+interface WalletPaneProps {
+    readonly account: WalletAccount;
 }
 
 @observer
-export class WalletPane extends React.Component<ContentPaneProps, any> {
-    constructor(props: ContentPaneProps) {
+export class WalletPane extends React.Component<WalletPaneProps, any> {
+    @observable
+    private showTransferPane: boolean = false;
+
+    constructor(props: WalletPaneProps) {
         super(props);
+        this.addNewAddress = this.addNewAddress.bind(this);
         this.copyAddress = this.copyAddress.bind(this);
     }
 
     public render() {
-        const wallet = this.props.wallet;
+        const account = this.props.account;
+        const wallet = account.wallet;
         return (
             <div style={{padding: "20px"}}>
                 <h1>
                     <i className={"icon cc " + wallet.code} title={wallet.code}/>&nbsp;{wallet.name}
                 </h1>
-                <span className="coin_header">Balance: {this.props.balance} {wallet.code}</span>
+                <span className="coin_header">Total Balance: {account.totalBalance} {wallet.code}</span>
                 <hr/>
-                <h5>Receive {wallet.name}:</h5> Your Address:
-                <input type="text" className="form-control" readOnly={true} value={this.props.address}/>
-                <input className="btn btn-default" type="button" value="Copy Address" onClick={this.copyAddress}/>
+                <input className="btn btn-default" type="button" value="Add New Address" onClick={this.addNewAddress}/>
+                <input className="btn btn-default" type="button" value="Send Coin" onClick={() => this.showTransferPane = true}/>
                 <hr/>
-                <TransferPane wallet={wallet}/>
+
+                {this.renderWalletBalances(account, wallet.code)}
+
+                <Modal isOpen={this.showTransferPane}
+                    onRequestClose={() => this.showTransferPane = false} contentLabel="Transfer"
+                    shouldCloseOnOverlayClick={false} shouldCloseOnEsc={false} ariaHideApp={false}>
+                    <TransferPane account={account} onComplete={() => this.showTransferPane = false} />
+                </Modal>
+
             </div>
         );
     }
 
-    private copyAddress() {
-        clipboard.writeText(this.props.address);
-    }
-}
-
-interface TransferPaneProps {
-    readonly wallet: Wallet;
-}
-
-@observer
-class TransferPane extends React.Component<TransferPaneProps, any> {
-    @observable
-    private from: string = "";
-    @observable
-    private address: string = "";
-    @observable
-    private amount: number | string = 0;
-    @observable
-    private verifyToken: boolean = false;
-    @observable
-    private txnId: string;
-
-    public constructor(props: TransferPaneProps) {
-        super(props);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.onVerifyToken = this.onVerifyToken.bind(this);
-    }
-
-    public render() {
-        const wallet = this.props.wallet;
-
-        if (this.verifyToken) {
-            return <TotpVerifyDialog show={true} onVerify={this.onVerifyToken}/>;
-        }
+    private renderWalletBalances(account: WalletAccount, walletCode: string) {
+        const rows = account.detailedBalances.map((balance, index) => {
+            return (
+                <tr key={index}>
+                    <td>{index}&nbsp;
+                        <input className="btn" type="button" value="Copy" onClick={() => this.copyAddress(balance.address)}/>
+                    </td>
+                    <td>{balance.address}</td>
+                    <td>{balance.amount}&nbsp;{walletCode}</td>
+                </tr>
+            );
+        });
         return (
-            <div>
-                <h5>Send {wallet.name}:</h5>
-
-                <form onSubmit={this.handleSubmit}>
-                    {this.renderWalletAddresses(wallet)}
-
-                    <div className="form-group">
-                        <label>To Address:</label>
-                        <input type="text" className="form-control" value={this.address} onChange={(event) => this.address = event.target.value}/>
-                    </div>
-                    <div className="form-group">
-                        <label>Amount:</label>
-                        <input type="text" className="form-control" value={this.amount} onChange={(event) => this.amount = event.target.value}/>
-                    </div>
-                    <div className="form-actions">
-                        <input className="btn btn-large btn-default" type="submit" value="Submit"/>
-                    </div>
-                </form>
-                <a className="txn-result" href="#" onClick={(event) => this.handleTxnResult(event, this.txnId)}>
-                    {this.txnId ? "Transaction completed click for details." : ""}
-                </a>
-                <br/>
-                {this.txnId ? "Transaction id: " + this.txnId : ""}
-
-            </div>
+            <table className="form-group">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Address</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>{rows}</tbody>
+            </table>
         );
     }
 
-    private renderWalletAddresses(wallet: Wallet) {
-        if (wallet.supportsMultiAddress()) {
-            return null;
-        }
-        const addresses = wallet.allAddresses().map((address) => (<option value={address} key={address}>{address}</option>));
-        return (
-            <div className="form-group">
-                <label>From Address:</label>
-                <select className="form-control" onChange={(event) => this.from = event.target.value}>
-                    {addresses}
-                </select>
-            </div>
-        );
+    private async addNewAddress() {
+        const account = this.props.account;
+        const wallet = account.wallet;
+        const newAddress = await wallet.addNewAddress();
+        await account.update();
+        toast.info(`Added new address ${newAddress}.`, {autoClose: 3000});
     }
 
-    private handleTxnResult(event: any, txnResult: string) {
-        event.preventDefault();
-        const url = this.props.wallet.getExporerURL() + txnResult;
-        console.log(`Opening ${url}`);
-        shell.openExternal(url);
-    }
-
-    private handleSubmit(event: React.FormEvent<any>) {
-        event.preventDefault();
-        console.log(`Transfering ${this.amount} ${this.props.wallet.code} to ${this.address}`);
-        if (totpValidator.enabled) {
-            this.verifyToken = true;
-        } else {
-            this.transfer();
-        }
-    }
-
-    // TODO: update balance in main UI
-    private async transfer() {
-        const wallet = this.props.wallet;
-        try {
-            if (wallet.supportsMultiAddress()) {
-                this.txnId = await wallet.send(this.address, Number(this.amount));
-            } else {
-                this.txnId = await wallet.sendFrom(this.from, this.address, Number(this.amount));
-            }
-        } catch (error) {
-            toast.error(JSON.stringify(error));
-        }
-    }
-
-    private onVerifyToken(valid: boolean) {
-        this.verifyToken = false;
-        if (!valid) {
-            return;
-        }
-        this.transfer();
+    private copyAddress(address: string) {
+        clipboard.writeText(address);
+        toast.info(`Copied ${address} to clipboard.`, {autoClose: 1000});
     }
 }

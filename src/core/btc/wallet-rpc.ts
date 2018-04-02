@@ -3,7 +3,6 @@ import * as request from "request-promise-native";
 import { RequestResponse as Response } from "request";
 import { Balance } from "../wallet";
 import { BtcNetworkType } from "./btc-wallet";
-import * as C from "../../constants";
 
 export function createBtcWalletRpc(network: BtcNetworkType): BtcWalletRpc {
   if (network === BtcNetworkType.MAINNET) {
@@ -112,15 +111,10 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
       url: this.txPushUrl,
     };
 
-    try {
-      const body = await request.post(options);
-      const txid: string = JSON.parse(body).txid;
-      console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
-      return txid;
-    } catch (error) {
-      console.error(JSON.stringify(error));
-      return C.INVALID_TX_ID;
-    }
+    const body = await request.post(options);
+    const txid: string = JSON.parse(body).txid;
+    console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
+    return txid;
   }
 }
 

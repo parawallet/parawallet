@@ -71,10 +71,6 @@ export class BtcAddressGenerator {
         }
     }
 
-    public get defaultReceiveAddress() {
-        return this.receiveAddresses[this.receiveAddressIndex];
-    }
-
     public get allReceiveAddresses() {
         return this.receiveAddresses;
     }

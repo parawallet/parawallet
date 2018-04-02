@@ -11,11 +11,10 @@ export interface WalletType {
 export interface Wallet extends WalletType {
   initialize(createEmpty: boolean): Promise<any>;
   supportsMultiAddress(): boolean;
-  defaultAddress(): string;
   allAddresses(): ReadonlyArray<string>;
   addNewAddress(): Promise<string>;
   totalBalanceAmount(): Promise<number>;
-  detailedBalance(): Promise<Balance[]>;
+  detailedBalances(): Promise<Balance[]>;
   send(toAddress: string, amount: number): Promise<string>;
   sendFrom(from: string, toAddress: string, amount: number): Promise<string>;
   getExporerURL(): string;
@@ -38,7 +37,7 @@ export abstract class AbstractWallet implements Wallet {
   }
 
   public totalBalanceAmount(): Promise<number> {
-    return this.detailedBalance().then((balances) => {
+    return this.detailedBalances().then((balances) => {
         let total = 0;
         balances.forEach((balance) => {
             total += balance.amount;

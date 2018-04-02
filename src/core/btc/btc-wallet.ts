@@ -31,10 +31,6 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         return true;
       }
 
-    public defaultAddress() {
-        return this.addressGen.defaultReceiveAddress;
-    }
-
     public allAddresses(): ReadonlyArray<string> {
         return this.addressGen.allReceiveAddresses;
     }
@@ -43,21 +39,16 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         return this.addressGen.addNewReceiveAddress();
     }
 
-    public detailedBalance() {
+    public detailedBalances() {
         const addresses = this.addressGen.getKeypairs().map((keypair) => keypair.getAddress());
         return this.rpc.queryBalance(addresses);
     }
 
     public async send(toAddress: string, amount: number) {
         const satoshiAmount = amount * 1e8;
-        try {
-            const outputTuples = await this.rpc.getUnspentOutputs(this.addressGen.getKeypairs());
-            const txnHex = this.createTransaction(toAddress, satoshiAmount, outputTuples);
-            return await this.rpc.pushTransaction(txnHex);
-        } catch (error) {
-            console.error(JSON.stringify(error));
-            return C.INVALID_TX_ID;
-        }
+        const outputTuples = await this.rpc.getUnspentOutputs(this.addressGen.getKeypairs());
+        const txnHex = this.createTransaction(toAddress, satoshiAmount, outputTuples);
+        return await this.rpc.pushTransaction(txnHex);
     }
 
     public getExporerURL() {

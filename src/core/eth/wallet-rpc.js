@@ -115,8 +115,9 @@ export class EthWalletRpc {
     async send(from, toAddr, etherAmount) {
         const wallet = this.wallets.find((w) => w.address === from);
         if (!wallet) {
-            console.error(`ETH Wallet for address: ${from} not found!`);
-            return C.INVALID_TX_ID;
+            const notFound = `ETH Wallet for address: ${from} not found!`;
+            console.error(notFound);
+            throw notFound;
         }
 
         // todo check if we need to do something related to big numbers
@@ -126,18 +127,9 @@ export class EthWalletRpc {
         };
         const amount = etherAmount * 1e18;
 
-        try {
-            const transactionResult = await wallet.send(toAddr, amount, options);
-            console.log("ETH txn hash: " + JSON.stringify(transactionResult));
-            return transactionResult.hash;
-        } catch (e) {
-            console.error(JSON.stringify(e));
-            return C.INVALID_TX_ID;
-        }
-    }
-
-    get defaultAddress() {
-        return this.wallets[this.addressIndex].address;
+        const transactionResult = await wallet.send(toAddr, amount, options);
+        console.log("ETH txn hash: " + JSON.stringify(transactionResult));
+        return transactionResult.hash;
     }
 
     get allAddresses() {

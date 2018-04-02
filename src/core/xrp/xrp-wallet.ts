@@ -19,10 +19,6 @@ export class XrpWallet extends AbstractWallet implements Wallet {
         return this.rpc.initialize(createEmpty);
     }
 
-    public defaultAddress() {
-        return this.rpc.defaultAddress;
-    }
-
     public allAddresses(): ReadonlyArray<string> {
         return this.rpc.allAddresses;
     }
@@ -31,7 +27,7 @@ export class XrpWallet extends AbstractWallet implements Wallet {
         return this.rpc.addNewAddress();
     }
 
-    public detailedBalance(): Promise<Balance[]> {
+    public detailedBalances(): Promise<Balance[]> {
         return this.rpc.getAccountBalances();
     }
 

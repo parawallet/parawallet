@@ -166,12 +166,13 @@ export class XrpWalletRpc {
     public async send(from: string, toAddress: string, amount: number) {
         const account = this.accounts.find((acc) => acc.address === from);
         if (!account) {
-            console.error(`ETH Wallet for address: ${from} not found!`);
-            return C.INVALID_TX_ID;
+            const notFound = `XRP Wallet for address: ${from} not found!`;
+            console.error(notFound);
+            throw notFound;
         }
 
         // TODO: explicitly typed as any. see https://github.com/ripple/ripple-lib/issues/866
-        const payment: any = this.createPayment(toAddress, String(amount));
+        const payment: any = this.createPayment(account.address, toAddress, String(amount));
         const api = new RippleAPI({
             server: serverAddress(this.networkType),
         });
@@ -187,28 +188,17 @@ export class XrpWalletRpc {
             const result = await api.submit(signedTxn.signedTransaction);
             console.log(`RESULT: ${JSON.stringify(result)}`);
             return signedTxn.id;
-        } catch (error) {
-            console.error(JSON.stringify(error));
-            return C.INVALID_TX_ID;
         } finally {
             api.disconnect();
         }
-    }
-
-    private get defaultAccount() {
-        return this.accounts[this.addressIndex];
-      }
-
-    public get defaultAddress(): string {
-      return this.defaultAccount.address;
     }
 
     public get allAddresses(): ReadonlyArray<string> {
         return this.accounts.map((account) => account.address);
     }
 
-    private createPayment(toAddress: string, amount: string) {
-        const source = {address: this.defaultAddress, maxAmount: {value: amount, currency: "XRP"}};
+    private createPayment(from: string, toAddress: string, amount: string) {
+        const source = {address: from, maxAmount: {value: amount, currency: "XRP"}};
         const destination = {address: toAddress, amount: {value: amount, currency: "XRP"}};
         return {source, destination};
     }

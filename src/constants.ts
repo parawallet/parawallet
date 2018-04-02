@@ -1,7 +1,6 @@
 export const WALLET_DB = "wallet";
 export const CONFIG_DB = "config";
 export const MNEMONIC = "mnemonic";
-export const INVALID_TX_ID = "<invalid-tx>";
 export const TOTP_PARAMS = "totp-params";
 export const BTC_PARAMS = "btc-params";
 export const ETH_PARAMS = "eth-params";
