@@ -32,7 +32,7 @@ export class BtcWallet extends AbstractWallet implements Wallet {
       }
 
     public allAddresses(): ReadonlyArray<string> {
-        return this.addressGen.allReceiveAddresses;
+        return this.addressGen.allAddresses;
     }
 
     public addNewAddress() {
@@ -40,7 +40,7 @@ export class BtcWallet extends AbstractWallet implements Wallet {
     }
 
     public detailedBalances() {
-        const addresses = this.addressGen.getKeypairs().map((keypair) => keypair.getAddress());
+        const addresses = this.addressGen.allAddresses;
         return this.rpc.queryBalance(addresses);
     }
 

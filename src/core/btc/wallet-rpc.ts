@@ -44,23 +44,28 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
 
   public async queryBalance(addresses: string[]) {
     const url = this.queryUrl + addresses.join(",");
+    const balancesMap = new Map<string, number>();
+    addresses.forEach((address) => balancesMap.set(address, 0));
+
     try {
       const body: string = await request.get(url);
       const response = JSON.parse(body);
       const results: any[] = response.addresses || [response.address];
 
-      return results.map((result) => {
+      results.forEach((result) => {
           console.log("Received query result for " + result.address
           + ", total: " + result.total.balance_int
           + ", confirmed: " + result.confirmed.balance_int
           + ", unconfirmed: " + result.unconfirmed.balance_int);
-          return {address: result.address, amount: result.total.balance_int / 1e8};
+          balancesMap.set(result.address, result.total.balance_int / 1e8);
       });
-
     } catch (error) {
       console.error(JSON.stringify(error));
-      return [];
     }
+
+    const balances: Balance[] = [];
+    balancesMap.forEach((amount, address) => balances.push({address, amount}));
+    return balances;
   }
 
   public async queryTransactions(address: string): Promise<string[]> {

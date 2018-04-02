@@ -24,7 +24,7 @@ export class BtcAddressGenerator {
     private readonly pass: string;
     private readonly queryTxFunc: QueryTransactionsFunc;
     private params: Params = new Params(0, 0);
-    private readonly receiveAddresses: string[] = [];
+    private readonly addresses: string[] = [];
 
     constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: BtcNetworkType, queryTxFunc: QueryTransactionsFunc) {
         if (!kv) {
@@ -47,8 +47,7 @@ export class BtcAddressGenerator {
     public async initialize(createEmpty: boolean) {
         if (createEmpty) {
             this.params = new Params(0, 0);
-            this.receiveAddresses[0] = this.prepareAddress(ChainType.EXTERNAL, 0);
-            console.log("Creating new wallet... Current receive address: " + this.receiveAddresses);
+            this.fillAddresses();
             return this.persistParams();
         }
 
@@ -57,7 +56,7 @@ export class BtcAddressGenerator {
 
         if (params) {
             this.params = params;
-            this.fillReceiveAddresses();
+            this.fillAddresses();
         } else {
             const receiveP = this.discover(ChainType.EXTERNAL);
             const changeP = this.discover(ChainType.CHANGE);
@@ -66,13 +65,13 @@ export class BtcAddressGenerator {
             console.log("BTC EXTERNAL ADDRESS INDEX: " + receiveIndex);
             console.log("BTC CHANGE ADDRESS INDEX: " + changeIndex);
             this.params = new Params(receiveIndex, changeIndex);
-            this.fillReceiveAddresses();
+            this.fillAddresses();
             return this.persistParams();
         }
     }
 
-    public get allReceiveAddresses() {
-        return this.receiveAddresses;
+    public get allAddresses() {
+        return this.addresses;
     }
 
     public async addNewReceiveAddress(): Promise<string> {
@@ -80,7 +79,7 @@ export class BtcAddressGenerator {
         await this.persistParams();
         const address = this.prepareAddress(ChainType.EXTERNAL, index);
         console.log(`generated receive address[${index}]: ${address}`);
-        this.receiveAddresses.push(address);
+        this.addresses.push(address);
         return address;
     }
 
@@ -168,23 +167,28 @@ export class BtcAddressGenerator {
         return this.getNode(type, index).getAddress();
     }
 
-    private fillReceiveAddresses() {
+    private fillAddresses() {
         for (let i = 0; i <= this.receiveAddressIndex; i++) {
             const address = this.prepareAddress(ChainType.EXTERNAL, i);
             console.log(`generated receive address[${i}]: ${address}`);
-            this.receiveAddresses.push(address);
+            this.addresses.push(address);
+        }
+        for (let i = 0; i <= this.changeAddressIndex; i++) {
+            const address = this.prepareAddress(ChainType.CHANGE, i);
+            console.log(`generated change address[${i}]: ${address}`);
+            this.addresses.push(address);
         }
     }
 
     private generateChangeAddress() {
-        const index = this.changeAddressIndex;
-        this.changeAddressIndex = index + 1;
+        const index = this.changeAddressIndex++;
 
         // TODO: the kv.set methods are async. check if they needs to be synchronized
         this.persistParams();
 
         const address = this.prepareAddress(ChainType.CHANGE, index);
         console.log("generated change address:" + address);
+        this.addresses.push(address);
         return address;
     }
 

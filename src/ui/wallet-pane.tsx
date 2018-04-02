@@ -18,6 +18,9 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
     @observable
     private showTransferPane: boolean = false;
 
+    @observable
+    private showEmptyAccounts: boolean = false;
+
     constructor(props: WalletPaneProps) {
         super(props);
         this.addNewAddress = this.addNewAddress.bind(this);
@@ -52,9 +55,12 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
 
     private renderWalletBalances(account: WalletAccount, walletCode: string) {
         const rows = account.detailedBalances.map((balance, index) => {
+            if (balance.amount === 0 && !this.showEmptyAccounts) {
+                return null;
+            }
             return (
                 <tr key={index}>
-                    <td>{index}&nbsp;
+                    <td>
                         <input className="btn" type="button" value="Copy" onClick={() => this.copyAddress(balance.address)}/>
                     </td>
                     <td>{balance.address}</td>
@@ -65,6 +71,12 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
         return (
             <table className="form-group">
                 <thead>
+                    <tr>
+                        <th colSpan={3}>
+                        <input type="checkbox" onClick={() => this.showEmptyAccounts = !this.showEmptyAccounts}/>
+                        <label>Show addresses with zero balance</label>
+                        </th>
+                    </tr>
                     <tr>
                         <th>#</th>
                         <th>Address</th>
