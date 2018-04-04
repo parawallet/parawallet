@@ -11,8 +11,10 @@ import {WalletPane} from "./wallet-pane";
 import {WalletAccount, WalletStore} from "./wallet-store";
 import {TimelineChart} from "./timeline-chart";
 import {PieChart} from "./pie-chart";
+import {PortfolioStore} from "../core/portfolio";
 
 interface PageProps {
+    readonly portfolioStore: PortfolioStore;
     readonly defaultWalletCode: string;
     readonly wallets: Wallet[];
 }
@@ -25,10 +27,12 @@ export class Page extends React.Component<PageProps, any> {
     private timerID: NodeJS.Timer;
     @observable
     private activePaneId: PaneId = PaneId.PANE_TIMELINE;
+    private portfolioStore: PortfolioStore;
 
     constructor(props: PageProps) {
         super(props);
         this.walletsStore = new WalletStore(props.wallets, props.defaultWalletCode);
+        this.portfolioStore = props.portfolioStore;
     }
 
     public componentDidMount() {
@@ -44,11 +48,11 @@ export class Page extends React.Component<PageProps, any> {
         let activePane;
         switch ( this.activePaneId ) {
             case PaneId.PANE_TIMELINE: {
-                activePane = <TimelineChart/>;
+                activePane = <TimelineChart portfolioStore={this.portfolioStore}/>;
                 break;
             }
             case PaneId.PANE_PERCENTAGES: {
-                activePane = <PieChart/>;
+                activePane = <PieChart portfolioStore={this.portfolioStore}/>;
                 break;
             }
             case PaneId.PANE_WALLET: {

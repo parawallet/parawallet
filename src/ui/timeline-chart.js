@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Chart} from "react-google-charts";
-import {getPortfolioHistory} from "../core/portfolio";
+import {PortfolioStore} from "../core/portfolio";
 import * as moment from "moment";
 import * as DB from "../db/secure-db";
 import * as C from "../constants";
@@ -12,9 +12,13 @@ export class TimelineChart extends React.Component {
     @observable
     portfolio = "";
 
+    constructor(props) {
+        super();
+        this.portfolioStore = props.portfolioStore;
+    }
     async drawChart() {
         const kv = DB.get(C.WALLET_DB);
-        const portfolioHistory = await getPortfolioHistory(kv);
+        const portfolioHistory = await this.portfolioStore.getPortfolioHistory(kv);
         let dat = [];
         for (let i = 0; i < portfolioHistory.length; i++) {
             let portfolioRecord = portfolioHistory[i];

@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Chart} from "react-google-charts";
-import {getPortfolioHistory} from "../core/portfolio";
+import {PortfolioStore} from "../core/portfolio";
 import * as moment from "moment";
 import * as DB from "../db/secure-db";
 import * as C from "../constants";
@@ -13,9 +13,12 @@ export class PieChart extends React.Component {
     @observable
     portfolio = "";
 
+    constructor(props) {
+        super();
+        this.portfolioStore = props.portfolioStore;
+    }
     async drawChart() {
-        const kv = DB.get(C.WALLET_DB);
-        const portfolioHistory = await getPortfolioHistory(kv);
+        const portfolioHistory = await this.portfolioStore.getPortfolioHistory();
         let dat = [];
         if (!portfolioHistory || portfolioHistory.length === 0) {
             portfolio = "No portfolio";
@@ -39,28 +42,11 @@ export class PieChart extends React.Component {
             title: "Coin Percentages",
         };
 
-        const data2 = [["Task", "Hours per Day"],
-            ["Work", 11],
-            ["Eat", 2],
-            ["Commute", 2],
-            ["Watch TV", 2],
-            ["Sleep", 7]];
-
-        const dataTable2 = google.visualization.arrayToDataTable(
-            data2,
-        );
-        console.log("dataTable2");
-        console.log(dataTable2);
-
         const dataTable = google.visualization.arrayToDataTable(
             data,
         );
 
-        console.log("dataTable");
-        console.log(dataTable);
-
         const chart = new google.visualization.PieChart(document.getElementById("piechart_div"));
-        //chart.draw(google.visualization.arrayToDataTable(data1), options);
         chart.draw(dataTable, options);
     }
 

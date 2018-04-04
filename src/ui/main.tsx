@@ -11,7 +11,7 @@ import { TotpSetup, totpValidator } from "./totp";
 import {BtcNetworkType, BtcWallet,
     EthNetworkType, EthWallet,
     getOrInitializeMnemonic, Wallet, XrpNetworkType, XrpWallet} from "./wallets";
-import {getAndUpdatePortfolioHistory} from "../core/portfolio";
+import {PortfolioStore} from "../core/portfolio";
 
 
 enum NextState {
@@ -27,6 +27,7 @@ class Main extends React.Component<any, any> {
     private wallets: Wallet[] = [];
     private credentials: LoginCredentials;
     private loginType: LoginType;
+    private portfolioStore: PortfolioStore;
     @observable
     private next = NextState.AUTH;
 
@@ -76,7 +77,6 @@ class Main extends React.Component<any, any> {
             const walletKv = await DB.open(C.WALLET_DB, loginCreds.appPass);
             const configKv = await DB.open(C.CONFIG_DB, loginCreds.appPass);
             totpValidator.restore(configKv!);
-
             console.log("DB is ready now -> " + walletKv!.hasOpened);
             if (loginType === LoginType.NEW || loginType === LoginType.IMPORT) {
                 this.next = NextState.SETUP_2FA;
@@ -109,13 +109,16 @@ class Main extends React.Component<any, any> {
 
     private async initializePortfolio() {
         const kv = DB.get(C.WALLET_DB);
-        await getAndUpdatePortfolioHistory(kv, this.wallets);
+        const mnemonic = "cv ";
+        const mnemonicPass = "cv ";
+        this.portfolioStore = new PortfolioStore();
+        await this.portfolioStore.getAndUpdatePortfolioHistory(this.wallets);
         this.next = NextState.SHOW_MAIN_PAGE;
     }
 
     private renderPage() {
         const defaultWallet = this.wallets[0];
-        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets}/>);
+        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets} portfolioStore={this.portfolioStore} />);
     }
 }
 
