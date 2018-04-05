@@ -108,11 +108,9 @@ class Main extends React.Component<any, any> {
     }
 
     private async initializePortfolio() {
-        const kv = DB.get(C.WALLET_DB);
-        const mnemonic = "cv ";
-        const mnemonicPass = "cv ";
-        this.portfolioStore = new PortfolioStore();
-        await this.portfolioStore.getAndUpdatePortfolioHistory(this.wallets);
+        const kv = DB.get(C.WALLET_DB)!;
+        this.portfolioStore = new PortfolioStore(kv, this.wallets);
+        this.portfolioStore.initializeOrUpdatePortfolioHistory();
         this.next = NextState.SHOW_MAIN_PAGE;
     }
 

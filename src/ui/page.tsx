@@ -31,7 +31,7 @@ export class Page extends React.Component<PageProps, any> {
 
     constructor(props: PageProps) {
         super(props);
-        this.walletsStore = new WalletStore(props.wallets, props.defaultWalletCode);
+        this.walletsStore = new WalletStore(props.wallets, props.defaultWalletCode, props.portfolioStore);
         this.portfolioStore = props.portfolioStore;
     }
 

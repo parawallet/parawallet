@@ -19,9 +19,9 @@ class PortfolioRecord {
 export class PortfolioStore {
 
     private keyValueStore: SecoKeyval;
+    private wallets: Wallet[];
 
-    constructor() {
-        const kv = DB.get(C.WALLET_DB);
+    constructor(kv: SecoKeyval, wallets: Wallet[]) {
         if (!kv) {
             throw new Error("KV is required");
         }
@@ -29,19 +29,10 @@ export class PortfolioStore {
             throw new Error("KV is not ready yet!");
         }
         this.keyValueStore = kv;
-    }
-
-    private checkKeyValueStore(kv: SecoKeyval) {
-        if (!kv) {
-            throw new Error("KV is required");
-        }
-        if (!kv.hasOpened) {
-            throw new Error("KV is not ready yet!");
-        }
+        this.wallets = wallets;
     }
 
     public async getPortfolioHistory() {
-        this.checkKeyValueStore(this.keyValueStore);
         const portfolioRecordList: PortfolioRecord[] = await this.keyValueStore.get(C.PORTFOLIO_HISTORY);
         if (!portfolioRecordList) {
             throw new Error("Portfolio record list is not initialized!");
@@ -49,21 +40,42 @@ export class PortfolioStore {
         return portfolioRecordList;
     }
 
+    public async updateLastRecord() {
+        const portfolioRecordList: PortfolioRecord[] = await this.keyValueStore.get(C.PORTFOLIO_HISTORY);
+        if (!portfolioRecordList) {
+            throw new Error("Portfolio record list is not initialized!");
+        }
+        const dateStr: string = moment().format(C.DATE_FORMAT);
+        const portfolioRecord: PortfolioRecord = new PortfolioRecord(dateStr);
+        let totalValue: number = 0;
+        const currentPortfolioMap: Map<string, number> = new Map();
+        for (const wallet of this.wallets) {
+            const balance: number = await wallet.totalBalanceAmount();
+            const price: number = await getPrice(dateStr, wallet.code);
+            const value: number = balance * price;
+            totalValue += value;
+            currentPortfolioMap.set(wallet.code, balance);
+        }
+        portfolioRecord.value = totalValue;
+        portfolioRecord.portfolio = JSON.stringify(Array.from(currentPortfolioMap.entries()));
+        const length = portfolioRecordList.length;
+        if (length > 0) {
+            portfolioRecordList[length - 1] = portfolioRecord;
+        } else if (length === 0) {
+            portfolioRecordList.push(portfolioRecord);
+        }
+        await this.keyValueStore.set(C.PORTFOLIO_HISTORY, portfolioRecordList);
+    }
+
     // todo the below parses all coins. we need to keep active wallets and do calculations just for them
-    public async getAndUpdatePortfolioHistory(wallets: Wallet[]) {
-        this.checkKeyValueStore(this.keyValueStore);
+    public async initializeOrUpdatePortfolioHistory() {
         const portfolioRecordList: PortfolioRecord[] = await this.keyValueStore.get(C.PORTFOLIO_HISTORY);
         if (portfolioRecordList) {
-            console.log("Portfolio records:");
             console.log(portfolioRecordList);
             const lastRecord: PortfolioRecord = portfolioRecordList[portfolioRecordList.length - 1];
             const todayStr: string = moment().format(C.DATE_FORMAT);
-            console.log("lastRecord");
-            console.log(lastRecord);
-            console.log("lastRecord-date" + lastRecord.dateStr);
-            console.log("today-str" + todayStr);
             if (lastRecord.dateStr !== todayStr) {
-                for (const wallet of wallets) {
+                for (const wallet of this.wallets) {
                     await cacheThePrices(wallet.code, lastRecord.dateStr, todayStr);
                 }
                 let cursorDate: Moment = moment(lastRecord.dateStr);
@@ -88,7 +100,6 @@ export class PortfolioStore {
                 return portfolioRecordList;
             }
         } else {
-            console.log("Creating portfolio records!");
             const promises: Array<Promise<any>> = [];
             const newPortfolioRecordList: PortfolioRecord[] = [];
             // const temp = moment().subtract(5, "days");
@@ -97,7 +108,7 @@ export class PortfolioStore {
             const portfolioRecord: PortfolioRecord = new PortfolioRecord(dateStr);
             let totalValue: number = 0;
             const currentPortfolioMap: Map<string, number> = new Map();
-            for (const wallet of wallets) {
+            for (const wallet of this.wallets) {
                 const balance: number = await wallet.totalBalanceAmount();
                 const price: number = await getPrice(dateStr, wallet.code);
                 const value: number = balance * price;
@@ -107,8 +118,6 @@ export class PortfolioStore {
             portfolioRecord.value = totalValue;
             portfolioRecord.portfolio = JSON.stringify(Array.from(currentPortfolioMap.entries()));
             newPortfolioRecordList.push(portfolioRecord);
-            console.log("newPortfolioRecordList");
-            console.log(newPortfolioRecordList);
             await this.keyValueStore.set(C.PORTFOLIO_HISTORY, newPortfolioRecordList);
             return newPortfolioRecordList;
         }

@@ -1,17 +1,18 @@
 import {action, computed, observable} from "mobx";
 import {Wallet, Balance} from "../core/wallet";
+import {PortfolioStore} from "../core/portfolio";
 
 
 export class WalletAccount {
 
     public readonly wallet: Wallet;
+    public readonly portfolioStore: PortfolioStore;
     @observable
     private balances: Balance[] = [];
 
-    // private transactions: any[];
-
-    constructor(wallet: Wallet) {
+    constructor(wallet: Wallet, portfolioStore: PortfolioStore) {
         this.wallet = wallet;
+        this.portfolioStore = portfolioStore;
     }
 
     @computed
@@ -37,10 +38,11 @@ export class WalletAccount {
     public async update() {
         const balances = await this.wallet.detailedBalances();
         // find more efficient way of comparing arrays
-        // if (JSON.stringify(balances) !== JSON.stringify(this.balances)) {
-        // todo update portfolio last record
-        // }
+        const updatePortfolio: boolean = JSON.stringify(balances) !== JSON.stringify(this.balances);
         this.balances = balances;
+        if (updatePortfolio) {
+            this.portfolioStore.updateLastRecord();
+        }
     }
 }
 
@@ -49,9 +51,9 @@ export class WalletStore {
     @observable
     private activeWalletAccount: WalletAccount;
 
-    constructor(wallets: Wallet[], activeWalletCode: string) {
+    constructor(wallets: Wallet[], activeWalletCode: string, portfolioStore: PortfolioStore) {
         for (const w of wallets) {
-            this.walletAccounts.set(w.code, new WalletAccount(w));
+            this.walletAccounts.set(w.code, new WalletAccount(w, portfolioStore));
         }
         this.activeWalletAccount = this.getWalletAccount(activeWalletCode);
     }
