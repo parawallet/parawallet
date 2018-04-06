@@ -29,3 +29,24 @@ i.cc:hover {
     font-size: 18px;
     text-align: center;
 }
+
+.important_note {
+    font-weight: bold;
+    color: red;
+}
+
+.paneContentDiv {
+    margin: 20px;
+    padding: 10px;
+}
+
+.mnemonics {
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}

@@ -3,7 +3,7 @@ import {observer} from "mobx-react";
 import * as React from "react";
 import { toast } from "react-toastify";
 import {Wallet, WalletType} from "../core/wallet";
-import {Preferences, PreferencesMenu} from "./preferences";
+import {SecurityPane, PreferencesMenu, BackupPane} from "./preferences";
 import {PortfolioMenu} from "./portfolio-menu";
 import {ExchangesMenu} from "./exchanges-menu";
 import {WalletMenu} from "./wallet-menu";
@@ -17,9 +17,10 @@ interface PageProps {
     readonly portfolioStore: PortfolioStore;
     readonly defaultWalletCode: string;
     readonly wallets: Wallet[];
+    readonly mnemonics: string;
 }
 
-export enum PaneId { PANE_TIMELINE, PANE_PERCENTAGES, PANE_WALLET, PANE_PREF }
+export enum PaneId { PANE_TIMELINE, PANE_PERCENTAGES, PANE_WALLET, PANE_SECURITY , PANE_BACKUP}
 
 @observer
 export class Page extends React.Component<PageProps, any> {
@@ -28,11 +29,13 @@ export class Page extends React.Component<PageProps, any> {
     @observable
     private activePaneId: PaneId = PaneId.PANE_TIMELINE;
     private portfolioStore: PortfolioStore;
+    private mnemonics: string;
 
     constructor(props: PageProps) {
         super(props);
         this.walletsStore = new WalletStore(props.wallets, props.defaultWalletCode, props.portfolioStore);
         this.portfolioStore = props.portfolioStore;
+        this.mnemonics = props.mnemonics;
     }
 
     public componentDidMount() {
@@ -60,8 +63,12 @@ export class Page extends React.Component<PageProps, any> {
                 activePane = <WalletPane account={account} />;
                 break;
             }
-            case PaneId.PANE_PREF: {
-                activePane = <Preferences/>;
+            case PaneId.PANE_SECURITY: {
+                activePane = <SecurityPane/>;
+                break;
+            }
+            case PaneId.PANE_BACKUP: {
+                activePane = <BackupPane mnemonics={this.mnemonics}/>;
                 break;
             }
             default: {
@@ -75,7 +82,7 @@ export class Page extends React.Component<PageProps, any> {
                     <PortfolioMenu onMenuClick={(paneId: PaneId) => this.showPane(paneId)}/>
                     <WalletMenu wallets={this.props.wallets} onMenuClick={(wlt) => this.switchWallet(wlt)}/>
                     <ExchangesMenu/>
-                    <PreferencesMenu onClick={() => this.activePaneId = PaneId.PANE_PREF}/>
+                    <PreferencesMenu onMenuClick={(paneId: PaneId) => this.activePaneId = paneId}/>
                 </div>
                 <div className="pane">
                     {activePane}

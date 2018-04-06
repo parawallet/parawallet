@@ -27,6 +27,7 @@ class Main extends React.Component<any, any> {
     private wallets: Wallet[] = [];
     private credentials: LoginCredentials;
     private loginType: LoginType;
+    private mnemonics: string;
     private portfolioStore: PortfolioStore;
     @observable
     private next = NextState.AUTH;
@@ -92,13 +93,11 @@ class Main extends React.Component<any, any> {
 
     private async initializeWallets(mnemonicPass: string, createEmpty: boolean) {
         const kv = DB.get(C.WALLET_DB)!;
-        const mnemonic = await getOrInitializeMnemonic(kv);
+        this.mnemonics = await getOrInitializeMnemonic(kv);
 
-        toast.info("Please write down following words to backup your wallet: " + mnemonic);
-
-        const BTC = new BtcWallet(kv, mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
-        const ETH = new EthWallet(kv, mnemonic, mnemonicPass, EthNetworkType.rinkeby);
-        const XRP = new XrpWallet(kv, mnemonic, mnemonicPass, XrpNetworkType.TEST);
+        const BTC = new BtcWallet(kv, this.mnemonics, mnemonicPass, BtcNetworkType.TESTNET);
+        const ETH = new EthWallet(kv, this.mnemonics, mnemonicPass, EthNetworkType.rinkeby);
+        const XRP = new XrpWallet(kv, this.mnemonics, mnemonicPass, XrpNetworkType.TEST);
         this.wallets.push(BTC, ETH, XRP);
 
         const promises = this.wallets.map((w) => w.initialize(createEmpty));
@@ -116,7 +115,7 @@ class Main extends React.Component<any, any> {
 
     private renderPage() {
         const defaultWallet = this.wallets[0];
-        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets} portfolioStore={this.portfolioStore} />);
+        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets} portfolioStore={this.portfolioStore} mnemonics={this.mnemonics} />);
     }
 }
 

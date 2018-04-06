@@ -71,7 +71,6 @@ export class PortfolioStore {
     public async initializeOrUpdatePortfolioHistory() {
         const portfolioRecordList: PortfolioRecord[] = await this.keyValueStore.get(C.PORTFOLIO_HISTORY);
         if (portfolioRecordList) {
-            console.log(portfolioRecordList);
             const lastRecord: PortfolioRecord = portfolioRecordList[portfolioRecordList.length - 1];
             const todayStr: string = moment().format(C.DATE_FORMAT);
             if (lastRecord.dateStr !== todayStr) {
