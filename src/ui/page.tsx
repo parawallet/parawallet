@@ -39,7 +39,7 @@ export class Page extends React.Component<PageProps, any> {
     }
 
     public componentDidMount() {
-        this.updateActiveBalance();
+        this.walletsStore.updateWalletAccounts();
         this.timerID = setInterval(() => this.updateActiveBalance(), 30000);
     }
 

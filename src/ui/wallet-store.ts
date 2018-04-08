@@ -71,6 +71,12 @@ export class WalletStore {
         return this.activeWalletAccount;
     }
 
+    public updateWalletAccounts() {
+        this.walletAccounts.forEach( (wallet: WalletAccount) => {
+            wallet.update();
+        });
+    }
+
     @action
     public switchWallet(walletCode: string): WalletAccount {
         this.activeWalletAccount = this.getWalletAccount(walletCode);
