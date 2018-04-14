@@ -2,8 +2,7 @@ import {ChainType, CoinType, generatePath} from "../bip44-path";
 import * as C from "../../constants";
 import { EthNetworkType } from "./eth-wallet";
 
-const ethers = require("ethers");
-const Wallet = ethers.Wallet;
+import { Wallet, providers, HDNode, utils } from "ethers";
 
 class Params {
     constructor(addressIndex) {
@@ -22,7 +21,6 @@ export class EthWalletRpc {
         this.mnemonic = mnemonic;
         this.wallets = [];
 
-        const providers = ethers.providers;
         const networkName = EthNetworkType[networkType];
         const network = providers.networks[networkName];
         this.provider = new providers.EtherscanProvider(network);
@@ -56,7 +54,6 @@ export class EthWalletRpc {
     }
 
     createNewWallet(index) {
-        const HDNode = ethers.HDNode;
         const path = generatePath(CoinType.ETH, ChainType.EXTERNAL, index);
         const hdnode = HDNode.fromSeed(HDNode.mnemonicToSeed(this.mnemonic, this.pass)).derivePath(path);
         return new Wallet(hdnode.privateKey, this.provider);
@@ -123,7 +120,7 @@ export class EthWalletRpc {
         // todo check if we need to do something related to big numbers
         const options = {
             gasLimit: 30000,
-            gasPrice: ethers.utils.bigNumberify("20000000000"),
+            gasPrice: utils.bigNumberify("20000000000"),
         };
         const amount = etherAmount * 1e18;
 

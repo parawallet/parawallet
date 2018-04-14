@@ -4,7 +4,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { ToastContainer, toast } from "react-toastify";
 import * as C from "../constants";
-import * as DB from "../db/secure-db";
+import * as DB from "../util/secure-db";
 import {Login, LoginCredentials, LoginType} from "./login";
 import {Page} from "./page";
 import { TotpSetup, totpValidator } from "./totp";
@@ -14,12 +14,11 @@ import {BtcNetworkType, BtcWallet,
 import {PortfolioStore} from "../core/portfolio";
 
 
-enum NextState {
+enum PageId {
     AUTH,
     SETUP_2FA,
-    INIT_WALLETS,
-    INIT_PORTFOLIO,
-    SHOW_MAIN_PAGE,
+    LOADING,
+    MAIN_PAGE,
 }
 
 @observer
@@ -27,10 +26,10 @@ class Main extends React.Component<any, any> {
     private wallets: Wallet[] = [];
     private credentials: LoginCredentials;
     private loginType: LoginType;
-    private mnemonics: string;
+    private mnemonic: string;
     private portfolioStore: PortfolioStore;
     @observable
-    private next = NextState.AUTH;
+    private activePage = PageId.AUTH;
 
     constructor(props: any) {
         super(props);
@@ -38,51 +37,50 @@ class Main extends React.Component<any, any> {
     }
 
     public render() {
-        return [this.renderNext(),
+        return [this.renderActivePage(),
             (<ToastContainer position={toast.POSITION.TOP_CENTER} autoClose={false} hideProgressBar={true} />)];
     }
 
-    private renderNext() {
-        switch (this.next) {
-            case NextState.AUTH:
+    private renderActivePage() {
+        switch (this.activePage) {
+            case PageId.AUTH:
                 return (<Login onLogin={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)}/>);
-            case NextState.SETUP_2FA:
+            case PageId.SETUP_2FA:
                 return (<TotpSetup onValidToken={this.onValidToken} />);
-            case NextState.INIT_WALLETS:
+            case PageId.LOADING:
+                console.log("===================> loading");
                 return (
-                    <div style={{padding: "30px"}}>
-                        ... LOADING PAGE ... INITIALIZING WALLETS...
+                    <div className="paneContentDiv">
+                        <h3>INIT</h3>
+                        <hr/>
+                        <span className="important_note">... LOADING PAGE ...</span>
                     </div>
                 );
-            case NextState.INIT_PORTFOLIO:
-                return (
-                    <div style={{padding: "30px"}}>
-                        ... LOADING PAGE ... INITIALIZING PORTFOLIO...
-                    </div>
-                );
-            case NextState.SHOW_MAIN_PAGE:
+            case PageId.MAIN_PAGE:
                 return this.renderPage();
         }
     }
 
     private onValidToken() {
-        this.next = NextState.INIT_WALLETS;
+        this.activePage = PageId.LOADING;
         this.initializeWallets(this.credentials.mnemonicPass, this.loginType === LoginType.NEW);
     }
 
     private async onLogin(loginCreds: LoginCredentials, loginType: LoginType) {
+        this.activePage = PageId.LOADING;
         this.credentials = loginCreds;
         this.loginType = loginType;
-
         try {
             const walletKv = await DB.open(C.WALLET_DB, loginCreds.appPass);
             const configKv = await DB.open(C.CONFIG_DB, loginCreds.appPass);
+            const portfolioKv = await DB.open(C.PORTFOLIO_DB, loginCreds.appPass);
+            console.log("Databases are ready now");
+
             totpValidator.restore(configKv!);
-            console.log("DB is ready now -> " + walletKv!.hasOpened);
             if (loginType === LoginType.NEW || loginType === LoginType.IMPORT) {
-                this.next = NextState.SETUP_2FA;
+                this.activePage = PageId.SETUP_2FA;
             } else {
-                this.next = NextState.INIT_WALLETS;
+                this.activePage = PageId.LOADING;
                 this.initializeWallets(loginCreds.mnemonicPass, false);
             }
         } catch (error) {
@@ -93,29 +91,34 @@ class Main extends React.Component<any, any> {
 
     private async initializeWallets(mnemonicPass: string, createEmpty: boolean) {
         const kv = DB.get(C.WALLET_DB)!;
-        this.mnemonics = await getOrInitializeMnemonic(kv);
+        this.mnemonic = await getOrInitializeMnemonic(kv);
 
-        const BTC = new BtcWallet(kv, this.mnemonics, mnemonicPass, BtcNetworkType.TESTNET);
-        const ETH = new EthWallet(kv, this.mnemonics, mnemonicPass, EthNetworkType.rinkeby);
-        const XRP = new XrpWallet(kv, this.mnemonics, mnemonicPass, XrpNetworkType.TEST);
+        if (this.loginType === LoginType.NEW) {
+            toast.info("Please write down following words to backup your wallet: " + this.mnemonic);
+        }
+
+        const BTC = new BtcWallet(kv, this.mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
+        const ETH = new EthWallet(kv, this.mnemonic, mnemonicPass, EthNetworkType.rinkeby);
+        const XRP = new XrpWallet(kv, this.mnemonic, mnemonicPass, XrpNetworkType.TEST);
         this.wallets.push(BTC, ETH, XRP);
 
         const promises = this.wallets.map((w) => w.initialize(createEmpty));
         await Promise.all(promises);
-        this.next = NextState.INIT_PORTFOLIO;
-        await this.initializePortfolio();
+
+        this.activePage = PageId.LOADING;
+        this.initializePortfolio();
     }
 
     private async initializePortfolio() {
-        const kv = DB.get(C.WALLET_DB)!;
+        const kv = DB.get(C.PORTFOLIO_DB)!;
         this.portfolioStore = new PortfolioStore(kv, this.wallets);
         this.portfolioStore.initializeOrUpdatePortfolioHistory();
-        this.next = NextState.SHOW_MAIN_PAGE;
+        this.activePage = PageId.MAIN_PAGE;
     }
 
     private renderPage() {
         const defaultWallet = this.wallets[0];
-        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets} portfolioStore={this.portfolioStore} mnemonics={this.mnemonics} />);
+        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets} portfolioStore={this.portfolioStore} mnemonics={this.mnemonic} />);
     }
 }
 

@@ -2,7 +2,7 @@ import * as React from "react";
 import {Chart} from "react-google-charts";
 import {PortfolioStore} from "../core/portfolio";
 import * as moment from "moment";
-import * as DB from "../db/secure-db";
+import * as DB from "../util/secure-db";
 import * as C from "../constants";
 import {observable} from "mobx";
 import {observer} from "mobx-react";

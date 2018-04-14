@@ -4,8 +4,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { toast } from "react-toastify";
 import * as C from "../constants";
-import { restoreMnemonic } from "../core/mnemonic";
-import * as DB from "../db/secure-db";
+import { restoreMnemonic, validateMnemonic } from "../core/mnemonic";
+import * as DB from "../util/secure-db";
 
 const defaultPassword = "the-wallet-secure-password";
 
@@ -98,6 +98,9 @@ export class Login extends React.Component<any, any> {
 
   private async handleImport(credentials: LoginCredentials, mnemonic: string) {
     try {
+      if (!validateMnemonic(mnemonic)) {
+        toast.warn("Given mnemonic is not a valid mnemonic!");
+      }
       const walletKv = await DB.open(C.WALLET_DB, credentials.appPass);
       restoreMnemonic(mnemonic, walletKv!);
       this.reset();

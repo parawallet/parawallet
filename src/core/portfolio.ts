@@ -4,7 +4,7 @@ import * as C from "../constants";
 import {getPrice, cacheThePrices} from "./coinPrices";
 import * as moment from "moment";
 import {Moment} from "moment";
-import * as DB from "../db/secure-db";
+import * as DB from "../util/secure-db";
 
 class PortfolioRecord {
     public readonly dateStr: string;
@@ -22,12 +22,6 @@ export class PortfolioStore {
     private wallets: Wallet[];
 
     constructor(kv: SecoKeyval, wallets: Wallet[]) {
-        if (!kv) {
-            throw new Error("KV is required");
-        }
-        if (!kv.hasOpened) {
-            throw new Error("KV is not ready yet!");
-        }
         this.keyValueStore = kv;
         this.wallets = wallets;
     }

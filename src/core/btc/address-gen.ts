@@ -5,6 +5,7 @@ import * as C from "../../constants";
 import {ChainType, CoinType, generatePath} from "../bip44-path";
 import { BtcNetworkType } from "./btc-wallet";
 import { QueryTransactionsFunc } from "./wallet-rpc";
+import { micros } from "../../util/time";
 
 class Params {
     public readonly receiveAddressIndex: number;
@@ -27,15 +28,6 @@ export class BtcAddressGenerator {
     private readonly addresses: string[] = [];
 
     constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: BtcNetworkType, queryTxFunc: QueryTransactionsFunc) {
-        if (!kv) {
-            throw new Error("KV is required");
-        }
-        if (!kv.hasOpened) {
-            throw new Error("KV is not ready yet!");
-        }
-        if (!mnemonic) {
-            throw new Error("no mnemonic");
-        }
         this.mnemonic = mnemonic;
         this.kv = kv;
         this.network = networkType === BtcNetworkType.MAINNET ? networks.bitcoin : networks.testnet;
@@ -170,14 +162,15 @@ export class BtcAddressGenerator {
     private fillAddresses() {
         for (let i = 0; i <= this.receiveAddressIndex; i++) {
             const address = this.prepareAddress(ChainType.EXTERNAL, i);
-            console.log(`generated receive address[${i}]: ${address}`);
             this.addresses.push(address);
         }
+        console.log(`BTC generated ${this.receiveAddressIndex} receive addresses.`);
+
         for (let i = 0; i <= this.changeAddressIndex; i++) {
             const address = this.prepareAddress(ChainType.CHANGE, i);
-            console.log(`generated change address[${i}]: ${address}`);
             this.addresses.push(address);
         }
+        console.log(`BTC generated ${this.changeAddressIndex} change addresses.`);
     }
 
     private generateChangeAddress() {

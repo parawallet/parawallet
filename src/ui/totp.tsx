@@ -5,7 +5,7 @@ import SecoKeyval from "seco-keyval";
 import * as auth from "speakeasy";
 import { toast } from "react-toastify";
 import * as C from "../constants";
-import * as DB from "../db/secure-db";
+import * as DB from "../util/secure-db";
 
 // https://github.com/speakeasyjs/speakeasy
 // https://github.com/soldair/node-qrcode#usage
