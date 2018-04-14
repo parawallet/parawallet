@@ -41,11 +41,13 @@ export class PortfolioStore {
     }
 
     public async updateLastRecord() {
+        console.log("!!!! ====== UPDATING PORTFOLIO ======= !!!!");
+
         const portfolioRecordList: PortfolioRecord[] = await this.keyValueStore.get(C.PORTFOLIO_HISTORY);
         if (!portfolioRecordList) {
             throw new Error("Portfolio record list is not initialized!");
         }
-        const dateStr: string = moment().format(C.DATE_FORMAT);
+        const dateStr: string = moment().format(C.PORTFOLIO_DATE_FORMAT);
         const portfolioRecord: PortfolioRecord = new PortfolioRecord(dateStr);
         let totalValue: number = 0;
         const currentPortfolioMap: Map<string, number> = new Map();
@@ -72,7 +74,7 @@ export class PortfolioStore {
         const portfolioRecordList: PortfolioRecord[] = await this.keyValueStore.get(C.PORTFOLIO_HISTORY);
         if (portfolioRecordList) {
             const lastRecord: PortfolioRecord = portfolioRecordList[portfolioRecordList.length - 1];
-            const todayStr: string = moment().format(C.DATE_FORMAT);
+            const todayStr: string = moment().format(C.PORTFOLIO_DATE_FORMAT);
             if (lastRecord.dateStr !== todayStr) {
                 for (const wallet of this.wallets) {
                     await cacheThePrices(wallet.code, lastRecord.dateStr, todayStr);
@@ -82,11 +84,11 @@ export class PortfolioStore {
                 const portfolioMap: Map<string, number> = new Map(JSON.parse(lastRecord.portfolio));
                 while (cursorDate < todayDate) {
                     cursorDate = moment(cursorDate).add(1, "days");
-                    const portfolioRecord: PortfolioRecord = new PortfolioRecord(cursorDate.format(C.DATE_FORMAT));
+                    const portfolioRecord: PortfolioRecord = new PortfolioRecord(cursorDate.format(C.PORTFOLIO_DATE_FORMAT));
                     portfolioRecord.portfolio = lastRecord.portfolio;
                     let totalValue: number = 0;
                     for (const coin of Array.from(portfolioMap.keys())) {
-                        const price = await getPrice(moment(cursorDate).format(C.DATE_FORMAT), coin);
+                        const price = await getPrice(moment(cursorDate).format(C.PORTFOLIO_DATE_FORMAT), coin);
                         const amount = portfolioMap.get(coin);
                         if (amount) {
                             totalValue += price * amount;
@@ -103,7 +105,7 @@ export class PortfolioStore {
             const newPortfolioRecordList: PortfolioRecord[] = [];
             // const temp = moment().subtract(5, "days");
             // const dateStr: string = temp.format(C.DATE_FORMAT);
-            const dateStr: string = moment().format(C.DATE_FORMAT);
+            const dateStr: string = moment().format(C.PORTFOLIO_DATE_FORMAT);
             const portfolioRecord: PortfolioRecord = new PortfolioRecord(dateStr);
             let totalValue: number = 0;
             const currentPortfolioMap: Map<string, number> = new Map();

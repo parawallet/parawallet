@@ -31,7 +31,7 @@ export class PieChart extends React.Component {
         const data = [];
         data.push(["Coin", "Value (USD)"]);
         for (const coin of Array.from(portfolioMap.keys())) {
-            const dateStr = moment().format(C.DATE_FORMAT);
+            const dateStr = moment().format(C.PORTFOLIO_DATE_FORMAT);
             const price = await getPrice(dateStr, coin);
             const value = portfolioMap.get(coin) * price;
             if (value > 0) {

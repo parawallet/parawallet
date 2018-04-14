@@ -1,18 +1,14 @@
 import {action, computed, observable} from "mobx";
 import {Wallet, Balance} from "../core/wallet";
-import {PortfolioStore} from "../core/portfolio";
-
 
 export class WalletAccount {
 
     public readonly wallet: Wallet;
-    public readonly portfolioStore: PortfolioStore;
     @observable
     private balances: Balance[] = [];
 
-    constructor(wallet: Wallet, portfolioStore: PortfolioStore) {
+    constructor(wallet: Wallet) {
         this.wallet = wallet;
-        this.portfolioStore = portfolioStore;
     }
 
     @computed
@@ -37,12 +33,7 @@ export class WalletAccount {
     @action
     public async update() {
         const balances = await this.wallet.detailedBalances();
-        // find more efficient way of comparing arrays
-        const updatePortfolio: boolean = JSON.stringify(balances) !== JSON.stringify(this.balances);
         this.balances = balances;
-        if (updatePortfolio) {
-            this.portfolioStore.updateLastRecord();
-        }
     }
 }
 
@@ -51,9 +42,9 @@ export class WalletStore {
     @observable
     private activeWalletAccount: WalletAccount;
 
-    constructor(wallets: Wallet[], activeWalletCode: string, portfolioStore: PortfolioStore) {
+    constructor(wallets: Wallet[], activeWalletCode: string) {
         for (const w of wallets) {
-            this.walletAccounts.set(w.code, new WalletAccount(w, portfolioStore));
+            this.walletAccounts.set(w.code, new WalletAccount(w));
         }
         this.activeWalletAccount = this.getWalletAccount(activeWalletCode);
     }
@@ -64,6 +55,11 @@ export class WalletStore {
             throw new Error("Invalid wallet code: " + walletCode);
         }
         return wa;
+    }
+
+    @computed
+    public get allAccounts(): WalletAccount[] {
+        return Array.from(this.walletAccounts.values());
     }
 
     @computed

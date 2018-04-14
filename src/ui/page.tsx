@@ -1,4 +1,4 @@
-import {action, computed, observable} from "mobx";
+import {observable, reaction} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
 import { toast } from "react-toastify";
@@ -24,7 +24,7 @@ export enum PaneId { PANE_TIMELINE, PANE_PERCENTAGES, PANE_WALLET, PANE_SECURITY
 
 @observer
 export class Page extends React.Component<PageProps, any> {
-    private walletsStore: WalletStore;
+    private walletStore: WalletStore;
     private timerID: NodeJS.Timer;
     @observable
     private activePaneId: PaneId = PaneId.PANE_TIMELINE;
@@ -33,13 +33,17 @@ export class Page extends React.Component<PageProps, any> {
 
     constructor(props: PageProps) {
         super(props);
-        this.walletsStore = new WalletStore(props.wallets, props.defaultWalletCode, props.portfolioStore);
+        this.walletStore = new WalletStore(props.wallets, props.defaultWalletCode);
         this.portfolioStore = props.portfolioStore;
         this.mnemonics = props.mnemonics;
     }
 
     public componentDidMount() {
-        this.walletsStore.updateWalletAccounts();
+        // Update portfolio when total balance of any wallet changes
+        reaction(() => this.walletStore.allAccounts.map((wa) => wa.totalBalance),
+            () => this.portfolioStore.updateLastRecord());
+
+        this.walletStore.updateWalletAccounts();
         this.timerID = setInterval(() => this.updateActiveBalance(), 30000);
     }
 
@@ -59,7 +63,7 @@ export class Page extends React.Component<PageProps, any> {
                 break;
             }
             case PaneId.PANE_WALLET: {
-                const account = this.walletsStore.activeAccount;
+                const account = this.walletStore.activeAccount;
                 activePane = <WalletPane account={account} />;
                 break;
             }
@@ -98,7 +102,7 @@ export class Page extends React.Component<PageProps, any> {
     private switchWallet(wallet: WalletType) {
         console.log(`Switching wallet: ${wallet.code}`);
         this.activePaneId = PaneId.PANE_WALLET;
-        const account = this.walletsStore.switchWallet(wallet.code);
+        const account = this.walletStore.switchWallet(wallet.code);
         if (account.isEmpty) {
             this.updateBalance(account);
         }
@@ -106,7 +110,7 @@ export class Page extends React.Component<PageProps, any> {
 
     private updateActiveBalance() {
         if (this.activePaneId === PaneId.PANE_WALLET) {
-            this.updateBalance(this.walletsStore.activeAccount);
+            this.updateBalance(this.walletStore.activeAccount);
         }
     }
 
