@@ -61,7 +61,7 @@
     "react-modal": "^3.3.2",
     "react-toastify": "^3.4.3",
     "request-promise-native": "^1.0.5",
-    "ripple-lib": "^0.19.1",
+    "ripple-lib": "^0.21.0",
     "seco-keyval": "^0.4.0",
     "speakeasy": "^2.0.0"
   },

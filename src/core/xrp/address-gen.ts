@@ -16,20 +16,18 @@ function convertRipplePrivate(privateKey: string): string {
   return basex(B58_DICT).decode(privateKey).toString("hex").toUpperCase().slice(2, 66);
 }
 
+export interface Keypair {
+  readonly publicKey: string;
+  readonly privateKey: string;
+}
+
 export class XrpAccount {
   public readonly address: string;
-  public readonly publicKey: string;
-  public readonly privateKey: string;
-  public readonly secret: string;
+  public readonly keypair: Keypair | string; // Keypair | secret
 
-  constructor(address: string, secret: string);
-  // tslint:disable-next-line:unified-signatures
-  constructor(address: string, publicKey: string, privateKey: string);
-  constructor(address: string, publicKey: string = "", privateKey: string= "", secret: string = "") {
+  constructor(address: string, keypair: Keypair | string) {
       this.address = address;
-      this.publicKey = publicKey;
-      this.privateKey = privateKey;
-      this.secret = secret;
+      this.keypair = keypair;
   }
 }
 
@@ -43,5 +41,5 @@ export function generateAddress(mnemonic: string, pass: string, index: number): 
   const address = convertRippleAdrress(node.getAddress());
   const privateKey = "00" + convertRipplePrivate(node.keyPair.toWIF());
 
-  return new XrpAccount(address, publicKey, privateKey);
+  return new XrpAccount(address, {publicKey, privateKey});
 }

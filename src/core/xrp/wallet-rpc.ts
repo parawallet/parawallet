@@ -2,7 +2,6 @@ import {RippleAPI} from "ripple-lib";
 import SecoKeyval from "seco-keyval";
 import * as C from "../../constants";
 import {generateAddress, XrpAccount} from "./address-gen";
-import {signWithKeypair} from "./sign";
 import {XrpNetworkType} from "./xrp-wallet";
 import { Balance } from "../wallet";
 
@@ -76,8 +75,6 @@ export class XrpWalletRpc {
     private addAccount(index: number) {
         const account = generateAddress(this.mnemonic, this.pass, index);
         console.log(index + ": XRP ADDRESS-> " + account.address);
-        console.log(index + ": XRP PUBLIC -> " + account.publicKey);
-        console.log(index + ": XRP PRIVATE-> " + account.privateKey);
         this.accounts[index] = account;
         return account;
     }
@@ -171,8 +168,7 @@ export class XrpWalletRpc {
             throw notFound;
         }
 
-        // TODO: explicitly typed as any. see https://github.com/ripple/ripple-lib/issues/866
-        const payment: any = this.createPayment(account.address, toAddress, String(amount));
+        const payment = this.createPayment(account.address, toAddress, String(amount));
         const api = new RippleAPI({
             server: serverAddress(this.networkType),
         });
@@ -180,9 +176,9 @@ export class XrpWalletRpc {
         try {
             await api.connect();
             const prepared = await api.preparePayment(account.address, payment);
-            const signedTxn = (account.secret)
-                        ? api.sign(prepared.txJSON, account.secret)
-                        : signWithKeypair(prepared.txJSON, account);
+            console.log("XRP TX: " + prepared.txJSON);
+
+            const signedTxn = api.sign(prepared.txJSON, account.keypair);
             console.log("ripple txn id:" + signedTxn.id);
 
             const result = await api.submit(signedTxn.signedTransaction);
