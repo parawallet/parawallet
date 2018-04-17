@@ -36,13 +36,13 @@ export class Page extends React.Component<PageProps, any> {
         this.walletStore = new WalletStore(props.wallets, props.defaultWalletCode);
         this.portfolioStore = props.portfolioStore;
         this.mnemonics = props.mnemonics;
-    }
 
-    public componentDidMount() {
         // Update portfolio when total balance of any wallet changes
         reaction(() => this.walletStore.allWallets.map((wa) => wa.totalBalanceAmount),
             () => this.portfolioStore.updateLastRecord());
+    }
 
+    public componentDidMount() {
         this.timerID = setInterval(() => this.updateActiveBalance(), 30000);
     }
 
