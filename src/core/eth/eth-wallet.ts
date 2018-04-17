@@ -1,6 +1,7 @@
 import SecoKeyval from "seco-keyval";
 import {AbstractWallet, Balance, Wallet} from "../wallet";
 import {EthWalletRpc} from "./wallet-rpc";
+import * as C from "../../constants";
 
 export enum EthNetworkType {
     mainnet, homestead, ropsten, testnet, rinkeby,
@@ -10,24 +11,20 @@ export class EthWallet extends AbstractWallet implements Wallet {
     private readonly rpc: EthWalletRpc;
 
     constructor(kv: SecoKeyval, mnemonic: string, mnemonicPass: string, network: EthNetworkType) {
-        super("ETH", "Ethereum");
+        super("ETH", "Ethereum", kv);
         this.rpc = new EthWalletRpc(kv, mnemonic, mnemonicPass, network);
         console.info(`ETH using ${EthNetworkType[network]} network`);
     }
 
-    public initialize(createEmpty: boolean) {
+    protected initializeImpl(createEmpty: boolean) {
         return this.rpc.initialize(createEmpty);
     }
 
-    public allAddresses(): ReadonlyArray<string> {
-        return this.rpc.allAddresses;
-    }
-
-    public addNewAddress(): Promise<string> {
+    protected addNewAddressImpl(): Promise<string> {
         return this.rpc.addNewAddress();
     }
 
-    public detailedBalances(): Promise<Balance[]> {
+    protected updateBalancesImpl(): Promise<Balance[]> {
         const balancePromises: Array<Promise<Balance>> = this.rpc.getWalletBalances();
         return Promise.all(balancePromises);
     }

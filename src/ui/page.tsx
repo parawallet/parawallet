@@ -8,7 +8,7 @@ import {PortfolioMenu} from "./portfolio-menu";
 import {ExchangesMenu} from "./exchanges-menu";
 import {WalletMenu} from "./wallet-menu";
 import {WalletPane} from "./wallet-pane";
-import {WalletAccount, WalletStore} from "./wallet-store";
+import {WalletStore} from "./wallet-store";
 import {TimelineChart} from "./timeline-chart";
 import {PieChart} from "./pie-chart";
 import {PortfolioStore} from "../core/portfolio";
@@ -40,10 +40,9 @@ export class Page extends React.Component<PageProps, any> {
 
     public componentDidMount() {
         // Update portfolio when total balance of any wallet changes
-        reaction(() => this.walletStore.allAccounts.map((wa) => wa.totalBalance),
+        reaction(() => this.walletStore.allWallets.map((wa) => wa.totalBalanceAmount),
             () => this.portfolioStore.updateLastRecord());
 
-        this.walletStore.updateWalletAccounts();
         this.timerID = setInterval(() => this.updateActiveBalance(), 30000);
     }
 
@@ -63,8 +62,8 @@ export class Page extends React.Component<PageProps, any> {
                 break;
             }
             case PaneId.PANE_WALLET: {
-                const account = this.walletStore.activeAccount;
-                activePane = <WalletPane account={account} />;
+                const wallet = this.walletStore.activeWallet;
+                activePane = <WalletPane wallet={wallet} />;
                 break;
             }
             case PaneId.PANE_SECURITY: {
@@ -99,24 +98,21 @@ export class Page extends React.Component<PageProps, any> {
         this.activePaneId = paneId;
     }
 
-    private switchWallet(wallet: WalletType) {
-        console.log(`Switching wallet: ${wallet.code}`);
+    private switchWallet(walletType: WalletType) {
+        console.log(`Switching wallet: ${walletType.code}`);
         this.activePaneId = PaneId.PANE_WALLET;
-        const account = this.walletStore.switchWallet(wallet.code);
-        if (account.isEmpty) {
-            this.updateBalance(account);
-        }
+        this.walletStore.switchWallet(walletType.code);
     }
 
     private updateActiveBalance() {
         if (this.activePaneId === PaneId.PANE_WALLET) {
-            this.updateBalance(this.walletStore.activeAccount);
+            this.updateBalance(this.walletStore.activeWallet);
         }
     }
 
-    private async updateBalance(walletAccount: WalletAccount) {
+    private async updateBalance(wallet: Wallet) {
         try {
-            await walletAccount.update();
+            await wallet.updateBalances();
         } catch (error) {
             toast.error(JSON.stringify(error));
         }

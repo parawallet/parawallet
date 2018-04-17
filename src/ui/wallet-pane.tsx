@@ -5,12 +5,11 @@ import * as React from "react";
 import * as Modal from "react-modal";
 import { toast } from "react-toastify";
 import {Wallet} from "../core/wallet";
-import {WalletAccount} from "./wallet-store";
 import {TransferPane} from "./transfer-pane";
 
 
 interface WalletPaneProps {
-    readonly account: WalletAccount;
+    readonly wallet: Wallet;
 }
 
 @observer
@@ -28,55 +27,63 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
     }
 
     public render() {
-        const account = this.props.account;
-        const wallet = account.wallet;
+        const wallet = this.props.wallet;
         return (
             <div style={{padding: "20px"}}>
                 <h1>
                     <i className={"icon cc " + wallet.code} title={wallet.code}/>&nbsp;{wallet.name}
                 </h1>
-                <span className="coin_header">Total Balance: {account.totalBalance} {wallet.code}</span>
+                <span className="coin_header">Total Balance: {wallet.totalBalanceAmount} {wallet.code}</span>
                 <hr/>
                 <input className="btn btn-default" type="button" value="Add New Address" onClick={this.addNewAddress}/>
+                <input className="btn btn-default" type="button" value="Refresh Balance" onClick={() => wallet.updateBalances()}/>
                 <input className="btn btn-default" type="button" value="Send Coin" onClick={() => this.showTransferPane = true}/>
                 <hr/>
 
-                {this.renderWalletBalances(account, wallet.code)}
+                {this.renderWalletBalances(wallet)}
 
                 <Modal isOpen={this.showTransferPane}
                     onRequestClose={() => this.showTransferPane = false} contentLabel="Transfer"
                     shouldCloseOnOverlayClick={false} shouldCloseOnEsc={false} ariaHideApp={false}>
-                    <TransferPane account={account} onComplete={() => this.showTransferPane = false} />
+                    <TransferPane wallet={wallet} onComplete={() => this.showTransferPane = false} />
                 </Modal>
 
             </div>
         );
     }
 
-    private renderWalletBalances(account: WalletAccount, walletCode: string) {
-        const rows = account.detailedBalances.map((balance, index) => {
-            if (balance.amount === 0 && !this.showEmptyAccounts) {
+    private renderWalletBalances(wallet: Wallet) {
+        const rows = wallet.currentBalances.map((balance, index) => {
+            const isPublicAddress = wallet.isPublicAddress(balance.address);
+            if (balance.amount === 0 && !isPublicAddress && !this.showEmptyAccounts) {
                 return null;
+            }
+            let copyBtn = null;
+            if (isPublicAddress) {
+                copyBtn = (<input className="btn" type="button" value="Copy" onClick={() => this.copyAddress(balance.address)}/>);
             }
             return (
                 <tr key={index}>
-                    <td>
-                        <input className="btn" type="button" value="Copy" onClick={() => this.copyAddress(balance.address)}/>
-                    </td>
+                    <td>{copyBtn}</td>
                     <td>{balance.address}</td>
-                    <td>{balance.amount}&nbsp;{walletCode}</td>
+                    <td>{balance.amount}&nbsp;{wallet.code}</td>
                 </tr>
             );
         });
+
+        const checkBoxRow = wallet.supportsMultiAddress() ? (
+            <tr>
+                <th colSpan={3}>
+                <input type="checkbox" checked={this.showEmptyAccounts} onClick={() => this.showEmptyAccounts = !this.showEmptyAccounts}/>
+                <label>Show addresses with zero balance</label>
+                </th>
+            </tr>
+            ) : null;
+
         return (
             <table className="form-group">
                 <thead>
-                    <tr>
-                        <th colSpan={3}>
-                        <input type="checkbox" onClick={() => this.showEmptyAccounts = !this.showEmptyAccounts}/>
-                        <label>Show addresses with zero balance</label>
-                        </th>
-                    </tr>
+                    {checkBoxRow}
                     <tr>
                         <th>#</th>
                         <th>Address</th>
@@ -89,10 +96,8 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
     }
 
     private async addNewAddress() {
-        const account = this.props.account;
-        const wallet = account.wallet;
+        const wallet = this.props.wallet;
         const newAddress = await wallet.addNewAddress();
-        await account.update();
         toast.info(`Added new address ${newAddress}.`, {autoClose: 3000});
     }
 

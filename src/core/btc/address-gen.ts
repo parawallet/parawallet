@@ -24,8 +24,9 @@ export class BtcAddressGenerator {
     private readonly mnemonic: string;
     private readonly pass: string;
     private readonly queryTxFunc: QueryTransactionsFunc;
+    private readonly keypairs: ECPair[] = [];
+    private readonly publicAddressSet = new Set<string>();
     private params: Params = new Params(0, 0);
-    private readonly addresses: string[] = [];
 
     constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: BtcNetworkType, queryTxFunc: QueryTransactionsFunc) {
         this.mnemonic = mnemonic;
@@ -39,7 +40,7 @@ export class BtcAddressGenerator {
     public async initialize(createEmpty: boolean) {
         if (createEmpty) {
             this.params = new Params(0, 0);
-            this.fillAddresses();
+            this.fillKeypairs();
             return this.persistParams();
         }
 
@@ -48,7 +49,7 @@ export class BtcAddressGenerator {
 
         if (params) {
             this.params = params;
-            this.fillAddresses();
+            this.fillKeypairs();
         } else {
             const receiveP = this.discover(ChainType.EXTERNAL);
             const changeP = this.discover(ChainType.CHANGE);
@@ -57,22 +58,27 @@ export class BtcAddressGenerator {
             console.log("BTC EXTERNAL ADDRESS INDEX: " + receiveIndex);
             console.log("BTC CHANGE ADDRESS INDEX: " + changeIndex);
             this.params = new Params(receiveIndex, changeIndex);
-            this.fillAddresses();
+            this.fillKeypairs();
             return this.persistParams();
         }
     }
 
     public get allAddresses() {
-        return this.addresses;
+        return this.keypairs.map((keypair) => keypair.getAddress());
+    }
+
+    public get publicAddresses() {
+        return this.publicAddressSet;
     }
 
     public async addNewReceiveAddress(): Promise<string> {
         const index = this.receiveAddressIndex++;
         await this.persistParams();
-        const address = this.prepareAddress(ChainType.EXTERNAL, index);
-        console.log(`generated receive address[${index}]: ${address}`);
-        this.addresses.push(address);
-        return address;
+        const keypair = this.getKeypair(ChainType.EXTERNAL, index);
+        console.log(`generated receive address[${index}]: ${keypair.getAddress()}`);
+        this.keypairs.push(keypair);
+        this.publicAddressSet.add(keypair.getAddress());
+        return keypair.getAddress();
     }
 
     public pickChangeAddress(usedAddresses: string[]): string {
@@ -88,29 +94,13 @@ export class BtcAddressGenerator {
 
         const set = new Set(usedAddresses);
         for (let i = 0; i <= this.changeAddressIndex; i++) {
-            const address = this.prepareAddress(ChainType.CHANGE, i);
+            const address = this.getAddress(ChainType.CHANGE, i);
             if (!set.has(address)) {
                 return address;
             }
         }
 
         return this.generateChangeAddress();
-    }
-
-    public getKeypairs() {
-        if (!this.mnemonic) {
-            throw new Error("no mnemonic");
-        }
-        const keypairs: ECPair[] = [];
-        console.log("receiveAddressIndex: " + this.receiveAddressIndex);
-        console.log("changeAddressIndex: " + this.changeAddressIndex);
-        for (let i = 0; i <= this.receiveAddressIndex; i++) {
-            keypairs.push(this.getNode(ChainType.EXTERNAL, i).keyPair);
-        }
-        for (let i = 0; i <= this.changeAddressIndex; i++) {
-            keypairs.push(this.getNode(ChainType.CHANGE, i).keyPair);
-        }
-        return keypairs;
     }
 
     public getNetwork() {
@@ -128,7 +118,7 @@ export class BtcAddressGenerator {
     }
 
     private async discoverTransactions(chainType: ChainType, index: number, gap: number): Promise<number> {
-        const address = this.prepareAddress(chainType, index);
+        const address = this.getAddress(chainType, index);
         const txIds = await this.queryTxFunc(address);
 
         if (!txIds || txIds.length === 0) {
@@ -146,31 +136,37 @@ export class BtcAddressGenerator {
     }
 
     private getNode(type: ChainType, index: number) {
-        if (!this.mnemonic) {
-            throw new Error("no mnemonic");
-        }
         const path = generatePath(this.cointype, type, index);
         const seed = bip39.mnemonicToSeed(this.mnemonic, this.pass);
         const root = HDNode.fromSeedBuffer(seed, this.network);
         return root.derivePath(path);
     }
 
-    private prepareAddress(type: ChainType, index: number) {
+    private getKeypair(type: ChainType, index: number) {
+        return this.getNode(type, index).keyPair;
+    }
+
+    private getAddress(type: ChainType, index: number) {
         return this.getNode(type, index).getAddress();
     }
 
-    private fillAddresses() {
+    public get allKeypairs() {
+        return this.keypairs;
+    }
+
+    private fillKeypairs() {
         for (let i = 0; i <= this.receiveAddressIndex; i++) {
-            const address = this.prepareAddress(ChainType.EXTERNAL, i);
-            this.addresses.push(address);
+            const keypair = this.getKeypair(ChainType.EXTERNAL, i);
+            this.keypairs.push(keypair);
+            this.publicAddressSet.add(keypair.getAddress());
         }
-        console.log(`BTC generated ${this.receiveAddressIndex} receive addresses.`);
+        console.log(`BTC generated ${this.receiveAddressIndex + 1} receive addresses.`);
 
         for (let i = 0; i <= this.changeAddressIndex; i++) {
-            const address = this.prepareAddress(ChainType.CHANGE, i);
-            this.addresses.push(address);
+            const keypair = this.getKeypair(ChainType.CHANGE, i);
+            this.keypairs.push(keypair);
         }
-        console.log(`BTC generated ${this.changeAddressIndex} change addresses.`);
+        console.log(`BTC generated ${this.changeAddressIndex + 1} change addresses.`);
     }
 
     private generateChangeAddress() {
@@ -178,10 +174,10 @@ export class BtcAddressGenerator {
 
         this.persistParams();
 
-        const address = this.prepareAddress(ChainType.CHANGE, index);
-        console.log("generated change address:" + address);
-        this.addresses.push(address);
-        return address;
+        const keypair = this.getKeypair(ChainType.CHANGE, index);
+        console.log("generated change address:" + keypair.getAddress());
+        this.keypairs.push(keypair);
+        return keypair.getAddress();
     }
 
     private get receiveAddressIndex() {

@@ -5,6 +5,7 @@ import * as C from "../../constants";
 import {AbstractWallet, Balance, Wallet} from "../wallet";
 import {BtcAddressGenerator} from "./address-gen";
 import {BtcWalletRpc, createBtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
+import { computed, action } from "mobx";
 
 export enum BtcNetworkType {
     MAINNET, TESTNET,
@@ -16,37 +17,49 @@ export class BtcWallet extends AbstractWallet implements Wallet {
     private readonly networkType: BtcNetworkType;
 
     constructor(kv: SecoKeyval, mnemonic: string, mnemonicPass: string, networkType: BtcNetworkType) {
-        super("BTC", "Bitcoin");
+        super("BTC", "Bitcoin", kv);
         this.networkType = networkType;
         this.rpc = createBtcWalletRpc(networkType);
         this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType, this.rpc.queryTransactions.bind(this.rpc));
         console.info(`BTC using ${BtcNetworkType[networkType]} network`);
     }
 
-    public initialize(createEmpty: boolean) {
+    protected initializeImpl(createEmpty: boolean) {
         return this.addressGen.initialize(createEmpty);
     }
 
     public supportsMultiAddress(): boolean {
         return true;
-      }
-
-    public allAddresses(): ReadonlyArray<string> {
-        return this.addressGen.allAddresses;
     }
 
-    public addNewAddress() {
+    public isPublicAddress(address: string) {
+        return this.addressGen.publicAddresses.has(address);
+      }
+
+    protected addNewAddressImpl() {
         return this.addressGen.addNewReceiveAddress();
     }
 
-    public detailedBalances() {
+    public updateBalancesImpl() {
         const addresses = this.addressGen.allAddresses;
-        return this.rpc.queryBalance(addresses);
+        // TODO: query balances in smaller batches
+        return this.rpc.queryBalance(addresses).then((balances) => {
+            // add missing zero-balance addresses
+            const set = new Set(addresses);
+            balances = balances || [];
+            balances.forEach((b) => {
+                set.delete(b.address);
+            });
+            set.forEach((address) => {
+                balances.push({address, amount: 0});
+            });
+            return balances;
+        });
     }
 
     public async send(toAddress: string, amount: number) {
         const satoshiAmount = amount * 1e8;
-        const outputTuples = await this.rpc.getUnspentOutputs(this.addressGen.getKeypairs());
+        const outputTuples = await this.rpc.getUnspentOutputs(this.addressGen.allKeypairs);
         const txnHex = this.createTransaction(toAddress, satoshiAmount, outputTuples);
         return await this.rpc.pushTransaction(txnHex);
     }

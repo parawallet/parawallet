@@ -1,6 +1,7 @@
 import SecoKeyval from "seco-keyval";
 import {AbstractWallet, Balance, Wallet} from "../wallet";
 import {XrpWalletRpc} from "./wallet-rpc";
+import * as C from "../../constants";
 
 export enum XrpNetworkType {
     MAIN, TEST,
@@ -10,24 +11,20 @@ export class XrpWallet extends AbstractWallet implements Wallet {
     private readonly rpc: XrpWalletRpc;
 
     constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: XrpNetworkType) {
-        super("XRP", "Ripple");
+        super("XRP", "Ripple", kv);
         this.rpc = new XrpWalletRpc(kv, mnemonic, pass, networkType);
         console.info(`XRP using ${XrpNetworkType[networkType]} network`);
     }
 
-    public initialize(createEmpty: boolean) {
+    protected initializeImpl(createEmpty: boolean) {
         return this.rpc.initialize(createEmpty);
     }
 
-    public allAddresses(): ReadonlyArray<string> {
-        return this.rpc.allAddresses;
-    }
-
-    public addNewAddress() {
+    protected addNewAddressImpl() {
         return this.rpc.addNewAddress();
     }
 
-    public detailedBalances(): Promise<Balance[]> {
+    protected updateBalancesImpl(): Promise<Balance[]> {
         return this.rpc.getAccountBalances();
     }
 

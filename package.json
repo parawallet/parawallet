@@ -5,8 +5,9 @@
   "main": "app/main.js",
   "scripts": {
     "build": "npm run lint && rm -rf app && tsc",
-    "test": "npm run lint && mocha --require ts-node/register test/**/*.{js,ts}",
-    "start": "electron .",
+    "test": "mocha --require ts-node/register test/**/*.{js,ts}",
+    "prestart": "npm run build",
+    "start": "electron --enable-logging .",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
     "lint": "tslint -c tslint.json -p tsconfig.json",
@@ -43,7 +44,7 @@
     "ts-node": "^4.1.0",
     "tslint": "^5.8.0",
     "tslint-react": "^3.3.3",
-    "typescript": "^2.7.1"
+    "typescript": "^2.8.1"
   },
   "dependencies": {
     "bip39": "^2.5.0",
@@ -51,12 +52,12 @@
     "coinselect": "^3.1.11",
     "cryptocoins-icons": "^2.6.0",
     "ethers": "^3.0.1",
-    "mobx": "^3.5.1",
-    "mobx-react": "^4.4.2",
+    "mobx": "^3.6.2",
+    "mobx-react": "^4.4.3",
     "moment": "^2.21.0",
     "qrcode": "^1.2.0",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
+    "react": "^16.3.1",
+    "react-dom": "^16.3.1",
     "react-google-charts": "^1.5.5",
     "react-modal": "^3.3.2",
     "react-toastify": "^3.4.3",

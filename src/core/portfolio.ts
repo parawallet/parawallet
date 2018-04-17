@@ -35,8 +35,6 @@ export class PortfolioStore {
     }
 
     public async updateLastRecord() {
-        console.log("!!!! ====== UPDATING PORTFOLIO ======= !!!!");
-
         const portfolioRecordList: PortfolioRecord[] = await this.keyValueStore.get(C.PORTFOLIO_HISTORY);
         if (!portfolioRecordList) {
             throw new Error("Portfolio record list is not initialized!");
@@ -46,7 +44,7 @@ export class PortfolioStore {
         let totalValue: number = 0;
         const currentPortfolioMap: Map<string, number> = new Map();
         for (const wallet of this.wallets) {
-            const balance: number = await wallet.totalBalanceAmount();
+            const balance: number = wallet.totalBalanceAmount;
             const price: number = await getPrice(dateStr, wallet.code);
             const value: number = balance * price;
             totalValue += value;
@@ -104,7 +102,7 @@ export class PortfolioStore {
             let totalValue: number = 0;
             const currentPortfolioMap: Map<string, number> = new Map();
             for (const wallet of this.wallets) {
-                const balance: number = await wallet.totalBalanceAmount();
+                const balance: number = wallet.totalBalanceAmount;
                 const price: number = await getPrice(dateStr, wallet.code);
                 const value: number = balance * price;
                 totalValue += value;

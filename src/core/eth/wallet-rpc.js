@@ -129,10 +129,6 @@ export class EthWalletRpc {
         return transactionResult.hash;
     }
 
-    get allAddresses() {
-        return this.wallets.map((w) => w.address);
-    }
-
     get explorerURL() {
         return this.provider ? this.provider.baseUrl + "/tx/" : "";
     }

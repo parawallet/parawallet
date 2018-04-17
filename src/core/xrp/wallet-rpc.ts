@@ -189,10 +189,6 @@ export class XrpWalletRpc {
         }
     }
 
-    public get allAddresses(): ReadonlyArray<string> {
-        return this.accounts.map((account) => account.address);
-    }
-
     private createPayment(from: string, toAddress: string, amount: string) {
         const source = {address: from, maxAmount: {value: amount, currency: "XRP"}};
         const destination = {address: toAddress, amount: {value: amount, currency: "XRP"}};

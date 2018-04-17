@@ -1,56 +1,22 @@
 import {action, computed, observable} from "mobx";
-import {Wallet, Balance} from "../core/wallet";
-
-export class WalletAccount {
-
-    public readonly wallet: Wallet;
-    @observable
-    private balances: Balance[] = [];
-
-    constructor(wallet: Wallet) {
-        this.wallet = wallet;
-    }
-
-    @computed
-    public get isEmpty(): boolean {
-        return this.balances.length === 0;
-    }
-
-    @computed
-    public get detailedBalances(): ReadonlyArray<Balance> {
-        return this.balances;
-    }
-
-    @computed
-    public get totalBalance(): number {
-        let total = 0;
-        this.balances.forEach((balance) => {
-            total += balance.amount;
-        });
-        return total;
-    }
-
-    @action
-    public async update() {
-        const balances = await this.wallet.detailedBalances();
-        this.balances = balances;
-    }
-}
+import { Wallet } from "./wallets";
 
 export class WalletStore {
-    private readonly walletAccounts = new Map<string, WalletAccount>();
+    private readonly walletsMap = new Map<string, Wallet>();
+    private readonly wallets: Wallet[];
     @observable
-    private activeWalletAccount: WalletAccount;
+    private active: Wallet;
 
     constructor(wallets: Wallet[], activeWalletCode: string) {
         for (const w of wallets) {
-            this.walletAccounts.set(w.code, new WalletAccount(w));
+            this.walletsMap.set(w.code, w);
         }
-        this.activeWalletAccount = this.getWalletAccount(activeWalletCode);
+        this.wallets = wallets;
+        this.active = this.getWallet(activeWalletCode);
     }
 
-    public getWalletAccount(walletCode: string): WalletAccount {
-        const wa = this.walletAccounts.get(walletCode);
+    public getWallet(walletCode: string): Wallet {
+        const wa = this.walletsMap.get(walletCode);
         if (!wa) {
             throw new Error("Invalid wallet code: " + walletCode);
         }
@@ -58,24 +24,18 @@ export class WalletStore {
     }
 
     @computed
-    public get allAccounts(): WalletAccount[] {
-        return Array.from(this.walletAccounts.values());
+    public get allWallets(): Wallet[] {
+        return this.wallets;
     }
 
     @computed
-    public get activeAccount(): WalletAccount {
-        return this.activeWalletAccount;
-    }
-
-    public updateWalletAccounts() {
-        this.walletAccounts.forEach( (wallet: WalletAccount) => {
-            wallet.update();
-        });
+    public get activeWallet(): Wallet {
+        return this.active;
     }
 
     @action
-    public switchWallet(walletCode: string): WalletAccount {
-        this.activeWalletAccount = this.getWalletAccount(walletCode);
-        return this.activeWalletAccount;
+    public switchWallet(walletCode: string): Wallet {
+        this.active = this.getWallet(walletCode);
+        return this.active;
     }
 }

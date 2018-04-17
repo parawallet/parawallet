@@ -8,11 +8,9 @@ import * as DB from "../util/secure-db";
 import {Login, LoginCredentials, LoginType} from "./login";
 import {Page} from "./page";
 import { TotpSetup, totpValidator } from "./totp";
-import {BtcNetworkType, BtcWallet,
-    EthNetworkType, EthWallet,
-    getOrInitializeMnemonic, Wallet, XrpNetworkType, XrpWallet} from "./wallets";
+import { getOrInitializeMnemonic, Wallet, XrpWallet, EthWallet, BtcWallet,
+    BtcNetworkType, EthNetworkType, XrpNetworkType } from "./wallets";
 import {PortfolioStore} from "../core/portfolio";
-
 
 enum PageId {
     AUTH,
@@ -48,7 +46,6 @@ class Main extends React.Component<any, any> {
             case PageId.SETUP_2FA:
                 return (<TotpSetup onValidToken={this.onValidToken} />);
             case PageId.LOADING:
-                console.log("===================> loading");
                 return (
                     <div className="paneContentDiv">
                         <h3>INIT</h3>

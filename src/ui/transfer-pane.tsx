@@ -5,10 +5,9 @@ import * as React from "react";
 import { toast } from "react-toastify";
 import {totpValidator, TotpVerifyDialog} from "./totp";
 import {Wallet} from "./wallets";
-import { WalletAccount } from "./wallet-store";
 
 interface TransferPaneProps {
-    readonly account: WalletAccount;
+    readonly wallet: Wallet;
     onComplete(): void;
 }
 
@@ -30,12 +29,10 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         this.changeFrom = this.changeFrom.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.onVerifyToken = this.onVerifyToken.bind(this);
-        this.from = this.props.account.detailedBalances[0].address;
     }
 
     public render() {
-        const account = this.props.account;
-        const wallet = account.wallet;
+        const wallet = this.props.wallet;
 
         if (this.verifyToken) {
             return <TotpVerifyDialog show={true} onVerify={this.onVerifyToken}/>;
@@ -45,7 +42,7 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
                 <h5>Send {wallet.name}:</h5>
 
                 <form onSubmit={this.handleSubmit}>
-                    {this.renderAddresses(account)}
+                    {this.renderAddresses(wallet)}
 
                     <div className="form-group">
                         <label>To Address:</label>
@@ -70,14 +67,15 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         );
     }
 
-    private renderAddresses(account: WalletAccount) {
-        if (account.wallet.supportsMultiAddress()) {
+    private renderAddresses(wallet: Wallet) {
+        if (wallet.supportsMultiAddress()) {
             return null;
         }
-        const addresses = account.detailedBalances.map((balance) =>
+        this.from = wallet.currentBalances[0].address;
+        const addresses = wallet.currentBalances.map((balance) =>
             (
             <option value={balance.address} key={balance.address}>
-                {balance.address}&nbsp;&nbsp;===&nbsp;&nbsp;{balance.amount}&nbsp;{account.wallet.code}
+                {balance.address}&nbsp;&nbsp;===&nbsp;&nbsp;{balance.amount}&nbsp;{wallet.code}
             </option>
             ));
         return (
@@ -99,14 +97,14 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
 
     private handleTxnResult(event: any, txnResult: string) {
         event.preventDefault();
-        const url = this.props.account.wallet.getExporerURL() + txnResult;
+        const url = this.props.wallet.getExporerURL() + txnResult;
         console.log(`Opening ${url}`);
         shell.openExternal(url);
     }
 
     private handleSubmit(event: React.FormEvent<any>) {
         event.preventDefault();
-        console.log(`Transfering ${this.amount} ${this.props.account.wallet.code} to ${this.address} from ${this.from}`);
+        console.log(`Transfering ${this.amount} ${this.props.wallet.code} to ${this.address} from ${this.from}`);
         if (totpValidator.enabled) {
             this.verifyToken = true;
         } else {
@@ -116,15 +114,14 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
 
     // TODO: update balance in main UI
     private async transfer() {
-        const account = this.props.account;
-        const wallet = account.wallet;
+        const wallet = this.props.wallet;
         try {
             if (wallet.supportsMultiAddress()) {
                 this.txnId = await wallet.send(this.address, Number(this.amount));
             } else {
                 this.txnId = await wallet.sendFrom(this.from, this.address, Number(this.amount));
             }
-            account.update();
+            wallet.updateBalances();
         } catch (error) {
             toast.error(JSON.stringify(error));
         }
