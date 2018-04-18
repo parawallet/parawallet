@@ -2,9 +2,37 @@ import {app, BrowserWindow} from "electron";
 import * as path from "path";
 import * as url from "url";
 
+const profileFlag = "--profile=";
+const profileArg = process.argv.find((arg) => arg.startsWith(profileFlag));
+
+if (profileArg) {
+  const profile = profileArg.replace(profileFlag, "");
+  console.log(`Selected profile: ${profile}`);
+  const defaultPath = app.getPath("userData");
+  const profilePath = path.join(defaultPath, `Profile-${profile}`);
+  console.log(`Using profile path: ${profilePath}`);
+  app.setPath("userData", profilePath);
+}
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
+
+var alreadyRunning = app.makeSingleInstance(function(commandLine, workingDirectory) {
+  // Someone tried to run a second instance, we should focus our window.
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.focus();
+  }
+});
+
+if (alreadyRunning) {
+  console.error("Another instance is already running...");
+  app.quit();
+  return;
+}
 
 function createWindow() {
   // Create the browser window.
