@@ -1,6 +1,5 @@
 export const WALLET_DB = "wallet";
 export const CONFIG_DB = "config";
-export const PORTFOLIO_DB = "portfolio";
 export const MNEMONIC = "mnemonic";
 export const TOTP_PARAMS = "totp-params";
 export const BTC_PARAMS = "btc-params";
@@ -8,5 +7,6 @@ export const ETH_PARAMS = "eth-params";
 export const XRP_PARAMS = "xrp-params";
 export const BALANCES_SUFFIX = "-balances";
 export const GAP_LIMIT = 20;
-export const PORTFOLIO_HISTORY = "portfolio_history";
+export const PORTFOLIO_PREFIX = "portfolio";
+export const PORTFOLIO_START = "portfolio-start";
 export const PORTFOLIO_DATE_FORMAT = "YYYY-MM-DD";

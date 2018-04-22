@@ -36,18 +36,18 @@ class Main extends React.Component<any, any> {
 
     public render() {
         return [this.renderActivePage(),
-            (<ToastContainer position={toast.POSITION.TOP_CENTER} autoClose={false} hideProgressBar={true} />)];
+            (<ToastContainer position={toast.POSITION.TOP_CENTER} autoClose={false} hideProgressBar={true} key="toast" />)];
     }
 
     private renderActivePage() {
         switch (this.activePage) {
             case PageId.AUTH:
-                return (<Login onLogin={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)}/>);
+                return (<Login onLogin={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)} key="login" />);
             case PageId.SETUP_2FA:
-                return (<TotpSetup onValidToken={this.onValidToken} />);
+                return (<TotpSetup onValidToken={this.onValidToken} key="totp" />);
             case PageId.LOADING:
                 return (
-                    <div className="paneContentDiv">
+                    <div className="paneContentDiv" key="loading">
                         <h3>INIT</h3>
                         <hr/>
                         <span className="important_note">... LOADING PAGE ...</span>
@@ -70,7 +70,6 @@ class Main extends React.Component<any, any> {
         try {
             const walletKv = await DB.open(C.WALLET_DB, loginCreds.appPass);
             const configKv = await DB.open(C.CONFIG_DB, loginCreds.appPass);
-            const portfolioKv = await DB.open(C.PORTFOLIO_DB, loginCreds.appPass);
             console.log("Databases are ready now");
 
             totpValidator.restore(configKv!);
@@ -107,15 +106,14 @@ class Main extends React.Component<any, any> {
     }
 
     private async initializePortfolio() {
-        const kv = DB.get(C.PORTFOLIO_DB)!;
-        this.portfolioStore = new PortfolioStore(kv, this.wallets);
-        this.portfolioStore.initializeOrUpdatePortfolioHistory();
+        this.portfolioStore = new PortfolioStore(this.wallets);
+        await this.portfolioStore.initializeOrUpdatePortfolioHistory();
         this.activePage = PageId.MAIN_PAGE;
     }
 
     private renderPage() {
         const defaultWallet = this.wallets[0];
-        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets} portfolioStore={this.portfolioStore} mnemonics={this.mnemonic} />);
+        return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets} portfolioStore={this.portfolioStore} mnemonics={this.mnemonic} key="page"/>);
     }
 }
 

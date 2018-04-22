@@ -6,7 +6,7 @@ import * as DB from "../util/secure-db";
 import * as C from "../constants";
 import {observable} from "mobx";
 import {observer} from "mobx-react";
-import {getPrice} from "../core/coinPrices";
+import {getPrice} from "../core/coin-prices";
 
 @observer
 export class PieChart extends React.Component {
@@ -18,7 +18,7 @@ export class PieChart extends React.Component {
         this.portfolioStore = props.portfolioStore;
     }
     async drawChart() {
-        const portfolioHistory = await this.portfolioStore.getPortfolioHistory();
+        const portfolioHistory = this.portfolioStore.portfolioHistory;
         let dat = [];
         if (!portfolioHistory || portfolioHistory.length === 0) {
             portfolio = "No portfolio";

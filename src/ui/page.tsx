@@ -9,8 +9,8 @@ import {ExchangesMenu} from "./exchanges-menu";
 import {WalletMenu} from "./wallet-menu";
 import {WalletPane} from "./wallet-pane";
 import {WalletStore} from "./wallet-store";
-import {TimelineChart} from "./timeline-chart";
-import {PieChart} from "./pie-chart";
+import {TimelineChart} from "./portfolio-timeline-chart";
+import {PieChart} from "./portfolio-pie-chart";
 import {PortfolioStore} from "../core/portfolio";
 
 interface PageProps {
