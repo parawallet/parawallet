@@ -1,7 +1,7 @@
 import {observable, reaction} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
-import { toast } from "react-toastify";
+import {toast} from "react-toastify";
 import {Wallet, WalletType} from "../core/wallet";
 import {SecurityPane, PreferencesMenu, BackupPane} from "./preferences";
 import {PortfolioMenu} from "./portfolio-menu";
@@ -21,7 +21,7 @@ interface PageProps {
     readonly mnemonics: string;
 }
 
-export enum PaneId { PANE_TIMELINE, PANE_PERCENTAGES, PANE_WALLET, PANE_SECURITY , PANE_BACKUP}
+export enum PaneId { PANE_TIMELINE, PANE_PERCENTAGES, PANE_WALLET, PANE_SECURITY, PANE_BACKUP}
 
 @observer
 export class Page extends React.Component<PageProps, any> {
@@ -53,7 +53,7 @@ export class Page extends React.Component<PageProps, any> {
 
     public render() {
         let activePane;
-        switch ( this.activePaneId ) {
+        switch (this.activePaneId) {
             case PaneId.PANE_TIMELINE: {
                 activePane = <TimelineChart portfolioStore={this.portfolioStore}/>;
                 break;
@@ -64,7 +64,7 @@ export class Page extends React.Component<PageProps, any> {
             }
             case PaneId.PANE_WALLET: {
                 const wallet = this.walletStore.activeWallet;
-                activePane = <WalletPane wallet={wallet} />;
+                activePane = <WalletPane wallet={wallet}/>;
                 break;
             }
             case PaneId.PANE_SECURITY: {
@@ -81,17 +81,37 @@ export class Page extends React.Component<PageProps, any> {
         }
 
         return (
-            <div className="pane-group">
-                <div className="pane-sm sidebar">
-                    <PortfolioMenu onMenuClick={(paneId: PaneId) => this.showPane(paneId)}/>
-                    <WalletMenu wallets={this.props.wallets} onMenuClick={(wlt) => this.switchWallet(wlt)}/>
-                    <ExchangesMenu/>
-                    <PreferencesMenu onMenuClick={(paneId: PaneId) => this.activePaneId = paneId}/>
-                </div>
-                <div className="pane">
-                    {activePane}
+            <div className="container-fluid">
+                <div className="row">
+                    <nav className="col-md-2 d-none d-md-block bg-light sidebar">
+                        <div className="sidebar-sticky">
+                            <ul className="nav flex-column">
+                                <PortfolioMenu onMenuClick={(paneId: PaneId) => this.showPane(paneId)}/>
+                                <WalletMenu wallets={this.props.wallets} onMenuClick={(wlt) => this.switchWallet(wlt)}/>
+                                <ExchangesMenu/>
+                                <PreferencesMenu onMenuClick={(paneId: PaneId) => this.activePaneId = paneId}/>
+                            </ul>
+                        </div>
+                    </nav>
+                    <main role="main" className="col-md-9 ml-sm-auto col-lg-10 px-4">
+                        {activePane}
+                    </main>
                 </div>
             </div>
+            /*
+                        <div className="pane-group">
+                            <div className="pane-sm sidebar">
+                                <PortfolioMenu onMenuClick={(paneId: PaneId) => this.showPane(paneId)}/>
+                                <WalletMenu wallets={this.props.wallets} onMenuClick={(wlt) => this.switchWallet(wlt)}/>
+                                <ExchangesMenu/>
+                                <PreferencesMenu onMenuClick={(paneId: PaneId) => this.activePaneId = paneId}/>
+                            </div>
+                            <div className="pane">
+                                {activePane}
+                            </div>
+                        </div>
+                        */
+
         );
     }
 

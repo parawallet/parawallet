@@ -9,17 +9,25 @@ interface IPortfolioMenuProps {
 export class PortfolioMenu extends React.Component<IPortfolioMenuProps, any> {
     public render() {
         return (
-            <nav className="nav-group">
-                <h5 className="nav-group-title">Portfolio</h5>
-                    <a className="nav-group-item" onClick={() => this.props.onMenuClick(PaneId.PANE_TIMELINE)}>
-                        <span className="icon icon-chart-line"/>
-                        Timeline
-                    </a>
-                    <a className="nav-group-item" onClick={() => this.props.onMenuClick(PaneId.PANE_PERCENTAGES)}>
-                        <span className="icon icon-chart-pie"/>
-                        Percentages
-                    </a>
-            </nav>
+            <div>
+                <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Portfolio</span>
+                </h6>
+                <ul className="nav flex-column">
+                    <li className="nav-item">
+                        <a className="nav-link" href="#" onClick={() => this.props.onMenuClick(PaneId.PANE_TIMELINE)}>
+                            <i className="fas fa-chart-line menu-icon" />
+                            Timeline
+                        </a>
+                    </li>
+                    <li className="nav-item">
+                        <a className="nav-link" href="#" onClick={() => this.props.onMenuClick(PaneId.PANE_PERCENTAGES)}>
+                            <i className="fas fa-chart-pie menu-icon" />
+                            Percentages
+                        </a>
+                    </li>
+                </ul>
+            </div>
         );
     }
 }

@@ -5,6 +5,7 @@ import * as moment from "moment";
 import * as C from "../constants";
 import {observable} from "mobx";
 import {observer} from "mobx-react";
+import {PaneHeader} from "./pane-header";
 
 @observer
 export class TimelineChart extends React.Component {
@@ -58,10 +59,9 @@ export class TimelineChart extends React.Component {
 
     render() {
         return (
-            <div style={{margin: "10px"}}>
-                <h5>Portfolio History</h5>
-                (Current Portfolio: {this.portfolio})
-                <div id="chart_div" style={{width: "100%", height: "500px"}}></div>
+            <div>
+                <PaneHeader title={"Portfolio Timeline"} subtitle={"(Current Portfolio: " + this.portfolio + ")"}/>
+                <div id="chart_div" style={{height: "500px"}}></div>
             </div>
         );
     }

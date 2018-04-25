@@ -7,6 +7,7 @@ import * as C from "../constants";
 import {observable} from "mobx";
 import {observer} from "mobx-react";
 import {getPrice} from "../core/coin-prices";
+import {PaneHeader} from "./pane-header";
 
 @observer
 export class PieChart extends React.Component {
@@ -17,6 +18,7 @@ export class PieChart extends React.Component {
         super();
         this.portfolioStore = props.portfolioStore;
     }
+
     async drawChart() {
         const portfolioHistory = this.portfolioStore.portfolioHistory;
         let dat = [];
@@ -39,7 +41,9 @@ export class PieChart extends React.Component {
             }
         }
         const options = {
-            title: "Coin Percentages",
+            chartArea: { left: 0, top: 60, width: "70%", height: "75%"},
+            is3D: true,
+            // title: "Coin Percentages",
         };
 
         const dataTable = google.visualization.arrayToDataTable(
@@ -52,10 +56,9 @@ export class PieChart extends React.Component {
 
     render() {
         return (
-            <div style={{margin: "10px"}}>
-                <h5>Portfolio Distribution</h5>
-                (Current Portfolio: {this.portfolio})
-                <div id="piechart_div" style={{width: "100%", height: "500px"}}></div>
+            <div>
+                <PaneHeader title={"Portfolio Percentages"} subtitle={"(Current Portfolio: " + this.portfolio + ")"}/>
+                <div id="piechart_div" style={{height: "500px"}}></div>
             </div>
         );
     }
