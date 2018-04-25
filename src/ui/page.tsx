@@ -12,6 +12,7 @@ import {WalletStore} from "./wallet-store";
 import {TimelineChart} from "./portfolio-timeline-chart";
 import {PieChart} from "./portfolio-pie-chart";
 import {PortfolioStore} from "../core/portfolio";
+import { stringifyErrorMessageReplacer } from "../util/errors";
 
 interface PageProps {
     readonly portfolioStore: PortfolioStore;
@@ -114,7 +115,7 @@ export class Page extends React.Component<PageProps, any> {
         try {
             await wallet.updateBalances();
         } catch (error) {
-            toast.error(JSON.stringify(error));
+            toast.error(JSON.stringify(error, stringifyErrorMessageReplacer));
         }
     }
 }

@@ -1,10 +1,24 @@
-import { action, runInAction, computed, observable } from "mobx";
+import { action, runInAction, computed, observable, reaction } from "mobx";
 import SecoKeyval from "seco-keyval";
 import * as C from "../constants";
+
+import * as assert from "assert";
 
 export interface Balance {
   readonly address: string;
   readonly amount: number;
+}
+
+export type TransactionStatus = "success" | "failure" | "pending";
+
+export type TransactionCompletionCallback = (txid: string, status: string) => void;
+
+export interface Transaction {
+  readonly id: string;
+  readonly source?: string;
+  readonly destination: string;
+  readonly amount: number;
+  status: TransactionStatus;
 }
 
 export interface WalletType {
@@ -23,6 +37,11 @@ export interface Wallet extends WalletType {
    * Current/latest balances.
    */
   readonly currentBalances: ReadonlyArray<Balance>;
+
+  /**
+   * Known transactions initiated by this wallet.
+   */
+  readonly knownTransactions: ReadonlyArray<Transaction>;
 
   /**
    * Initializes the wallet, either by restoring from database
@@ -52,20 +71,13 @@ export interface Wallet extends WalletType {
   updateBalances(): Promise<Balance[]>;
 
   /**
-   * Initiates transaction to send requested amount to target address
-   * and returns promise for transaction id.
-   *
-   * This only works for wallets supporting multi-address transaction.
-   */
-  send(toAddress: string, amount: number): Promise<string>;
-
-  /**
-   * Initiates transaction to send requested amount from a specific wallet address
+   * Initiates transaction to send requested amount
    * to target address and returns promise for transaction id.
    *
-   * This only works for wallets NOT supporting multi-address transaction.
+   * `fromAddress` is required for wallets NOT supporting multi-address transaction.
+   * `fromAddress` is not used used for wallets supporting multi-address transaction.
    */
-  sendFrom(from: string, toAddress: string, amount: number): Promise<string>;
+  send(toAddress: string, amount: number, callback?: TransactionCompletionCallback, fromAddress?: string): Promise<string>;
 
   /**
    * Returns web explorer url for this wallet.
@@ -85,10 +97,17 @@ export abstract class AbstractWallet implements Wallet {
   @observable
   protected balances: Balance[] = [];
 
+  @observable
+  protected transactions: Transaction[] = [];
+
+  private pendingTransaction: string | null;
+
   constructor(code: string, name: string, kv: SecoKeyval) {
     this.code = code;
     this.name = name;
     this.kv = kv;
+
+    this.checkPendingTransaction = this.checkPendingTransaction.bind(this);
   }
 
   @computed
@@ -100,6 +119,11 @@ export abstract class AbstractWallet implements Wallet {
   public get totalBalanceAmount(): number {
     return this.balances.map((b) => b.amount)
       .reduce((prev, current) => prev + current, 0);
+  }
+
+  @computed
+  public get knownTransactions(): ReadonlyArray<Transaction> {
+    return this.transactions;
   }
 
   public isPublicAddress(address: string) {
@@ -114,15 +138,42 @@ export abstract class AbstractWallet implements Wallet {
       // await?
       this.updateBalances();
     }
+    this.transactions = await this.kv.get(this.code + C.TRANSACTIONS_SUFFIX) || [];
+    this.trackPendingTransaction();
+
+    reaction(() => this.balances.slice(), () => this.persistBalances());
+    // reaction(() => this.transactions.slice(), () => this.persistTransactions());
+    reaction(() => this.transactions.map((tx) => tx.status), () => this.persistTransactions());
   }
 
   protected abstract initializeImpl(createEmpty: boolean): Promise<any>;
+
+  private trackPendingTransaction() {
+    const pendingTx = this.transactions.find((tx) => tx.status === "pending");
+    if (pendingTx) {
+      this.pendingTransaction = pendingTx.id;
+      setImmediate(this.checkPendingTransaction);
+    }
+  }
+
+  private schedulePendingTransactionCheck(callback?: TransactionCompletionCallback) {
+    setTimeout(this.checkPendingTransaction, 10000, callback);
+  }
+
+  private persistBalances() {
+    console.log(`${this.code}: Persisting balances: ${JSON.stringify(this.balances)}`);
+    this.kv.set(this.code + C.BALANCES_SUFFIX, this.balances);
+  }
+
+  private persistTransactions() {
+    console.log(`${this.code}: Persisting transactions: ${JSON.stringify(this.transactions)}`);
+    this.kv.set(this.code + C.TRANSACTIONS_SUFFIX, this.transactions);
+  }
 
   @action
   public async addNewAddress() {
       const address = await this.addNewAddressImpl();
       runInAction(() => this.balances.push({address, amount: 0}));
-      this.kv.set(this.code + C.BALANCES_SUFFIX, this.balances);
       return address;
   }
 
@@ -134,7 +185,6 @@ export abstract class AbstractWallet implements Wallet {
       p.then((balances) => {
           balances = balances || [];
           runInAction(() => this.balances = balances);
-          this.kv.set(this.code + C.BALANCES_SUFFIX, balances);
       });
       return p;
   }
@@ -145,11 +195,55 @@ export abstract class AbstractWallet implements Wallet {
     return false;
   }
 
-  public send(toAddress: string, amount: number): Promise<string> {
-    return Promise.reject("Unsupported");
+  public send(toAddress: string, amount: number, callback?: TransactionCompletionCallback, fromAddress?: string): Promise<string> {
+    if (this.pendingTransaction) {
+      return Promise.reject(`Cannot initiate a new transaction before transaction[${this.pendingTransaction}] finalizes.`);
+    }
+    if (this.supportsMultiAddress() && fromAddress) {
+      return Promise.reject("This wallet doesn't support explicit 'fromAddress'");
+    }
+    if (!this.supportsMultiAddress() && !fromAddress) {
+      return Promise.reject("This wallet requires explicit 'fromAddress'");
+    }
+
+    const p = this.sendImpl(toAddress, amount, fromAddress);
+    p.then((txid) => {
+      runInAction(() => this.transactions.push({id: txid, source: fromAddress, destination: toAddress, amount, status: "pending"}));
+      this.pendingTransaction = txid;
+      this.schedulePendingTransactionCheck(callback);
+    });
+
+    return p;
   }
 
-  public sendFrom(from: string, toAddress: string, amount: number): Promise<string> {
-    return Promise.reject("Unsupported");
+  protected abstract sendImpl(toAddress: string, amount: number, fromAddress?: string): Promise<string>;
+
+  private async checkPendingTransaction(callback?: TransactionCompletionCallback) {
+    if (!this.pendingTransaction) {
+      console.log(this.code + ": No pending transaction at the moment.");
+      return;
+    }
+
+    console.log(`${this.code}: Checking pending transaction: ${this.pendingTransaction}`);
+    const status = await this.transactionStatus(this.pendingTransaction);
+
+    if (status === "pending") {
+      this.schedulePendingTransactionCheck(callback);
+    } else {
+      const tx = this.transactions[this.transactions.length - 1];
+      assert.strictEqual(tx.id, this.pendingTransaction);
+
+      tx.status = status;
+      console.log(`${this.code}: Completed transaction: ${JSON.stringify(tx)}`);
+
+      this.pendingTransaction = null;
+      this.updateBalances();
+      if (callback) {
+        callback(tx.id, status);
+      }
+    }
   }
+
+  protected abstract transactionStatus(txid: string): Promise<TransactionStatus>;
+
 }

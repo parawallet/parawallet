@@ -2,7 +2,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast, style as toastStyle } from "react-toastify";
 import * as C from "../constants";
 import * as DB from "../util/secure-db";
 import {Login, LoginCredentials, LoginType} from "./login";
@@ -18,6 +18,8 @@ enum PageId {
     LOADING,
     MAIN_PAGE,
 }
+
+toastStyle({width: "640px"});
 
 @observer
 class Main extends React.Component<any, any> {

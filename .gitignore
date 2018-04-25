@@ -4,7 +4,6 @@ dist/
 .idea/
 *.iml
 .vscode/
-
-btc.txt
+tmp/
 *.db
 package-lock.json

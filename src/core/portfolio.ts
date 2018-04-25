@@ -120,7 +120,7 @@ export class PortfolioStore {
     }
 
     private restoreRecord(date: Moment): PortfolioRecord | null {
-        const recStr = localStorage.getItem(C.PORTFOLIO_PREFIX + "-" + date.format(C.PORTFOLIO_DATE_FORMAT));
+        const recStr = localStorage.getItem(C.PORTFOLIO_PREFIX + date.format(C.PORTFOLIO_DATE_FORMAT));
         if (recStr) {
             return JSON.parse(recStr) as PortfolioRecord;
         }
@@ -128,7 +128,18 @@ export class PortfolioStore {
     }
 
     private persistRecord(record: PortfolioRecord): void {
-        localStorage.setItem(C.PORTFOLIO_PREFIX + "-" + record.dateStr, JSON.stringify(record));
+        localStorage.setItem(C.PORTFOLIO_PREFIX + record.dateStr, JSON.stringify(record));
+    }
+
+    private reset() {
+        const keys: string[] = [];
+        for (let index = 0; index < localStorage.length; index++) {
+            const key = localStorage.key(index)!;
+            if (key.startsWith(C.PORTFOLIO_PREFIX)) {
+                keys.push(key);
+            }
+        }
+        keys.forEach((key) => localStorage.removeItem(key));
     }
 }
 

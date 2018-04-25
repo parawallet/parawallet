@@ -6,6 +6,7 @@ import {ChainType, CoinType, generatePath} from "../bip44-path";
 import { BtcNetworkType } from "./btc-wallet";
 import { QueryTransactionsFunc } from "./wallet-rpc";
 import { micros } from "../../util/time";
+import { stringifyErrorReplacer } from "../../util/errors";
 
 class Params {
     public readonly receiveAddressIndex: number;
@@ -112,7 +113,7 @@ export class BtcAddressGenerator {
         try {
             return await this.discoverTransactions(chainType, 0, 0);
         } catch (error) {
-            console.error(JSON.stringify(error));
+            console.error(JSON.stringify(error, stringifyErrorReplacer));
             return 0;
         }
     }

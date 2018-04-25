@@ -1,5 +1,5 @@
 import SecoKeyval from "seco-keyval";
-import {AbstractWallet, Balance, Wallet} from "../wallet";
+import {AbstractWallet, Balance, Wallet, TransactionStatus} from "../wallet";
 import {XrpWalletRpc} from "./wallet-rpc";
 import * as C from "../../constants";
 
@@ -28,11 +28,26 @@ export class XrpWallet extends AbstractWallet implements Wallet {
         return this.rpc.getAccountBalances();
     }
 
-    public sendFrom(from: string, toAddress: string, amount: number): Promise<string> {
-        return this.rpc.send(from, toAddress, amount);
+    protected sendImpl(toAddress: string, amount: number, fromAddress?: string): Promise<string> {
+        return this.rpc.send(fromAddress!, toAddress, amount);
     }
 
     public getExporerURL() {
         return "https://xrpcharts.ripple.com/#/transactions/";
+    }
+
+    protected async transactionStatus(txid: string): Promise<TransactionStatus> {
+        let st: TransactionStatus = "pending";
+        const outcome = await this.rpc.getTransactionOutcome(txid);
+        // https://ripple.com/build/transactions/#full-transaction-response-list
+        console.log(`XRP TX OUTCOME: ${JSON.stringify(outcome)}`);
+        if (outcome) {
+            if (outcome.result === "tesSUCCESS") {
+                st = "success";
+            } else {
+                st = "failure";
+            }
+        }
+        return st;
     }
 }

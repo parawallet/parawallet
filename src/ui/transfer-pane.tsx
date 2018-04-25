@@ -1,14 +1,15 @@
 import { computed, observable } from "mobx";
 import { observer } from "mobx-react";
-import {clipboard, shell} from "electron";
 import * as React from "react";
 import { toast } from "react-toastify";
 import {totpValidator, TotpVerifyDialog} from "./totp";
 import {Wallet} from "./wallets";
+import { stringifyErrorReplacer, stringifyErrorMessageReplacer } from "../util/errors";
 
 interface TransferPaneProps {
     readonly wallet: Wallet;
-    onComplete(): void;
+    onSubmit(): void;
+    onCancel(): void;
 }
 
 @observer
@@ -22,7 +23,7 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
     @observable
     private verifyToken: boolean = false;
     @observable
-    private txnId: string;
+    private submitted: boolean = false;
 
     public constructor(props: TransferPaneProps) {
         super(props);
@@ -53,16 +54,10 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
                         <input type="text" className="form-control" value={this.amount} onChange={(event) => this.amount = event.target.value}/>
                     </div>
                     <div className="form-actions">
-                        <input className="btn btn-large btn-default" type="submit" value="Submit"/>
-                        <input className="btn btn-large btn-default" type="button" value="Close" onClick={this.props.onComplete} />
+                        <input className="btn btn-large btn-default" type="submit" value="Submit" disabled={this.submitted} />
+                        <input className="btn btn-large btn-default" type="button" value="Cancel" onClick={this.props.onCancel} />
                     </div>
                 </form>
-                <a className="txn-result" href="#" onClick={(event) => this.handleTxnResult(event, this.txnId)}>
-                    {this.txnId ? "Transaction completed click for details." : ""}
-                </a>
-                <br/>
-                {this.txnId ? "Transaction id: " + this.txnId : ""}
-
             </div>
         );
     }
@@ -95,15 +90,12 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         this.from = address;
     }
 
-    private handleTxnResult(event: any, txnResult: string) {
-        event.preventDefault();
-        const url = this.props.wallet.getExporerURL() + txnResult;
-        console.log(`Opening ${url}`);
-        shell.openExternal(url);
-    }
-
     private handleSubmit(event: React.FormEvent<any>) {
         event.preventDefault();
+        if (this.submitted) {
+            return;
+        }
+        this.submitted = true;
         console.log(`Transfering ${this.amount} ${this.props.wallet.code} to ${this.address} from ${this.from}`);
         if (totpValidator.enabled) {
             this.verifyToken = true;
@@ -112,18 +104,22 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         }
     }
 
-    // TODO: update balance in main UI
     private async transfer() {
         const wallet = this.props.wallet;
+        let txnId: string;
         try {
+            const callback = (txid: string, status: string) => {
+                toast.warn(`${wallet.name} transaction [${txid}] is completed with ${status}.`);
+            };
             if (wallet.supportsMultiAddress()) {
-                this.txnId = await wallet.send(this.address, Number(this.amount));
+                txnId = await wallet.send(this.address, Number(this.amount), callback);
             } else {
-                this.txnId = await wallet.sendFrom(this.from, this.address, Number(this.amount));
+                txnId = await wallet.send(this.address, Number(this.amount), callback, this.from);
             }
-            wallet.updateBalances();
+            this.props.onSubmit();
         } catch (error) {
-            toast.error(JSON.stringify(error));
+            console.log(JSON.stringify(error, stringifyErrorReplacer));
+            toast.error(JSON.stringify(error, stringifyErrorMessageReplacer));
         }
     }
 

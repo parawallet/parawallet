@@ -6,6 +6,7 @@ import * as auth from "speakeasy";
 import { toast } from "react-toastify";
 import * as C from "../constants";
 import * as DB from "../util/secure-db";
+import { stringifyErrorMessageReplacer } from "../util/errors";
 
 // https://github.com/speakeasyjs/speakeasy
 // https://github.com/soldair/node-qrcode#usage
@@ -133,7 +134,7 @@ export class TotpSetup extends React.Component<any, any> {
       await totpValidator.initialize(this.secret, DB.get(C.CONFIG_DB)!);
       this.props.onValidToken();
     } catch (error) {
-      toast.error(JSON.stringify(error));
+      toast.error(JSON.stringify(error, stringifyErrorMessageReplacer));
     }
   }
 }
@@ -224,7 +225,7 @@ export class TotpRemove extends React.Component<any, any> {
       await totpValidator.remove(DB.get(C.CONFIG_DB)!);
       this.props.onRemove();
     } catch (error) {
-      toast.error(JSON.stringify(error));
+      toast.error(JSON.stringify(error, stringifyErrorMessageReplacer));
     }
   }
 }

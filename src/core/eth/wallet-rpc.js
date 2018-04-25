@@ -1,8 +1,8 @@
 import {ChainType, CoinType, generatePath} from "../bip44-path";
 import * as C from "../../constants";
 import { EthNetworkType } from "./eth-wallet";
-
 import { Wallet, providers, HDNode, utils } from "ethers";
+import { stringifyErrorReplacer } from "../../util/errors";
 
 class Params {
     constructor(addressIndex) {
@@ -68,7 +68,7 @@ export class EthWalletRpc {
         try {
             return await this.discoverAccounts(0, 0);
         } catch (error) {
-            console.error(JSON.stringify(error));
+            console.error(JSON.stringify(error, stringifyErrorReplacer));
             return 0;
         }
     }
@@ -107,6 +107,10 @@ export class EthWalletRpc {
         this.addressIndex++;
         await this.persistParams();
         return this.addNewWallet(this.addressIndex).address;
+    }
+
+    getTransactionReceipt(txhash) {
+        return this.provider.getTransactionReceipt(txhash);
     }
 
     async send(from, toAddr, etherAmount) {

@@ -3,7 +3,8 @@ import SecoKeyval from "seco-keyval";
 import * as C from "../../constants";
 import {generateAddress, XrpAccount} from "./address-gen";
 import {XrpNetworkType} from "./xrp-wallet";
-import { Balance } from "../wallet";
+import { Balance, Transaction } from "../wallet";
+import { stringifyErrorReplacer } from "../../util/errors";
 
 const testServerAddress = "wss://s.altnet.rippletest.net:51233";
 const mainServerAddress = "wss://s1.ripple.com";
@@ -81,15 +82,13 @@ export class XrpWalletRpc {
 
     private async discover(): Promise<number> {
         console.log("Discovering addresses for XRP");
-        const api = new RippleAPI({
-            server: serverAddress(this.networkType),
-        });
+        const api = this.newRippleAPI();
 
         try {
             await api.connect();
             return this.discoverAccounts(api, 0, 0);
         } catch (error) {
-            console.error(JSON.stringify(error));
+            console.error(JSON.stringify(error, stringifyErrorReplacer));
             return 0;
         } finally {
             api.disconnect();
@@ -104,7 +103,7 @@ export class XrpWalletRpc {
             const balance = await this.getAccountBalance(api, account.address) || emptyBalance;
             return this.inspectAndDiscoverAccount(api, index, gap, balance);
         } catch (error) {
-            console.error(JSON.stringify(error));
+            console.error(JSON.stringify(error, stringifyErrorReplacer));
             return this.inspectAndDiscoverAccount(api, index, gap, emptyBalance);
         }
     }
@@ -125,10 +124,7 @@ export class XrpWalletRpc {
     }
 
     public getAccountBalances(): Promise<Balance[]> {
-        const api = new RippleAPI({
-            server: serverAddress(this.networkType),
-        });
-
+        const api = this.newRippleAPI();
         const balancePromise = api.connect()
         .then(() => {
             return this.accounts.map((account) => this.getAccountBalance(api, account.address));
@@ -149,7 +145,7 @@ export class XrpWalletRpc {
             console.info(`XRP Balance for ${address} = ${info.xrpBalance}`);
             return {address, amount: Number(info.xrpBalance)};
         } catch (error) {
-            console.error(JSON.stringify(error));
+            console.error(JSON.stringify(error, stringifyErrorReplacer));
             return {address, amount: 0};
         }
     }
@@ -158,6 +154,18 @@ export class XrpWalletRpc {
         this.addressIndex++;
         await this.persistParams();
         return this.addAccount(this.addressIndex).address;
+    }
+
+    public async getTransactionOutcome(txid: string) {
+        const api = this.newRippleAPI();
+        try {
+            await api.connect();
+            const tx = await api.getTransaction(txid);
+            return tx.outcome;
+        } catch (error) {
+            console.error(JSON.stringify(error, stringifyErrorReplacer));
+            return null;
+        }
     }
 
     public async send(from: string, toAddress: string, amount: number) {
@@ -169,9 +177,7 @@ export class XrpWalletRpc {
         }
 
         const payment = this.createPayment(account.address, toAddress, String(amount));
-        const api = new RippleAPI({
-            server: serverAddress(this.networkType),
-        });
+        const api = this.newRippleAPI();
 
         try {
             await api.connect();
@@ -179,10 +185,10 @@ export class XrpWalletRpc {
             console.log("XRP TX: " + prepared.txJSON);
 
             const signedTxn = api.sign(prepared.txJSON, account.keypair);
-            console.log("ripple txn id:" + signedTxn.id);
+            console.log("XRP TX ID:" + signedTxn.id);
 
             const result = await api.submit(signedTxn.signedTransaction);
-            console.log(`RESULT: ${JSON.stringify(result)}`);
+            console.log(`XRP TX RESULT: ${JSON.stringify(result)}`);
             return signedTxn.id;
         } finally {
             api.disconnect();
@@ -207,4 +213,9 @@ export class XrpWalletRpc {
         return this.kv.set(C.XRP_PARAMS, this.params);
     }
 
+    private newRippleAPI() {
+        return new RippleAPI({
+            server: serverAddress(this.networkType),
+        });
+    }
 }

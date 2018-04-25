@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import * as C from "../constants";
 import { restoreMnemonic, validateMnemonic } from "../core/mnemonic";
 import * as DB from "../util/secure-db";
+import { stringifyErrorMessageReplacer } from "../util/errors";
 
 const defaultPassword = "the-wallet-secure-password";
 
@@ -92,7 +93,7 @@ export class Login extends React.Component<any, any> {
       this.reset();
       this.props.onLogin(credentials, LoginType.NEW);
     } catch (error) {
-      toast.error(JSON.stringify(error));
+      toast.error(JSON.stringify(error, stringifyErrorMessageReplacer));
     }
   }
 
@@ -106,7 +107,7 @@ export class Login extends React.Component<any, any> {
       this.reset();
       this.props.onLogin(credentials, LoginType.IMPORT);
     } catch (error) {
-      toast.error(JSON.stringify(error));
+      toast.error(JSON.stringify(error, stringifyErrorMessageReplacer));
     }
   }
 

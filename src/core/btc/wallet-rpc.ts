@@ -3,6 +3,7 @@ import * as request from "request-promise-native";
 import { RequestResponse as Response } from "request";
 import { Balance } from "../wallet";
 import { BtcNetworkType } from "./btc-wallet";
+import { stringifyErrorReplacer } from "../../util/errors";
 
 export function createBtcWalletRpc(network: BtcNetworkType): BtcWalletRpc {
   if (network === BtcNetworkType.MAINNET) {
@@ -30,6 +31,7 @@ export interface BtcWalletRpc {
   queryBalance(addresses: string[]): Promise<Balance[]>;
   getUnspentOutputs(keyPairs: ECPair[]): Promise<Array<[ECPair, UnspentTxOutput[]]>>;
   pushTransaction(txHex: string): Promise<string>;
+  getTransaction(txid: string): Promise<any>;
 }
 
 const unspentTxOutputMinConfirmations = 5;
@@ -41,6 +43,7 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
   private readonly baseUrl = "https://testnet-api.smartbit.com.au/v1/blockchain/";
   private readonly txPushUrl = this.baseUrl + "pushtx";
   private readonly queryUrl = this.baseUrl + "address/";
+  private readonly txUrl = this.baseUrl + "transaction/";
 
   public async queryBalance(addresses: string[]) {
     const url = this.queryUrl + addresses.join(",");
@@ -55,11 +58,13 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
           + ", total: " + result.total.balance_int
           + ", confirmed: " + result.confirmed.balance_int
           + ", unconfirmed: " + result.unconfirmed.balance_int);
-          return {address: result.address, amount: result.total.balance_int / 1e8};
+          return {address: result.address, amount: result.confirmed.balance_int / 1e8};
       });
     } catch (error) {
-      console.error(JSON.stringify(error));
-      return [];
+      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      return addresses.map((address) => {
+        return {address, amount: 0};
+      });
     }
   }
 
@@ -72,7 +77,7 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
       return transactions.map((tx) => tx.txid);
 
     } catch (error) {
-      console.error(JSON.stringify(error));
+      console.error(JSON.stringify(error, stringifyErrorReplacer));
       return [];
     }
   }
@@ -100,7 +105,7 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
       return outputs;
 
     } catch (error) {
-      console.error(JSON.stringify(error));
+      console.error(JSON.stringify(error, stringifyErrorReplacer));
       return [];
     }
   }
@@ -111,10 +116,27 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
       url: this.txPushUrl,
     };
 
-    const body = await request.post(options);
-    const txid: string = JSON.parse(body).txid;
-    console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
-    return txid;
+    try {
+      const body = await request.post(options);
+      const txid: string = JSON.parse(body).txid;
+      console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
+      return txid;
+    } catch (error) {
+      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      throw error;
+    }
+  }
+
+  public async getTransaction(txid: string) {
+    const url = this.txUrl + txid;
+    try {
+      const txStr = await request.get(url);
+      const tx = JSON.parse(txStr);
+      return tx;
+    } catch (error) {
+      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      return null;
+    }
   }
 }
 
@@ -128,7 +150,8 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
 class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
   private readonly baseUrl = "https://test-insight.bitpay.com/api/";
   private readonly txPushUrl = this.baseUrl + "tx/send";
-  private readonly queryUrl = this.baseUrl + "addr/";
+  private readonly queryAddressUrl = this.baseUrl + "addr/";
+  private readonly balanceSuffix = "/balance";
   private readonly utxoUrl = this.baseUrl + "addrs/";
 
   // Sample Query Response
@@ -148,44 +171,31 @@ class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
   // }
 
   public queryBalance(addresses: string[]) {
-    const promises: Array<Promise<Balance>> = [];
-    addresses.forEach((address) => {
-      const url = this.queryUrl + address;
-      promises.push(new Promise<Balance>((resolve, reject) => {
-        request.get(url, (error: any, response: Response, body: any) => {
-          if (error) {
-            console.error(error);
-            reject(error);
-            return;
-          }
-
-          const bodyObj = JSON.parse(body);
-          console.log("Received query result for " + bodyObj.addrStr
-          + ", total: " + bodyObj.balance
-          + ", unconfirmed: " + bodyObj.unconfirmedBalance);
-
-          resolve({address, amount: bodyObj.balance});
-        });
-      }));
+    const promises = addresses.map((address) => {
+      const url = this.queryAddressUrl + address + this.balanceSuffix;
+      return request.get(url).then((value) => {
+        console.log("Received query result for " + address + ", amount: " + value);
+        return {address, amount: Number(value) / 1e8};
+      }).catch((error) => {
+        console.error(JSON.stringify(error, stringifyErrorReplacer));
+        return {address, amount: 0};
+      });
     });
-
     return Promise.all(promises);
   }
 
-  public queryTransactions(address: string): Promise<string[]> {
-    const url = this.queryUrl + address;
-    return new Promise<string[]>((resolve, reject) => {
-      request.get(url, (error: any, response: Response, body: any) => {
-        if (error) {
-          console.error(error);
-          reject(error);
-          return;
-        }
+  public async queryTransactions(address: string): Promise<string[]> {
+    const url = this.queryAddressUrl + address;
 
-        const bodyObj = JSON.parse(body);
-        resolve(bodyObj.transactions);
-      });
-    });
+    try {
+      const body: string = await request.get(url);
+      const response = JSON.parse(body);
+      return response.transactions as string[];
+
+    } catch (error) {
+      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      return [];
+    }
   }
 
   // Sample UTXO Response
@@ -209,52 +219,52 @@ class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
   //   "confirmations": 1187
   // }]
 
-  public getUnspentOutputs(keyPairs: ECPair[]) {
+  public async getUnspentOutputs(keyPairs: ECPair[]) {
     const url = this.utxoUrl + keyPairs.map((keypair) => keypair.getAddress()).join(",") + "/utxo";
 
-    return new Promise<Array<[ECPair, UnspentTxOutput[]]>>((resolve, reject) => {
-      request.get(url, (error: any, response: Response, body: any) => {
-        if (error) {
-          console.error(error);
-          reject(error);
-          return;
-        }
-        // tslint:disable-next-line:interface-over-type-literal
-        type utxo = {address: string, txid: string, vout: number, satoshis: number, confirmations: number};
-        const outputs: Array<[ECPair, UnspentTxOutput[]]> = [];
+    try {
+      const body: string = await request.get(url);
 
-        const result = JSON.parse(body);
-        const allUnspents: utxo[] = (result.filter((out: utxo) => out.confirmations > unspentTxOutputMinConfirmations) as utxo[]);
+      // tslint:disable-next-line:interface-over-type-literal
+      type utxo = {address: string, txid: string, vout: number, satoshis: number, confirmations: number};
+      const outputs: Array<[ECPair, UnspentTxOutput[]]> = [];
 
-        keyPairs.forEach((keypair) => {
-          const unspents = allUnspents.filter((out) => keypair.getAddress() === out.address)
-            .map((out: utxo) => new UnspentTxOutput(out.txid, out.vout, out.satoshis));
-          outputs.push([keypair, unspents]);
-          console.log("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
-        });
+      const result = JSON.parse(body);
+      const allUnspents: utxo[] = (result.filter((out: utxo) => out.confirmations > unspentTxOutputMinConfirmations) as utxo[]);
 
-        resolve(outputs);
+      keyPairs.forEach((keypair) => {
+        const unspents = allUnspents.filter((out) => keypair.getAddress() === out.address)
+          .map((out: utxo) => new UnspentTxOutput(out.txid, out.vout, out.satoshis));
+        outputs.push([keypair, unspents]);
+        console.log("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
       });
-    });
+      return outputs;
+    } catch (error) {
+      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      return [];
+    }
   }
 
   // TODO: fails with HTTP 500 Internal Server Error
-  public pushTransaction(txHex: string): Promise<string> {
-    console.log("Pushing tx: " + txHex);
-    return new Promise((resolve, reject) => {
-      request.post({
-        body: '{rawtx:"' + txHex + '"}',
-        url: this.txPushUrl,
-      }, (error: any, res: Response, body: any) => {
-          if (error || res.statusCode !== 200) {
-            console.error(error);
-            reject(error);
-            return;
-          }
-          alert("transaction completed successfully");
-          resolve("success");
-      });
-    });
+  public async pushTransaction(txHex: string): Promise<string> {
+    const options = {
+      body: '{"rawtx":"' + txHex + '"}',
+      url: this.txPushUrl,
+    };
+
+    try {
+      const body = await request.post(options);
+      const txid: string = JSON.parse(body).txid;
+      console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
+      return txid;
+    } catch (error) {
+      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      throw error;
+    }
+  }
+
+  public getTransaction(txid: string) {
+    return Promise.reject("Not implemented");
   }
 }
 

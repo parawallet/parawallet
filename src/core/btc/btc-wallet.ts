@@ -2,7 +2,7 @@ import {ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
 import SecoKeyval from "seco-keyval";
 import * as C from "../../constants";
-import {AbstractWallet, Balance, Wallet} from "../wallet";
+import {AbstractWallet, Balance, Wallet, TransactionStatus} from "../wallet";
 import {BtcAddressGenerator} from "./address-gen";
 import {BtcWalletRpc, createBtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
 import { computed, action } from "mobx";
@@ -44,7 +44,6 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         const addresses = this.addressGen.allAddresses;
         // TODO: query balances in smaller batches
         return this.rpc.queryBalance(addresses).then((balances) => {
-            // add missing zero-balance addresses
             const set = new Set(addresses);
             balances = balances || [];
             balances.forEach((b) => {
@@ -57,7 +56,7 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         });
     }
 
-    public async send(toAddress: string, amount: number) {
+    protected async sendImpl(toAddress: string, amount: number) {
         const satoshiAmount = amount * 1e8;
         const outputTuples = await this.rpc.getUnspentOutputs(this.addressGen.allKeypairs);
         const txnHex = this.createTransaction(toAddress, satoshiAmount, outputTuples);
@@ -111,5 +110,15 @@ export class BtcWallet extends AbstractWallet implements Wallet {
             txb.sign(i, keypair);
         }
         return txb.build().toHex();
+    }
+
+    protected async transactionStatus(txid: string): Promise<TransactionStatus> {
+        let st: TransactionStatus = "pending";
+        const tx = await this.rpc.getTransaction(txid);
+        console.log(`BTC TX: ${JSON.stringify(tx)}`);
+        if (tx.success) {
+            st = "success";
+        }
+        return st;
     }
 }
