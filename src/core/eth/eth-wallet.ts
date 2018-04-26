@@ -1,11 +1,19 @@
 import SecoKeyval from "seco-keyval";
-import {AbstractWallet, Balance, Wallet, TransactionStatus} from "../wallet";
+import {AbstractWallet, Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
 import {EthWalletRpc} from "./wallet-rpc";
 import * as C from "../../constants";
 import { stringifyErrorReplacer } from "../../util/errors";
 
 export enum EthNetworkType {
     mainnet, homestead, ropsten, testnet, rinkeby,
+}
+
+interface EthTransactionResponse {
+    readonly blockHash: string;
+    readonly hash: string;
+    readonly to: string;
+    readonly from: string;
+    readonly value: number;
 }
 
 export class EthWallet extends AbstractWallet implements Wallet {
@@ -38,19 +46,34 @@ export class EthWallet extends AbstractWallet implements Wallet {
         return this.rpc.explorerURL;
     }
 
+    protected async getTransactions(address: string): Promise<Transaction[]> {
+        // Ethereum doesn't provide built-in support for querying transactions of an account.
+        // But etherscan allows querying tx history: https://docs.ethers.io/ethers.js/html/api-providers.html#etherscan
+        try {
+            const txns: EthTransactionResponse[] = await this.rpc.getHistory();
+            console.log(JSON.stringify(txns));
+            return txns.map((tx) => {
+                const status: TransactionStatus = "success";
+                return {id: tx.hash, timestamp: 0, source: tx.from, destination: tx.to, amount: tx.value / 1.0e18, status};
+            });
+        } catch (error) {
+            console.log(JSON.stringify(error, stringifyErrorReplacer));
+        }
+        return [];
+    }
+
     protected async transactionStatus(txid: string): Promise<TransactionStatus> {
-        let st: TransactionStatus = "pending";
         try {
             // https://docs.ethers.io/ethers.js/html/api-providers.html#transactionresponse
-            const receipt = await this.rpc.getTransactionReceipt(txid);
-            console.log(`ETH TX RECEIPT: ${JSON.stringify(receipt)}`);
-            if (receipt && receipt.blockHash) {
-                st = "success";
+            const tx: EthTransactionResponse = await this.rpc.getTransaction(txid);
+            console.log(`ETH TX RECEIPT: ${JSON.stringify(tx)}`);
+            if (tx && tx.blockHash) {
+                return "success";
             }
             // TODO: failed transaction ???
         } catch (error) {
             console.log(JSON.stringify(error, stringifyErrorReplacer));
         }
-        return st;
+        return "pending";
     }
 }

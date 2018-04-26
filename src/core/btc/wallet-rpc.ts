@@ -1,7 +1,7 @@
 import { ECPair, Network } from "bitcoinjs-lib";
 import * as request from "request-promise-native";
 import { RequestResponse as Response } from "request";
-import { Balance } from "../wallet";
+import { Balance, Transaction } from "../wallet";
 import { BtcNetworkType } from "./btc-wallet";
 import { stringifyErrorReplacer } from "../../util/errors";
 
@@ -24,10 +24,10 @@ function illegalArgument(arg: any): never {
   throw new Error("illegal argument: " + arg);
 }
 
-export type QueryTransactionsFunc = (address: string) => Promise<string[]>;
+export type QueryTransactionIdsFunc = (address: string) => Promise<string[]>;
 
 export interface BtcWalletRpc {
-  queryTransactions: QueryTransactionsFunc;
+  queryTransactionIds: QueryTransactionIdsFunc;
   queryBalance(addresses: string[]): Promise<Balance[]>;
   getUnspentOutputs(keyPairs: ECPair[]): Promise<Array<[ECPair, UnspentTxOutput[]]>>;
   pushTransaction(txHex: string): Promise<string>;
@@ -68,14 +68,31 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
     }
   }
 
-  public async queryTransactions(address: string): Promise<string[]> {
+  public async queryTransactionIds(address: string): Promise<string[]> {
+    const transactions = await this.queryTransactionsImpl(address);
+    return transactions.map((tx: any) => tx.txid);
+  }
+
+  public async queryTransactions(address: string): Promise<Transaction[]> {
+    const transactions = await this.queryTransactionsImpl(address);
+    return transactions.map((tx: any) => {
+      // tx.confirmation
+      // tx.input_amount_int
+      // tx.output_amount_int
+      // tx.inputs.foreach.addresses[0]
+
+       // TODO ???
+      return {id: tx.txid};
+    });
+  }
+
+  private async queryTransactionsImpl(address: string): Promise<any> {
     const url = this.queryUrl + address;
     try {
       const body: string = await request.get(url);
       const addressObj = JSON.parse(body).address;
       const transactions: any[] = addressObj.transactions || [];
-      return transactions.map((tx) => tx.txid);
-
+      return transactions;
     } catch (error) {
       console.error(JSON.stringify(error, stringifyErrorReplacer));
       return [];
@@ -184,7 +201,7 @@ class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
     return Promise.all(promises);
   }
 
-  public async queryTransactions(address: string): Promise<string[]> {
+  public async queryTransactionIds(address: string): Promise<string[]> {
     const url = this.queryAddressUrl + address;
 
     try {

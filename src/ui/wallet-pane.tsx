@@ -100,10 +100,10 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
             );
         });
 
-        const checkBoxRow = wallet.supportsMultiAddress() ? (
+        const checkBoxRow = wallet.supportsMultiAddressTransactions() ? (
             <div>
-                <input type="checkbox" checked={this.showEmptyAccounts}
-                       onClick={() => this.showEmptyAccounts = !this.showEmptyAccounts}/>
+                <input type="checkbox" defaultChecked={this.showEmptyAccounts}
+                    onChange={() => this.showEmptyAccounts = !this.showEmptyAccounts}/>
                 <label>Show addresses with zero balance</label>
             </div>
         ) : null;
@@ -119,13 +119,6 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
                         New Address
                     </button>
                 </div>
-                {/*{wallet.supportsMultiAddress() ? (*/}
-                {/*<div>*/}
-                {/*<input type="checkbox" checked={this.showEmptyAccounts}*/}
-                {/*onClick={() => this.showEmptyAccounts = !this.showEmptyAccounts}/>*/}
-                {/*<label>Show addresses with zero balance</label>*/}
-                {/*</div>*/}
-                {/*) : null}*/}
                 <table className="table addressTable">
                     <thead className="thead">
                     <tr>
@@ -145,8 +138,9 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
             return (
                 <tr key={index}>
                     <td>{tx.status}</td>
+                    <td>{new Date(tx.timestamp).toDateString()}</td>
                     <td><a className="txn-result" href="#"
-                           onClick={(event) => this.openTxnExplorer(event, tx.id)}>{tx.id}</a></td>
+                        onClick={(event) => this.openTxnExplorer(event, tx.id)}>{tx.id}</a></td>
                     <td>{tx.amount}</td>
                     <td>{tx.destination}</td>
                 </tr>
@@ -155,12 +149,13 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
         return (
             <table className="table">
                 <thead className="thead">
-                <tr>
-                    <th>Status</th>
-                    <th>TxID</th>
-                    <th>Amount</th>
-                    <th>Destination</th>
-                </tr>
+                    <tr>
+                        <th>Status</th>
+                        <th>When</th>
+                        <th>TxID</th>
+                        <th>Amount</th>
+                        <th>Destination</th>
+                    </tr>
                 </thead>
                 <tbody>{rows}</tbody>
             </table>

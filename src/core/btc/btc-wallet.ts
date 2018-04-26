@@ -2,7 +2,7 @@ import {ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
 import SecoKeyval from "seco-keyval";
 import * as C from "../../constants";
-import {AbstractWallet, Balance, Wallet, TransactionStatus} from "../wallet";
+import {AbstractWallet, Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
 import {BtcAddressGenerator} from "./address-gen";
 import {BtcWalletRpc, createBtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
 import { computed, action } from "mobx";
@@ -20,7 +20,7 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         super("BTC", "Bitcoin", kv);
         this.networkType = networkType;
         this.rpc = createBtcWalletRpc(networkType);
-        this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType, this.rpc.queryTransactions.bind(this.rpc));
+        this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType, this.rpc.queryTransactionIds.bind(this.rpc));
         console.info(`BTC using ${BtcNetworkType[networkType]} network`);
     }
 
@@ -28,7 +28,7 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         return this.addressGen.initialize(createEmpty);
     }
 
-    public supportsMultiAddress(): boolean {
+    public supportsMultiAddressTransactions(): boolean {
         return true;
     }
 
@@ -110,6 +110,11 @@ export class BtcWallet extends AbstractWallet implements Wallet {
             txb.sign(i, keypair);
         }
         return txb.build().toHex();
+    }
+
+    protected async getTransactions(address: string): Promise<Transaction[]> {
+        const result: Transaction[] = [];
+        return result;
     }
 
     protected async transactionStatus(txid: string): Promise<TransactionStatus> {

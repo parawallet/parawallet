@@ -109,8 +109,13 @@ export class EthWalletRpc {
         return this.addNewWallet(this.addressIndex).address;
     }
 
-    getTransactionReceipt(txhash) {
-        return this.provider.getTransactionReceipt(txhash);
+    getHistory(address) {
+        // https://docs.ethers.io/ethers.js/html/api-providers.html#etherscan
+        return this.provider.getHistory(address);
+    }
+
+    getTransaction(txhash) {
+        return this.provider.getTransaction(txhash);
     }
 
     async send(from, toAddr, etherAmount) {

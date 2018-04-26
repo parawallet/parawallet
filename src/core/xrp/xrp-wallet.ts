@@ -1,7 +1,9 @@
 import SecoKeyval from "seco-keyval";
-import {AbstractWallet, Balance, Wallet, TransactionStatus} from "../wallet";
+import * as moment from "moment";
+import {AbstractWallet, Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
 import {XrpWalletRpc} from "./wallet-rpc";
 import * as C from "../../constants";
+import {FormattedPaymentTransaction, Outcome} from "ripple-lib/dist/npm/transaction/types";
 
 export enum XrpNetworkType {
     MAIN, TEST,
@@ -36,18 +38,42 @@ export class XrpWallet extends AbstractWallet implements Wallet {
         return "https://xrpcharts.ripple.com/#/transactions/";
     }
 
+    protected async getTransactions(address: string): Promise<Transaction[]> {
+        const txns = await this.rpc.getTransactions(address);
+        const result: Transaction[] = [];
+        txns.forEach((tx) => {
+            console.log(`XRP TX: ${JSON.stringify(tx)}`);
+            if (isPaymentTransaction(tx)) {
+                const spec = tx.specification;
+                const amount = address === spec.source.address
+                    ? Number(spec.source.amount.value) : Number(spec.destination.amount.value);
+                const status = transactionStatus(tx.outcome);
+                const timestamp = tx.outcome.timestamp ? moment(tx.outcome.timestamp).valueOf() : 0;
+                result.push({id: tx.id, timestamp, source: spec.source.address, destination: spec.destination.address, amount, status});
+            }
+        });
+        return result;
+    }
+
     protected async transactionStatus(txid: string): Promise<TransactionStatus> {
-        let st: TransactionStatus = "pending";
         const outcome = await this.rpc.getTransactionOutcome(txid);
         // https://ripple.com/build/transactions/#full-transaction-response-list
         console.log(`XRP TX OUTCOME: ${JSON.stringify(outcome)}`);
         if (outcome) {
-            if (outcome.result === "tesSUCCESS") {
-                st = "success";
-            } else {
-                st = "failure";
-            }
+            return transactionStatus(outcome);
         }
-        return st;
+        return "pending";
     }
+}
+
+function transactionStatus(outcome: Outcome): TransactionStatus {
+    if (outcome.result === "tesSUCCESS") {
+        return "success";
+    } else {
+        return "failure";
+    }
+}
+
+function isPaymentTransaction(tx: any): tx is FormattedPaymentTransaction {
+    return tx.type === "payment";
 }

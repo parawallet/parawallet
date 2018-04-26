@@ -6,15 +6,18 @@ import {XrpNetworkType} from "./xrp-wallet";
 import { Balance, Transaction } from "../wallet";
 import { stringifyErrorReplacer } from "../../util/errors";
 
-const testServerAddress = "wss://s.altnet.rippletest.net:51233";
-const mainServerAddress = "wss://s1.ripple.com";
+const testServer = "wss://s.altnet.rippletest.net:51233";
+const testDataServer = testServer;
 
-function serverAddress(networkType: XrpNetworkType) {
+const mainServer = "wss://s1.ripple.com";
+const mainDataServer = "wss://s2.ripple.com";
+
+function serverAddress(networkType: XrpNetworkType, needHistory: boolean) {
     switch (networkType) {
         case XrpNetworkType.MAIN:
-            return mainServerAddress;
+            return needHistory ? mainDataServer : mainServer;
         default:
-            return testServerAddress;
+            return needHistory ? testDataServer : testServer;
     }
 }
 
@@ -82,7 +85,7 @@ export class XrpWalletRpc {
 
     private async discover(): Promise<number> {
         console.log("Discovering addresses for XRP");
-        const api = this.newRippleAPI();
+        const api = this.newRippleAPI(false);
 
         try {
             await api.connect();
@@ -124,7 +127,7 @@ export class XrpWalletRpc {
     }
 
     public getAccountBalances(): Promise<Balance[]> {
-        const api = this.newRippleAPI();
+        const api = this.newRippleAPI(false);
         const balancePromise = api.connect()
         .then(() => {
             return this.accounts.map((account) => this.getAccountBalance(api, account.address));
@@ -156,8 +159,20 @@ export class XrpWalletRpc {
         return this.addAccount(this.addressIndex).address;
     }
 
+    public async getTransactions(address: string) {
+        const api = this.newRippleAPI(true);
+        try {
+            await api.connect();
+            const tx = await api.getTransactions(address, {types: ["payment"]});
+            return tx;
+        } catch (error) {
+            console.error(JSON.stringify(error, stringifyErrorReplacer));
+            return [];
+        }
+    }
+
     public async getTransactionOutcome(txid: string) {
-        const api = this.newRippleAPI();
+        const api = this.newRippleAPI(true);
         try {
             await api.connect();
             const tx = await api.getTransaction(txid);
@@ -177,7 +192,7 @@ export class XrpWalletRpc {
         }
 
         const payment = this.createPayment(account.address, toAddress, String(amount));
-        const api = this.newRippleAPI();
+        const api = this.newRippleAPI(false);
 
         try {
             await api.connect();
@@ -213,9 +228,9 @@ export class XrpWalletRpc {
         return this.kv.set(C.XRP_PARAMS, this.params);
     }
 
-    private newRippleAPI() {
+    private newRippleAPI(needHistory: boolean) {
         return new RippleAPI({
-            server: serverAddress(this.networkType),
+            server: serverAddress(this.networkType, needHistory),
         });
     }
 }

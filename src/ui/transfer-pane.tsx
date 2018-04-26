@@ -65,7 +65,7 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
     }
 
     private renderAddresses(wallet: Wallet) {
-        if (wallet.supportsMultiAddress()) {
+        if (wallet.supportsMultiAddressTransactions()) {
             return null;
         }
         this.from = wallet.currentBalances[0].address;
@@ -113,7 +113,7 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
             const callback = (txid: string, status: string) => {
                 toast.warn(`${wallet.name} transaction [${txid}] is completed with ${status}.`);
             };
-            if (wallet.supportsMultiAddress()) {
+            if (wallet.supportsMultiAddressTransactions()) {
                 txnId = await wallet.send(this.address, Number(this.amount), callback);
             } else {
                 txnId = await wallet.send(this.address, Number(this.amount), callback, this.from);

@@ -4,7 +4,7 @@ import SecoKeyval from "seco-keyval";
 import * as C from "../../constants";
 import {ChainType, CoinType, generatePath} from "../bip44-path";
 import { BtcNetworkType } from "./btc-wallet";
-import { QueryTransactionsFunc } from "./wallet-rpc";
+import { QueryTransactionIdsFunc } from "./wallet-rpc";
 import { micros } from "../../util/time";
 import { stringifyErrorReplacer } from "../../util/errors";
 
@@ -24,12 +24,12 @@ export class BtcAddressGenerator {
     private readonly cointype: CoinType;
     private readonly mnemonic: string;
     private readonly pass: string;
-    private readonly queryTxFunc: QueryTransactionsFunc;
+    private readonly queryTxFunc: QueryTransactionIdsFunc;
     private readonly keypairs: ECPair[] = [];
     private readonly publicAddressSet = new Set<string>();
     private params: Params = new Params(0, 0);
 
-    constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: BtcNetworkType, queryTxFunc: QueryTransactionsFunc) {
+    constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: BtcNetworkType, queryTxFunc: QueryTransactionIdsFunc) {
         this.mnemonic = mnemonic;
         this.kv = kv;
         this.network = networkType === BtcNetworkType.MAINNET ? networks.bitcoin : networks.testnet;

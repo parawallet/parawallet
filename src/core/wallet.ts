@@ -1,4 +1,4 @@
-import { action, runInAction, computed, observable, reaction } from "mobx";
+import { action, runInAction, computed, observable, reaction, toJS } from "mobx";
 import SecoKeyval from "seco-keyval";
 import * as C from "../constants";
 
@@ -15,6 +15,8 @@ export type TransactionCompletionCallback = (txid: string, status: string) => vo
 
 export interface Transaction {
   readonly id: string;
+  // milliseconds since unix epoch
+  readonly timestamp: number;
   readonly source?: string;
   readonly destination: string;
   readonly amount: number;
@@ -53,7 +55,7 @@ export interface Wallet extends WalletType {
    * Returns true if this wallet supports multi-address transactions,
    * false otherwise.
    */
-  supportsMultiAddress(): boolean;
+  supportsMultiAddressTransactions(): boolean;
 
   /**
    * Returns true if address is public, false otherwise.
@@ -99,7 +101,6 @@ export abstract class AbstractWallet implements Wallet {
 
   @observable
   protected transactions: Transaction[] = [];
-
   private pendingTransaction: string | null;
 
   constructor(code: string, name: string, kv: SecoKeyval) {
@@ -134,16 +135,16 @@ export abstract class AbstractWallet implements Wallet {
   public async initialize(createEmpty: boolean) {
     await this.initializeImpl(createEmpty);
     this.balances = await this.kv.get(this.code + C.BALANCES_SUFFIX) || [];
-    if (this.balances.length === 0) {
-      // await?
-      this.updateBalances();
-    }
+
     this.transactions = await this.kv.get(this.code + C.TRANSACTIONS_SUFFIX) || [];
     this.trackPendingTransaction();
 
-    reaction(() => this.balances.slice(), () => this.persistBalances());
-    // reaction(() => this.transactions.slice(), () => this.persistTransactions());
+    reaction(() => this.totalBalanceAmount, () => this.onBalancesChange());
     reaction(() => this.transactions.map((tx) => tx.status), () => this.persistTransactions());
+
+    // https://jsblog.insiderattack.net/timers-immediates-and-process-nexttick-nodejs-event-loop-part-2-2c53fd511bb3
+    // https://jsblog.insiderattack.net/promises-next-ticks-and-immediates-nodejs-event-loop-part-3-9226cbe7a6aa
+    setImmediate(this.updateBalances.bind(this));
   }
 
   protected abstract initializeImpl(createEmpty: boolean): Promise<any>;
@@ -160,14 +161,41 @@ export abstract class AbstractWallet implements Wallet {
     setTimeout(this.checkPendingTransaction, 10000, callback);
   }
 
-  private persistBalances() {
+  private async onBalancesChange() {
+    // const prevBalances: Balance[] = await this.kv.get(this.code + C.BALANCES_SUFFIX) || [];
     console.log(`${this.code}: Persisting balances: ${JSON.stringify(this.balances)}`);
-    this.kv.set(this.code + C.BALANCES_SUFFIX, this.balances);
+    this.kv.set(this.code + C.BALANCES_SUFFIX, toJS(this.balances));
+
+    // Balances changed, update transactions
+    // const balanceMap = new Map(prevBalances.map((balance) => [balance.address, balance.amount] as [string, number]));
+    // this.balances.forEach((balance) => {
+    //   const amount = balanceMap.get(balance.address);
+    //   if (!amount || amount !== balance.amount) {
+    //     this.updateTransactions(balance.address);
+    //   }
+    // });
   }
+
+  // @action
+  // private async updateTransactions(address: string) {
+  //   let txns = await this.getTransactions(address);
+  //   // remove already known transactions
+  //   txns = txns.filter((tx) => !this.knownTransactionIds.has(tx.id));
+  //   if (txns.length > 0) {
+  //     runInAction(() => txns.forEach((tx) => this.transactions.push(tx)));
+  //   }
+  // }
+  //
+  // protected abstract getTransactions(address: string): Promise<Transaction[]>;
+  //
+  // @computed
+  // private get knownTransactionIds() {
+  //   return new Set(this.transactions.map((tx) => tx.id));
+  // }
 
   private persistTransactions() {
     console.log(`${this.code}: Persisting transactions: ${JSON.stringify(this.transactions)}`);
-    this.kv.set(this.code + C.TRANSACTIONS_SUFFIX, this.transactions);
+    this.kv.set(this.code + C.TRANSACTIONS_SUFFIX, toJS(this.transactions));
   }
 
   @action
@@ -191,7 +219,7 @@ export abstract class AbstractWallet implements Wallet {
 
   protected abstract updateBalancesImpl(): Promise<Balance[]>;
 
-  public supportsMultiAddress(): boolean {
+  public supportsMultiAddressTransactions(): boolean {
     return false;
   }
 
@@ -199,16 +227,16 @@ export abstract class AbstractWallet implements Wallet {
     if (this.pendingTransaction) {
       return Promise.reject(`Cannot initiate a new transaction before transaction[${this.pendingTransaction}] finalizes.`);
     }
-    if (this.supportsMultiAddress() && fromAddress) {
+    if (this.supportsMultiAddressTransactions() && fromAddress) {
       return Promise.reject("This wallet doesn't support explicit 'fromAddress'");
     }
-    if (!this.supportsMultiAddress() && !fromAddress) {
+    if (!this.supportsMultiAddressTransactions() && !fromAddress) {
       return Promise.reject("This wallet requires explicit 'fromAddress'");
     }
 
     const p = this.sendImpl(toAddress, amount, fromAddress);
     p.then((txid) => {
-      runInAction(() => this.transactions.push({id: txid, source: fromAddress, destination: toAddress, amount, status: "pending"}));
+      runInAction(() => this.transactions.push({id: txid, timestamp: Date.now(), source: fromAddress, destination: toAddress, amount, status: "pending"}));
       this.pendingTransaction = txid;
       this.schedulePendingTransactionCheck(callback);
     });
