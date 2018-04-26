@@ -57,7 +57,7 @@ export class PieChart extends React.Component {
     render() {
         return (
             <div>
-                <PaneHeader title={"Portfolio Percentages"} subtitle={"(Current Portfolio: " + this.portfolio + ")"}/>
+                <PaneHeader title={"Portfolio Percentages"} icon={"fas fa-chart-pie"} subtitle={"Current Portfolio: " + this.portfolio}/>
                 <div id="piechart_div" style={{height: "500px"}}></div>
             </div>
         );

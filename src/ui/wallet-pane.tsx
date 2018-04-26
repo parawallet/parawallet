@@ -6,6 +6,7 @@ import * as Modal from "react-modal";
 import { toast } from "react-toastify";
 import {Wallet} from "../core/wallet";
 import {TransferPane} from "./transfer-pane";
+import {PaneHeader} from "./pane-header";
 
 
 interface WalletPaneProps {
@@ -33,12 +34,9 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
     public render() {
         const wallet = this.props.wallet;
         return (
-            <div style={{padding: "20px"}}>
-                <h1>
-                    <i className={"icon cc " + wallet.code} title={wallet.code}/>&nbsp;{wallet.name}
-                </h1>
-                <span className="coin_header">Total Balance: {wallet.totalBalanceAmount} {wallet.code}</span>
-                <hr/>
+            <div>
+                <PaneHeader title={wallet.name} icon={"icon cc " + wallet.code} subtitle={"Current Balance: " + wallet.totalBalanceAmount + wallet.code}/>
+
                 <input className="btn btn-default" type="button" value="Add New Address" onClick={this.addNewAddress}/>
                 <input className="btn btn-default" type="button" value="Refresh Balances" onClick={() => wallet.updateBalances()}/>
                 <input className="btn btn-default" type="button" value={this.showTransactions ? "Show Balances" : "Show Transactions"}

@@ -60,7 +60,7 @@ export class TimelineChart extends React.Component {
     render() {
         return (
             <div>
-                <PaneHeader title={"Portfolio Timeline"} subtitle={"(Current Portfolio: " + this.portfolio + ")"}/>
+                <PaneHeader title={"Portfolio Timeline"} icon={"fas fa-chart-line"} subtitle={"Current Portfolio: " + this.portfolio }/>
                 <div id="chart_div" style={{height: "500px"}}></div>
             </div>
         );
