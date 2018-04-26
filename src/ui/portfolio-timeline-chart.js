@@ -32,7 +32,6 @@ export class TimelineChart extends React.Component {
                 } else if (i === portfolioHistory.length - 1) {
                     elements.push("Today:");
                     elements.push(getLabel(portfolioRecord.portfolio));
-                    this.portfolio = getLabel(portfolioRecord.portfolio) + " = " + portfolioRecord.value.toFixed(4) + " USD";
                 } else {
                     elements.push(undefined);
                     elements.push(undefined);
@@ -43,6 +42,9 @@ export class TimelineChart extends React.Component {
             }
             dat.push(elements);
         }
+        let lastPortfolioRecord = portfolioHistory[portfolioHistory.length - 1];
+        this.portfolio = getLabel(lastPortfolioRecord.portfolio) + " = " + lastPortfolioRecord.value.toFixed(4) + " USD";
+
         let data = new google.visualization.DataTable();
         data.addColumn("date", "Date");
         data.addColumn("number", "Portfolio Value (USD)");
