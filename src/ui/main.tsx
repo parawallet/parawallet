@@ -1,15 +1,23 @@
-import { observable } from "mobx";
-import { observer } from "mobx-react";
+import {observable} from "mobx";
+import {observer} from "mobx-react";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { ToastContainer, toast, style as toastStyle } from "react-toastify";
+import {ToastContainer, toast, style as toastStyle} from "react-toastify";
 import * as C from "../constants";
 import * as DB from "../util/secure-db";
 import {Login, LoginCredentials, LoginType} from "./login";
 import {Page} from "./page";
-import { TotpSetup, totpValidator } from "./totp";
-import { getOrInitializeMnemonic, Wallet, XrpWallet, EthWallet, BtcWallet,
-    BtcNetworkType, EthNetworkType, XrpNetworkType } from "./wallets";
+import {TotpSetup, totpValidator} from "./totp";
+import {
+    getOrInitializeMnemonic,
+    Wallet,
+    XrpWallet,
+    EthWallet,
+    BtcWallet,
+    BtcNetworkType,
+    EthNetworkType,
+    XrpNetworkType,
+} from "./wallets";
 import {PortfolioStore} from "../core/portfolio";
 
 enum PageId {
@@ -38,21 +46,23 @@ class Main extends React.Component<any, any> {
 
     public render() {
         return [this.renderActivePage(),
-            (<ToastContainer position={toast.POSITION.TOP_CENTER} autoClose={false} hideProgressBar={true} key="toast" />)];
+            (<ToastContainer position={toast.POSITION.TOP_CENTER} autoClose={false} hideProgressBar={true} key="toast"/>)];
     }
 
     private renderActivePage() {
         switch (this.activePage) {
             case PageId.AUTH:
-                return (<Login onLogin={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)} key="login" />);
+                return (
+                    <Login onLogin={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)}
+                           key="login"/>);
             case PageId.SETUP_2FA:
-                return (<TotpSetup onValidToken={this.onValidToken} key="totp" />);
+                return (<TotpSetup onValidToken={this.onValidToken} key="totp"/>);
             case PageId.LOADING:
                 return (
-                    <div className="paneContentDiv" key="loading">
-                        <h3>INIT</h3>
-                        <hr/>
-                        <span className="important_note">... LOADING PAGE ...</span>
+                    <div className="login-div w-100 h-100" key="loading">
+                        <div className="text-center w-50" style={{margin: "auto"}}>
+                            Loading...
+                        </div>
                     </div>
                 );
             case PageId.MAIN_PAGE:
@@ -119,4 +129,4 @@ class Main extends React.Component<any, any> {
     }
 }
 
-ReactDOM.render(<Main />, document.getElementById("root"));
+ReactDOM.render(<Main/>, document.getElementById("root"));

@@ -12,7 +12,7 @@ import {WalletStore} from "./wallet-store";
 import {TimelineChart} from "./portfolio-timeline-chart";
 import {PieChart} from "./portfolio-pie-chart";
 import {PortfolioStore} from "../core/portfolio";
-import { stringifyErrorMessageReplacer } from "../util/errors";
+import {stringifyErrorMessageReplacer} from "../util/errors";
 
 interface PageProps {
     readonly portfolioStore: PortfolioStore;
@@ -81,39 +81,43 @@ export class Page extends React.Component<PageProps, any> {
         }
 
         return (
-            <div className="container-fluid">
-                <div className="row">
-                    <nav className="col-md-2 d-none d-md-block bg-light sidebar">
-                        <div className="sidebar-sticky">
-                            <ul className="nav flex-column">
-                                <PortfolioMenu onMenuClick={(paneId: PaneId) => this.showPane(paneId)}/>
-                                <WalletMenu wallets={this.props.wallets} onMenuClick={(wlt) => this.switchWallet(wlt)}/>
-                                <ExchangesMenu/>
-                                <PreferencesMenu onMenuClick={(paneId: PaneId) => this.activePaneId = paneId}/>
-                            </ul>
-                        </div>
-                    </nav>
-                    <main role="main" className="col-md-9 ml-sm-auto col-lg-10 px-4">
-                        {activePane}
-                    </main>
-                </div>
-            </div>
-            /*
-                        <div className="pane-group">
-                            <div className="pane-sm sidebar">
-                                <PortfolioMenu onMenuClick={(paneId: PaneId) => this.showPane(paneId)}/>
-                                <WalletMenu wallets={this.props.wallets} onMenuClick={(wlt) => this.switchWallet(wlt)}/>
-                                <ExchangesMenu/>
-                                <PreferencesMenu onMenuClick={(paneId: PaneId) => this.activePaneId = paneId}/>
-                            </div>
-                            <div className="pane">
-                                {activePane}
-                            </div>
-                        </div>
-                        */
+            <div>
+                <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+                    <a className="navbar-brand col-sm-3 col-md-2 mr-0" href="#">
+                        <img src="images/wallet_logo_inv.png" className="nav-logo"/>
+                    </a>
+                    <ul className="navbar-nav px-3">
+                        <li className="nav-item text-nowrap">
+                            <a className="nav-link" href="#">Version 0.1</a>
+                        </li>
+                    </ul>
+                </nav>
 
+
+                <div className="container-fluid">
+                    <div className="row">
+                        <nav className="col-md-2 d-none d-md-block bg-light sidebar">
+                            <div className="sidebar-sticky">
+                                <ul className="nav flex-column">
+                                    <PortfolioMenu onMenuClick={(paneId: PaneId) => this.showPane(paneId)}/>
+                                    <WalletMenu wallets={this.props.wallets}
+                                                onMenuClick={(wlt) => this.switchWallet(wlt)}/>
+                                    <ExchangesMenu/>
+                                    <PreferencesMenu
+                                        onMenuClick={(paneId: PaneId) => this.activePaneId = paneId}/>
+                                </ul>
+                            </div>
+                        </nav>
+                        <main role="main" className="col-md-9 ml-sm-auto col-lg-10 px-4">
+                            {activePane}
+                        </main>
+                    </div>
+                </div>
+
+            </div>
         );
     }
+
 
     private showPane(paneId: PaneId) {
         this.activePaneId = paneId;

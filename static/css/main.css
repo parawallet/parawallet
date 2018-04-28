@@ -17,6 +17,14 @@ i.pane-header-icon:hover {
     color: #0060BD;
 }
 
+.login-div {
+    display: -ms-flexbox;
+    display: flex;
+    background-color: #333;
+    color: #fff;
+    text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
+    box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
+}
 
 .big_icon {
     width: 50px;
@@ -56,6 +64,15 @@ i.pane-header-icon:hover {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.window {
+    height: 100%;
+    width: 100%;
+}
+
+html, body {
+    height: 100%;
 }
 
 body {
@@ -98,6 +115,20 @@ body {
     }
 }
 
+.big_loader {
+    width: 220px;
+    height: 49px;
+}
+
+.login-logo {
+    width: 300px;
+    margin-bottom: 30px;
+}
+
+.nav-logo {
+    width: 170px;
+}
+
 .sidebar .nav-link {
     font-weight: 500;
     color: #333;
@@ -126,7 +157,7 @@ body {
  */
 
 [role="main"] {
-    padding-top: 5px; /* Space for fixed navbar */
+    padding-top: 60px; /* Space for fixed navbar */
 }
 
 /*
@@ -164,3 +195,5 @@ body {
 
 .border-top { border-top: 1px solid #e5e5e5; }
 .border-bottom { border-bottom: 1px solid #e5e5e5; }
+
+
