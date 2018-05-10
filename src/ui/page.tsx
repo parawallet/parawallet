@@ -3,7 +3,7 @@ import {observer} from "mobx-react";
 import * as React from "react";
 import {toast} from "react-toastify";
 import {Wallet, WalletType} from "../core/wallet";
-import {SecurityPane, PreferencesMenu, BackupPane} from "./preferences";
+import {PreferencesMenu} from "./preferences-menu";
 import {PortfolioMenu} from "./portfolio-menu";
 import {ExchangesMenu} from "./exchanges-menu";
 import {WalletMenu} from "./wallet-menu";
@@ -13,6 +13,8 @@ import {TimelineChart} from "./portfolio-timeline-chart";
 import {PieChart} from "./portfolio-pie-chart";
 import {PortfolioStore} from "../core/portfolio";
 import {stringifyErrorMessageReplacer} from "../util/errors";
+import {BackupPane} from "./backup";
+import {SecurityPane} from "./security";
 
 interface PageProps {
     readonly portfolioStore: PortfolioStore;

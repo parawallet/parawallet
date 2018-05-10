@@ -82,7 +82,7 @@ export class TotpSetup extends React.Component<any, any> {
   public render() {
     if (this.state.enable2FA) {
       return (
-        <div style={{padding: "30px"}}>
+        <div>
           <label>URL: {this.secret.otpauth_url}</label>
           <img src={this.state.qrcodeUrl} alt="Loading QRCode..." />
           <div className="form-group">
@@ -97,7 +97,7 @@ export class TotpSetup extends React.Component<any, any> {
     }
 
     return (
-      <div style={{padding: "30px"}}>
+      <div>
         <div className="form-group">
           <label>Do you want to enable Two-Factor Authentication?</label>
         </div>

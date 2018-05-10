@@ -40,8 +40,10 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         }
         return (
             <div>
-                <h5>Send {wallet.name}:</h5>
-
+                <div className="alert alert-primary" role="alert">
+                    <i className="fas fa-info-circle" />
+                    Ensure that the address is correct and valid {wallet.name} address. Otherwise, your fund can be lost.
+                </div>
                 <form onSubmit={this.handleSubmit}>
                     {this.renderAddresses(wallet)}
 
@@ -53,9 +55,9 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
                         <label>Amount:</label>
                         <input type="text" className="form-control" value={this.amount} onChange={(event) => this.amount = event.target.value}/>
                     </div>
-                    <div className="form-actions">
-                        <input className="btn btn-large btn-default" type="submit" value="Submit" disabled={this.submitted} />
-                        <input className="btn btn-large btn-default" type="button" value="Cancel" onClick={this.props.onCancel} />
+                    <div className="btn-group" role="group" aria-label="Basic example">
+                        <input className="btn btn-outline-primary" type="submit" value="Send" disabled={this.submitted} />
+                        <input className="btn btn-outline-secondary" type="button" value="Cancel" onClick={this.props.onCancel} />
                     </div>
                 </form>
             </div>

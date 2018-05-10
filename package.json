@@ -47,6 +47,7 @@
     "typescript": "^2.8.1"
   },
   "dependencies": {
+    "@types/react-tooltip": "^3.3.4",
     "bip39": "^2.5.0",
     "bitcoinjs-lib": "^3.3.2",
     "coinselect": "^3.1.11",
@@ -61,6 +62,7 @@
     "react-google-charts": "^1.5.5",
     "react-modal": "^3.3.2",
     "react-toastify": "^3.4.3",
+    "react-tooltip": "^3.5.1",
     "request-promise-native": "^1.0.5",
     "ripple-lib": "^0.21.0",
     "seco-keyval": "^0.4.0",

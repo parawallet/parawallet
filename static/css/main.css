@@ -85,6 +85,26 @@ body {
     vertical-align: text-bottom;
 }
 
+.tab-pane {
+    padding-top: 20px;
+}
+
+.addressTable {
+    margin-top: 10px;
+}
+
+table.addressTable th{
+    border-top: 0px;
+}
+
+.wallet-tabs {
+    margin-top: 20px;
+}
+
+i {
+    margin-right: 7px;
+}
+
 /*
  * Sidebar
  */
