@@ -7,17 +7,8 @@ import * as C from "../constants";
 import * as DB from "../util/secure-db";
 import {Login, LoginCredentials, LoginType} from "./login";
 import {Page} from "./page";
-import {TotpSetup, totpValidator} from "./totp";
-import {
-    getOrInitializeMnemonic,
-    Wallet,
-    XrpWallet,
-    EthWallet,
-    BtcWallet,
-    BtcNetworkType,
-    EthNetworkType,
-    XrpNetworkType,
-} from "./wallets";
+import { TotpSetup, totpValidator } from "./totp";
+import { getOrInitializeMnemonic, Wallet, newXrpWallet, newEthWallet, newBtcWallet } from "./wallets";
 import {PortfolioStore} from "../core/portfolio";
 
 enum PageId {
@@ -86,6 +77,8 @@ class Main extends React.Component<any, any> {
 
             totpValidator.restore(configKv!);
             if (loginType === LoginType.NEW || loginType === LoginType.IMPORT) {
+                // Clear local storage, if this is a newly created or imported wallet.
+                localStorage.clear();
                 this.activePage = PageId.SETUP_2FA;
             } else {
                 this.activePage = PageId.LOADING;
@@ -105,9 +98,9 @@ class Main extends React.Component<any, any> {
             toast.info("Please write down following words to backup your wallet: " + this.mnemonic);
         }
 
-        const BTC = new BtcWallet(kv, this.mnemonic, mnemonicPass, BtcNetworkType.TESTNET);
-        const ETH = new EthWallet(kv, this.mnemonic, mnemonicPass, EthNetworkType.rinkeby);
-        const XRP = new XrpWallet(kv, this.mnemonic, mnemonicPass, XrpNetworkType.TEST);
+        const BTC = newBtcWallet(kv, this.mnemonic, mnemonicPass);
+        const ETH = newEthWallet(kv, this.mnemonic, mnemonicPass);
+        const XRP = newXrpWallet(kv, this.mnemonic, mnemonicPass);
         this.wallets.push(BTC, ETH, XRP);
 
         const promises = this.wallets.map((w) => w.initialize(createEmpty));

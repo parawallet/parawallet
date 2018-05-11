@@ -47,12 +47,11 @@ export class EthWallet extends AbstractWallet implements Wallet {
     }
 
     protected async getTransactions(address: string): Promise<Transaction[]> {
-        // Ethereum doesn't provide built-in support for querying transactions of an account.
-        // But etherscan allows querying tx history: https://docs.ethers.io/ethers.js/html/api-providers.html#etherscan
+        // Etherscan allows querying tx history: https://docs.ethers.io/ethers.js/html/api-providers.html#etherscan
         try {
             const txns: EthTransactionResponse[] = await this.rpc.getHistory();
-            console.log(JSON.stringify(txns));
             return txns.map((tx) => {
+                console.log(`ETH TX: ${JSON.stringify(tx)}`);
                 const status: TransactionStatus = "success";
                 return {id: tx.hash, timestamp: 0, source: tx.from, destination: tx.to, amount: tx.value / 1.0e18, status};
             });

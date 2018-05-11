@@ -89,7 +89,8 @@ export class XrpWalletRpc {
 
         try {
             await api.connect();
-            return this.discoverAccounts(api, 0, 0);
+            const index = await this.discoverAccounts(api, 0, 0);
+            return index;
         } catch (error) {
             console.error(JSON.stringify(error, stringifyErrorReplacer));
             return 0;

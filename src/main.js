@@ -1,18 +1,9 @@
 import {app, BrowserWindow} from "electron";
 import * as path from "path";
 import * as url from "url";
+import {setProfile} from "./runtime-args";
 
-const profileFlag = "--profile=";
-const profileArg = process.argv.find((arg) => arg.startsWith(profileFlag));
-
-if (profileArg) {
-  const profile = profileArg.replace(profileFlag, "");
-  console.log(`Selected profile: ${profile}`);
-  const defaultPath = app.getPath("userData");
-  const profilePath = path.join(defaultPath, `Profile-${profile}`);
-  console.log(`Using profile path: ${profilePath}`);
-  app.setPath("userData", profilePath);
-}
+setProfile(process, app);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

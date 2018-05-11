@@ -6,14 +6,7 @@ import { BtcNetworkType } from "./btc-wallet";
 import { stringifyErrorReplacer } from "../../util/errors";
 
 export function createBtcWalletRpc(network: BtcNetworkType): BtcWalletRpc {
-  if (network === BtcNetworkType.MAINNET) {
-    return notImplemented();
-  }
-  if (network === BtcNetworkType.TESTNET) {
-    return new SmartbitBtcWalletRpc();
-    // return new BitpayInsightBtcWalletRpc();
-  }
-  return illegalArgument(network);
+    return new SmartbitBtcWalletRpc(network);
 }
 
 function notImplemented(): never {
@@ -40,10 +33,22 @@ const unspentTxOutputMinConfirmations = 5;
 // https://en.bitcoin.it/wiki/Transaction_broadcasting
 // https://www.smartbit.com.au/api
 class SmartbitBtcWalletRpc implements BtcWalletRpc {
-  private readonly baseUrl = "https://testnet-api.smartbit.com.au/v1/blockchain/";
-  private readonly txPushUrl = this.baseUrl + "pushtx";
-  private readonly queryUrl = this.baseUrl + "address/";
-  private readonly txUrl = this.baseUrl + "transaction/";
+  private static readonly TESTNET = "https://testnet-api.smartbit.com.au/v1/blockchain/";
+  private static readonly MAINNET = "https://api.smartbit.com.au/v1/blockchain/";
+
+  private readonly baseUrl: string;
+  private readonly txPushUrl: string;
+  private readonly queryUrl: string;
+  private readonly txUrl: string;
+
+  constructor(network: BtcNetworkType) {
+    this.baseUrl = network === BtcNetworkType.MAINNET
+      ? SmartbitBtcWalletRpc.MAINNET : SmartbitBtcWalletRpc.TESTNET;
+
+    this.txPushUrl = this.baseUrl + "pushtx";
+    this.queryUrl = this.baseUrl + "address/";
+    this.txUrl = this.baseUrl + "transaction/";
+  }
 
   public async queryBalance(addresses: string[]) {
     const url = this.queryUrl + addresses.join(",");
@@ -81,8 +86,18 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
       // tx.output_amount_int
       // tx.inputs.foreach.addresses[0]
 
+      const inputs: any[] = tx.inputs;
+      const outputs: any[] = tx.inputs;
+
+      let isDestination = false;
+      tx.outputs.foreach((output: any) => {
+        const addresses: string[] = output.addresses;
+        isDestination = addresses.indexOf(address) > -1;
+      });
+
        // TODO ???
-      return {id: tx.txid};
+      const status = "success";
+      return {id: tx.txid, timestamp: tx.time, status};
     });
   }
 
@@ -165,11 +180,25 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
 // https://github.com/bitpay/insight-api
 // we can deploy ourselves, public one has a rate-limiter
 class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
-  private readonly baseUrl = "https://test-insight.bitpay.com/api/";
-  private readonly txPushUrl = this.baseUrl + "tx/send";
-  private readonly queryAddressUrl = this.baseUrl + "addr/";
-  private readonly balanceSuffix = "/balance";
-  private readonly utxoUrl = this.baseUrl + "addrs/";
+  private static readonly TESTNET = "https://test-insight.bitpay.com/api/";
+  private static readonly MAINNET = "https://insight.bitpay.com/api/";
+
+  private readonly baseUrl: string;
+  private readonly txPushUrl: string;
+  private readonly queryAddressUrl: string;
+  private readonly balanceSuffix: string;
+  private readonly utxoUrl: string;
+
+  constructor(network: BtcNetworkType) {
+    this.baseUrl = network === BtcNetworkType.MAINNET
+      ? BitpayInsightBtcWalletRpc.MAINNET : BitpayInsightBtcWalletRpc.TESTNET;
+
+    this.txPushUrl = this.baseUrl + "tx/send";
+    this.queryAddressUrl = this.baseUrl + "addr/";
+    this.balanceSuffix = "/balance";
+    this.utxoUrl = this.baseUrl + "addrs/";
+
+  }
 
   // Sample Query Response
   // {
