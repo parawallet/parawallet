@@ -154,4 +154,7 @@ export class EthWalletRpc {
         return this.kv.set(C.ETH_PARAMS, this.params);
     }
 
+    validate(address) {
+        utils.getAddress(address);
+    }
 }

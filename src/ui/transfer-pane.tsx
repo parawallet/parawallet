@@ -8,8 +8,6 @@ import { stringifyErrorReplacer, stringifyErrorMessageReplacer } from "../util/e
 
 interface TransferPaneProps {
     readonly wallet: Wallet;
-    onSubmit(): void;
-    onCancel(): void;
 }
 
 @observer
@@ -30,6 +28,7 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         this.changeFrom = this.changeFrom.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.onVerifyToken = this.onVerifyToken.bind(this);
+        this.reset = this.reset.bind(this);
     }
 
     public render() {
@@ -57,7 +56,7 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
                     </div>
                     <div className="btn-group" role="group" aria-label="Basic example">
                         <input className="btn btn-outline-primary" type="submit" value="Send" disabled={this.submitted} />
-                        <input className="btn btn-outline-secondary" type="button" value="Cancel" onClick={this.props.onCancel} />
+                        <input className="btn btn-outline-secondary" type="button" value="Reset" onClick={this.reset} />
                     </div>
                 </form>
             </div>
@@ -85,6 +84,13 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         );
     }
 
+    private reset() {
+        this.address = "";
+        this.amount = 0;
+        this.verifyToken = false;
+        this.submitted = false;
+    }
+
     private changeFrom(event: any) {
         event.preventDefault();
         const address = event.target.value;
@@ -97,6 +103,11 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         if (this.submitted) {
             return;
         }
+
+        if (!this.validateParams()) {
+            return;
+        }
+
         this.submitted = true;
         console.log(`Transfering ${this.amount} ${this.props.wallet.code} to ${this.address} from ${this.from}`);
         if (totpValidator.enabled) {
@@ -104,6 +115,40 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         } else {
             this.transfer();
         }
+    }
+
+    private validateParams(): boolean {
+        const wallet = this.props.wallet;
+        if (!wallet.supportsMultiAddressTransactions()) {
+            if (!this.from || !this.from.trim().length) {
+                toast.error("'From Address' is required!");
+                return false;
+            }
+            try {
+                wallet.validateAddress(this.from);
+            } catch (error) {
+                toast.error("Invalid 'From Address'");
+                return false;
+            }
+        }
+
+        if (!this.address || !this.address.trim().length) {
+            toast.error("'To Address' is required!");
+            return false;
+        }
+        try {
+            wallet.validateAddress(this.address);
+        } catch (error) {
+            toast.error("Invalid 'To Address'");
+            return false;
+        }
+
+        if (!isNumeric(this.amount) || Number(this.amount) <= 0) {
+            toast.error("Invalid amount");
+            return false;
+        }
+
+        return true;
     }
 
     private async transfer() {
@@ -118,10 +163,11 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
             } else {
                 txnId = await wallet.send(this.address, Number(this.amount), callback, this.from);
             }
-            this.props.onSubmit();
+            this.reset();
         } catch (error) {
             console.log(JSON.stringify(error, stringifyErrorReplacer));
             toast.error(JSON.stringify(error, stringifyErrorMessageReplacer));
+            this.submitted = false;
         }
     }
 
@@ -133,3 +179,7 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
         this.transfer();
     }
 }
+
+function isNumeric(n: any): boolean {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+  }

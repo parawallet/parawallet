@@ -18,19 +18,12 @@ interface WalletPaneProps {
 @observer
 export class WalletPane extends React.Component<WalletPaneProps, any> {
     @observable
-    private showTransferPane: boolean = false;
-
-    @observable
     private showEmptyAccounts: boolean = false;
-
-    @observable
-    private showTransactions: boolean = false;
 
     constructor(props: WalletPaneProps) {
         super(props);
         this.addNewAddress = this.addNewAddress.bind(this);
         this.copyAddress = this.copyAddress.bind(this);
-        this.onTransactionSubmit = this.onTransactionSubmit.bind(this);
     }
 
     public render() {
@@ -60,13 +53,13 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
                         {this.renderWalletBalances(wallet)}
                     </div>
                     <div className="tab-pane fade" id="send" role="tabpanel" aria-labelledby="send-tab">
-                        <TransferPane wallet={wallet} onSubmit={this.onTransactionSubmit}
-                                      onCancel={() => this.showTransferPane = false}/>
+                        <TransferPane wallet={wallet} />
                     </div>
                     <div className="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
                         {this.renderTransactions(wallet)}
                     </div>
                 </div>
+                <ReactTooltip />
             </div>
         );
     }
@@ -81,13 +74,13 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
             if (isPublicAddress) {
                 copyBtn = (
                     <button type="button" className="btn btn-outline-secondary btn-sm"
-                            onClick={() => this.copyAddress(balance.address)}>Copy</button>
+                        data-tip="Copy address to clipboard"
+                        onClick={() => this.copyAddress(balance.address)}>Copy</button>
                 );
             } else {
                 copyBtn = (
                     <span data-tip="Do not share internal addresses for your privacy.">
                         <em>internal</em>
-                        <ReactTooltip />
                     </span>
                 );
             }
@@ -100,22 +93,25 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
             );
         });
 
-        const checkBoxRow = wallet.supportsMultiAddressTransactions() ? (
-            <div>
-                <input type="checkbox" defaultChecked={this.showEmptyAccounts}
-                    onChange={() => this.showEmptyAccounts = !this.showEmptyAccounts}/>
-                <label>Show addresses with zero balance</label>
-            </div>
+        const emptyAccountsBtn = wallet.supportsMultiAddressTransactions() ? (
+            <button type="button" className="btn btn-outline-primary btn-sm"
+                data-tip="Show/hide addresses with zero balances"
+                onClick={() => this.showEmptyAccounts = !this.showEmptyAccounts}>
+                {this.showEmptyAccounts ? "Hide Empty" : "Show Empty"}
+            </button>
         ) : null;
 
         return (
             <div>
                 <div className="btn-group float-right" role="group" aria-label="Basic example">
+                    {emptyAccountsBtn}
                     <button type="button" className="btn btn-outline-primary btn-sm"
-                            onClick={() => wallet.updateBalances()}>
+                        data-tip="Refresh account balances"
+                        onClick={() => wallet.updateBalances()}>
                         <i className="fas fa-sync" /> Refresh
                     </button>
-                    <button type="button" className="btn btn-outline-primary btn-sm" onClick={this.addNewAddress}>
+                    <button type="button" className="btn btn-outline-primary btn-sm"
+                        data-tip="Add a new public address" onClick={this.addNewAddress}>
                         New Address
                     </button>
                 </div>
@@ -160,12 +156,6 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
                 <tbody>{rows}</tbody>
             </table>
         );
-    }
-
-    @action
-    private onTransactionSubmit() {
-        this.showTransferPane = false;
-        this.showTransactions = true;
     }
 
     private openTxnExplorer(event: any, txid: string) {

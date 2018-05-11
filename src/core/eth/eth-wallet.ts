@@ -75,4 +75,8 @@ export class EthWallet extends AbstractWallet implements Wallet {
         }
         return "pending";
     }
+
+    public validateAddress(address: string) {
+        this.rpc.validate(address);
+    }
 }

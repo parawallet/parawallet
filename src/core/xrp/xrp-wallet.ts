@@ -64,6 +64,10 @@ export class XrpWallet extends AbstractWallet implements Wallet {
         }
         return "pending";
     }
+
+    public validateAddress(address: string) {
+        // TODO: not implemented yet
+    }
 }
 
 function transactionStatus(outcome: Outcome): TransactionStatus {

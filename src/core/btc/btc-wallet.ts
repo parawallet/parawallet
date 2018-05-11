@@ -1,4 +1,4 @@
-import {ECPair, TransactionBuilder} from "bitcoinjs-lib";
+import {address as btcAddress, ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
 import SecoKeyval from "seco-keyval";
 import * as C from "../../constants";
@@ -125,5 +125,9 @@ export class BtcWallet extends AbstractWallet implements Wallet {
             st = "success";
         }
         return st;
+    }
+
+    public validateAddress(address: string) {
+        btcAddress.toOutputScript(address, this.addressGen.getNetwork());
     }
 }

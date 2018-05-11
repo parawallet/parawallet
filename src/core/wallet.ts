@@ -85,6 +85,11 @@ export interface Wallet extends WalletType {
    * Returns web explorer url for this wallet.
    */
   getExporerURL(): string;
+
+  /**
+   * Validates given address. Fails with an error if address is not valid, returns silently otherwise.
+   */
+  validateAddress(address: string): void;
 }
 
 // tslint:disable-next-line:no-empty-interface
@@ -166,6 +171,7 @@ export abstract class AbstractWallet implements Wallet {
     console.log(`${this.code}: Persisting balances: ${JSON.stringify(this.balances)}`);
     this.kv.set(this.code + C.BALANCES_SUFFIX, toJS(this.balances));
 
+    // TODO: updating transactions is not ready yet!
     // Balances changed, update transactions
     // const balanceMap = new Map(prevBalances.map((balance) => [balance.address, balance.amount] as [string, number]));
     // this.balances.forEach((balance) => {
