@@ -1,31 +1,27 @@
-# The Wallet
+# Para Wallet
 
 
 ### Getting Started
 - install node and npm
-- install babel compiler:
-https://babeljs.io/docs/setup/
 
 - install dependencies
 ```
 npm install
 ```
-- Run the app
+- run the app (on test network)
 ```
-npm run build  npm start
+npm start
 ```
 
 ### stack
-backend: node.js
-
-client-side: electron, react, jsx
-
-design: http://photonkit.com/
-
-bitcoin library: https://github.com/bitcoinjs/bitcoinjs-lib
+Backend: node.js
+UI: electron, react, jsx
 
 
-### bitcoin API
+### Bitcoin API
+
+#### Library:
+https://github.com/bitcoinjs/bitcoinjs-lib
 
 #### Scan:
 - https://www.blocktrail.com/tBTC/address/n32PUHi2HkraYn6xAxi28pCSkwrndT9KcB
@@ -40,11 +36,16 @@ https://www.smartbit.com.au/api
 
 ### Ethereum API
 
-#### Wallet:
-- https://docs.ethers.io/ethers.js/html/api-wallet.html#blockchain-operations
+#### Library:
+https://github.com/ethers-io/ethers.js
 
 #### Network:
 rinkeby
 
 #### Faucet
 https://faucet.rinkeby.io/
+
+### Ripple API
+
+#### Library
+https://github.com/ripple/ripple-lib
