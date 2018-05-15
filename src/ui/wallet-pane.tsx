@@ -8,10 +8,12 @@ import {Wallet} from "../core/wallet";
 import {TransferPane} from "./transfer-pane";
 import {PaneHeader} from "./pane-header";
 import * as ReactTooltip from "react-tooltip";
+import {WalletAddressesPane} from "./wallet-addresses-pane";
+import {WalletTransactionsPane} from "./wallet-transactions-pane";
 
 
 
-interface WalletPaneProps {
+export interface WalletPaneProps {
     readonly wallet: Wallet;
 }
 
@@ -22,8 +24,6 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
 
     constructor(props: WalletPaneProps) {
         super(props);
-        this.addNewAddress = this.addNewAddress.bind(this);
-        this.copyAddress = this.copyAddress.bind(this);
     }
 
     public render() {
@@ -50,129 +50,17 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
                 <div className="tab-content" id="myTabContent">
                     <div className="tab-pane fade show active" id="addresses" role="tabpanel"
                          aria-labelledby="addresses-tab">
-                        {this.renderWalletBalances(wallet)}
+                        <WalletAddressesPane wallet={wallet}/>
                     </div>
                     <div className="tab-pane fade" id="send" role="tabpanel" aria-labelledby="send-tab">
                         <TransferPane wallet={wallet} />
                     </div>
                     <div className="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
-                        {this.renderTransactions(wallet)}
+                        <WalletTransactionsPane wallet={wallet} />
                     </div>
                 </div>
                 <ReactTooltip />
             </div>
         );
-    }
-
-    private renderWalletBalances(wallet: Wallet) {
-        const rows = wallet.currentBalances.map((balance, index) => {
-            const isPublicAddress = wallet.isPublicAddress(balance.address);
-            if (balance.amount === 0 && !isPublicAddress && !this.showEmptyAccounts) {
-                return null;
-            }
-            let copyBtn = null;
-            if (isPublicAddress) {
-                copyBtn = (
-                    <button type="button" className="btn btn-outline-secondary btn-sm"
-                        data-tip="Copy address to clipboard"
-                        onClick={() => this.copyAddress(balance.address)}>Copy</button>
-                );
-            } else {
-                copyBtn = (
-                    <span data-tip="Do not share internal addresses for your privacy.">
-                        <em>internal</em>
-                    </span>
-                );
-            }
-            return (
-                <tr key={index}>
-                    <td style={{width: "90px"}}>{copyBtn}</td>
-                    <td style={{width: "325px"}}>{balance.address}</td>
-                    <td>{balance.amount}&nbsp;{wallet.code}</td>
-                </tr>
-            );
-        });
-
-        const emptyAccountsBtn = wallet.supportsMultiAddressTransactions() ? (
-            <button type="button" className="btn btn-outline-primary btn-sm"
-                data-tip="Show/hide addresses with zero balances"
-                onClick={() => this.showEmptyAccounts = !this.showEmptyAccounts}>
-                {this.showEmptyAccounts ? "Hide Empty" : "Show Empty"}
-            </button>
-        ) : null;
-
-        return (
-            <div>
-                <div className="btn-group float-right" role="group" aria-label="Basic example">
-                    {emptyAccountsBtn}
-                    <button type="button" className="btn btn-outline-primary btn-sm"
-                        data-tip="Refresh account balances"
-                        onClick={() => wallet.updateBalances()}>
-                        <i className="fas fa-sync" /> Refresh
-                    </button>
-                    <button type="button" className="btn btn-outline-primary btn-sm"
-                        data-tip="Add a new public address" onClick={this.addNewAddress}>
-                        New Address
-                    </button>
-                </div>
-                <table className="table addressTable">
-                    <thead className="thead">
-                    <tr>
-                        <th scope="col"/>
-                        <th scope="col">Address</th>
-                        <th scope="col">Amount</th>
-                    </tr>
-                    </thead>
-                    <tbody>{rows}</tbody>
-                </table>
-            </div>
-        );
-    }
-
-    private renderTransactions(wallet: Wallet) {
-        const rows = wallet.knownTransactions.map((tx, index) => {
-            return (
-                <tr key={index}>
-                    <td>{tx.status === "success" ? "☑️" :  (tx.status === "pending" ? "⏳" : "❌")}</td>
-                    <td>{new Date(tx.timestamp).toDateString()}</td>
-                    <td><a className="txn-result" href="#"
-                        onClick={(event) => this.openTxnExplorer(event, tx.id)}>{tx.id.slice(0, 15) + "..."}</a></td>
-                    <td>{tx.amount}</td>
-                    <td>{tx.destination}</td>
-                </tr>
-            );
-        });
-        return (
-            <table className="table">
-                <thead className="thead">
-                    <tr>
-                        <th>Status</th>
-                        <th>When</th>
-                        <th>TxID</th>
-                        <th>Amount</th>
-                        <th>Destination</th>
-                    </tr>
-                </thead>
-                <tbody>{rows}</tbody>
-            </table>
-        );
-    }
-
-    private openTxnExplorer(event: any, txid: string) {
-        event.preventDefault();
-        const url = this.props.wallet.getExporerURL() + txid;
-        console.log(`Opening ${url}`);
-        shell.openExternal(url);
-    }
-
-    private async addNewAddress() {
-        const wallet = this.props.wallet;
-        const newAddress = await wallet.addNewAddress();
-        toast.info(`Added new address ${newAddress}.`, {autoClose: 3000});
-    }
-
-    private copyAddress(address: string) {
-        clipboard.writeText(address);
-        toast.info(`Copied ${address} to clipboard.`, {autoClose: 1000});
     }
 }
