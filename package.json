@@ -1,6 +1,6 @@
 {
-  "name": "thewallet",
-  "version": "1.0.0",
+  "name": "parawallet",
+  "version": "0.1",
   "description": "The wallet you need",
   "main": "app/main.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "rebuild": "electron-rebuild"
   },
-  "repository": "https://bitbucket.org/thewallet/thewallet",
+  "repository": "https://github.com/parawallet/parawallet",
   "keywords": [
     "wallet",
     "bitcoin",
@@ -21,7 +21,7 @@
     "ripple",
     "monero"
   ],
-  "author": "GitHub",
+  "author": "Parawallet",
   "license": "CC0-1.0",
   "devDependencies": {
     "@types/bip39": "^2.4.0",
@@ -69,7 +69,7 @@
     "speakeasy": "^2.0.0"
   },
   "build": {
-    "appId": "com.the.wallet",
+    "appId": "com.parawallet",
     "mac": {
       "category": "public.app-category.finance"
     },
