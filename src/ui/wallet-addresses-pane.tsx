@@ -13,9 +13,6 @@ import {WalletPaneProps} from "./wallet-pane";
 
 @observer
 export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
-    @observable
-    private showEmptyAccounts: boolean = false;
-
     constructor(props: WalletPaneProps) {
         super(props);
         this.addNewAddress = this.addNewAddress.bind(this);
@@ -26,7 +23,8 @@ export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
         const wallet = this.props.wallet;
         const rows = wallet.currentBalances.map((balance, index) => {
             const isPublicAddress = wallet.isPublicAddress(balance.address);
-            if (balance.amount === 0 && !isPublicAddress && !this.showEmptyAccounts) {
+            // we do not show private accounts with zero balance
+            if (balance.amount === 0 && !isPublicAddress) {
                 return null;
             }
             let copyBtn = null;
@@ -52,18 +50,11 @@ export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
             );
         });
 
-        const emptyAccountsBtn = wallet.supportsMultiAddressTransactions() ? (
-            <button type="button" className="btn btn-outline-primary btn-sm"
-                    data-tip="Show/hide addresses with zero balances"
-                    onClick={() => this.showEmptyAccounts = !this.showEmptyAccounts}>
-                {this.showEmptyAccounts ? "Hide Empty" : "Show Empty"}
-            </button>
-        ) : null;
+
 
         return (
             <div>
                 <div className="btn-group float-right" role="group" aria-label="Basic example">
-                    {emptyAccountsBtn}
                     <button type="button" className="btn btn-outline-primary btn-sm"
                             data-tip="Refresh account balances"
                             onClick={() => wallet.updateBalances()}>
