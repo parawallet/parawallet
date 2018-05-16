@@ -1,6 +1,6 @@
 {
   "name": "parawallet",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "The wallet you need",
   "main": "app/main.js",
   "scripts": {

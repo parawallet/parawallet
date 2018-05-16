@@ -7,16 +7,12 @@
 - install dependencies
 ```
 npm install
-```
-- run the app (on test network)
-```
 npm start
 ```
 
 ### stack
 Backend: node.js
 UI: electron, react, jsx
-
 
 ### Bitcoin API
 
