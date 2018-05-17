@@ -22,7 +22,7 @@
     "monero"
   ],
   "author": "Parawallet",
-  "license": "CC0-1.0",
+  "license": "GPL-3.0-or-later",
   "devDependencies": {
     "@types/bip39": "^2.4.0",
     "@types/bitcoinjs-lib": "^3.3.1",
@@ -37,7 +37,7 @@
     "@types/request-promise-native": "^1.0.14",
     "@types/speakeasy": "^2.0.2",
     "chai": "^4.1.2",
-    "electron": "^1.7.13",
+    "electron": "^1.7.15",
     "electron-builder": "^19.52.1",
     "electron-rebuild": "^1.6.0",
     "mocha": "^4.1.0",
