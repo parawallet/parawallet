@@ -13,7 +13,7 @@ export async function open(name: string, password: string) {
 
   const dbPath = path.join(appPath, name + ".db");
   console.log("Opening " + name + " db. Path: " + dbPath);
-  const kv = new SecoKeyval(dbPath, { appName: "the-wallet", appVersion: "1.0.0" });
+  const kv = new SecoKeyval(dbPath, { appName: "parawallet", appVersion: "0.1" });
   await kv.open(password);
   kvStores.set(name, kv);
   return kv;
