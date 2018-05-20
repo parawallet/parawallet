@@ -5,7 +5,7 @@ import * as React from "react";
 import * as Modal from "react-modal";
 import {toast} from "react-toastify";
 import {Wallet} from "../core/wallet";
-import {TransferPane} from "./transfer-pane";
+import {WalletSendPane} from "./wallet-send-pane";
 import {PaneHeader} from "./pane-header";
 import * as ReactTooltip from "react-tooltip";
 import {WalletPaneProps} from "./wallet-pane";
@@ -46,6 +46,8 @@ export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
                     <td style={{width: "90px"}}>{copyBtn}</td>
                     <td style={{width: "325px"}}>{balance.address}</td>
                     <td>{balance.amount}&nbsp;{wallet.code}</td>
+                    <td>{balance.address === wallet.defaultAddress ? "Default Address" :
+                        <a className="link" href="#" onClick={() => this.setDefaultAddress(balance.address)}>Set As Default</a>}</td>
                 </tr>
             );
         });
@@ -58,10 +60,12 @@ export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
                     <button type="button" className="btn btn-outline-primary btn-sm"
                             data-tip="Refresh account balances"
                             onClick={() => wallet.updateBalances()}>
-                        <i className="fas fa-sync" /> Refresh
+                        <i className="fas fa-sync" />
+                        Refresh
                     </button>
                     <button type="button" className="btn btn-outline-primary btn-sm"
                             data-tip="Add a new public address" onClick={this.addNewAddress}>
+                        <i className="fas fa-plus" />
                         New Address
                     </button>
                 </div>
@@ -71,6 +75,7 @@ export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
                         <th scope="col"/>
                         <th scope="col">Address</th>
                         <th scope="col">Amount</th>
+                        <th scope="col"/>
                     </tr>
                     </thead>
                     <tbody>{rows}</tbody>
@@ -87,6 +92,12 @@ export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
 
     private copyAddress(address: string) {
         clipboard.writeText(address);
-        toast.info(`Copied ${address} to clipboard.`, {autoClose: 1000});
+        toast.info(`Copied ${address} to clipboard.`, {autoClose: 2000});
+    }
+
+    private setDefaultAddress(address: string) {
+        const wallet = this.props.wallet;
+        wallet.setDefaultAddress(address);
+        toast.info(`${address} is set as your default public address.`, {autoClose: 2000});
     }
 }

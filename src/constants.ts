@@ -5,6 +5,7 @@ export const TOTP_PARAMS = "totp-params";
 export const BTC_PARAMS = "btc-params";
 export const ETH_PARAMS = "eth-params";
 export const XRP_PARAMS = "xrp-params";
+export const DEFAULT_ADDRESS_SUFFIX = "-default-address";
 export const BALANCES_SUFFIX = "-balances";
 export const TRANSACTIONS_SUFFIX = "-transactions";
 export const GAP_LIMIT = 20;

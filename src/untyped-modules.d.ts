@@ -47,3 +47,7 @@ declare module "ripple-binary-codec" {
 declare module "ripple-hashes" {
     function computeBinaryTransactionHash(txBlobHex: string): string;
 }
+
+interface JQuery {
+    tab(options?: any): any;
+}

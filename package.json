@@ -47,6 +47,7 @@
     "typescript": "^2.8.1"
   },
   "dependencies": {
+    "@types/react-bootstrap": "^0.32.9",
     "@types/react-tooltip": "^3.3.4",
     "bip39": "^2.5.0",
     "bitcoinjs-lib": "^3.3.2",

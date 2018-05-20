@@ -5,13 +5,11 @@ import { toast } from "react-toastify";
 import {totpValidator, TotpVerifyDialog} from "./totp";
 import {Wallet} from "./wallets";
 import { stringifyErrorReplacer, stringifyErrorMessageReplacer } from "../util/errors";
+import {WalletPaneProps} from "./wallet-pane";
 
-interface TransferPaneProps {
-    readonly wallet: Wallet;
-}
 
 @observer
-export class TransferPane extends React.Component<TransferPaneProps, any> {
+export class WalletSendPane extends React.Component<WalletPaneProps, any> {
     @observable
     private from: string = "";
     @observable
@@ -23,7 +21,7 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
     @observable
     private submitted: boolean = false;
 
-    public constructor(props: TransferPaneProps) {
+    public constructor(props: WalletPaneProps) {
         super(props);
         this.changeFrom = this.changeFrom.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -55,10 +53,15 @@ export class TransferPane extends React.Component<TransferPaneProps, any> {
                         <input type="text" className="form-control" value={this.amount} onChange={(event) => this.amount = event.target.value}/>
                     </div>
                     <div className="btn-group" role="group" aria-label="Basic example">
-                        <input className="btn btn-outline-primary" type="submit" value="Send" disabled={this.submitted} />
-                        <input className="btn btn-outline-secondary" type="button" value="Reset" onClick={this.reset} />
+                        <button className="btn btn-outline-secondary" type="submit" value="Send" disabled={this.submitted} >
+                            <i className="fas fa-paper-plane"/> Send
+                        </button>
+                        <button className="btn btn-outline-secondary" type="button" value="Reset" onClick={this.reset} >
+                            <i className="fas fa-eraser"/> Reset
+                        </button>
                     </div>
                 </form>
+                <hr/>
             </div>
         );
     }

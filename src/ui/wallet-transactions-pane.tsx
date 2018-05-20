@@ -5,7 +5,7 @@ import * as React from "react";
 import * as Modal from "react-modal";
 import {toast} from "react-toastify";
 import {Wallet} from "../core/wallet";
-import {TransferPane} from "./transfer-pane";
+import {WalletSendPane} from "./wallet-send-pane";
 import {PaneHeader} from "./pane-header";
 import * as ReactTooltip from "react-tooltip";
 import {WalletPaneProps} from "./wallet-pane";
