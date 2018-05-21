@@ -1,4 +1,3 @@
-import {observable} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
 import * as ReactTooltip from "react-tooltip";
@@ -9,18 +8,26 @@ import {WalletAddressesPane} from "./wallet-panes/addresses-pane";
 import {WalletTransactionsPane} from "./wallet-panes/transactions-pane";
 import {WalletReceivePane} from "./wallet-panes/receive-pane";
 
-export interface WalletPaneProps {
+interface WalletPaneProps {
     readonly wallet: Wallet;
 }
 
+export interface WalletTabPaneProps extends WalletPaneProps {
+    readonly showTab: (tabName: string) => void;
+}
+
+const sendRefName = "send";
+const receiveRefName = "receive";
+const addressesRefName = "addresses";
+const transactionsRefName = "transactions";
+
 @observer
 export class WalletPane extends React.Component<WalletPaneProps, any> {
-    @observable
-    private showEmptyAccounts: boolean = false;
-    private addressTab: any;
+    private readonly tabs = {} as { [key: string]: HTMLElement | null };
 
     constructor(props: WalletPaneProps) {
         super(props);
+        this.showTab = this.showTab.bind(this);
     }
 
     public componentDidUpdate() {
@@ -37,37 +44,49 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
                 <ul className="nav nav-tabs wallet-tabs" id="myTab" role="tablist">
                     <li className="nav-item">
                         <a className="nav-link active" id="send-tab" data-toggle="tab" href="#send" role="tab"
-                           aria-controls="send" aria-selected="false">Send</a>
+                            ref={(tab) => this.tabs[sendRefName] = tab}
+                           aria-controls="send" aria-selected="true">Send</a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link" id="receive-tab" data-toggle="tab" href="#receive" role="tab"
+                            ref={(tab) => this.tabs[receiveRefName] = tab}
                            aria-controls="receive" aria-selected="false">Receive</a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link" id="addresses-tab" data-toggle="tab" href="#addresses" role="tab"
+                            ref={(tab) => this.tabs[addressesRefName] = tab}
                            aria-controls="addresses" aria-selected="false">Addresses</a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link" id="transactions-tab" data-toggle="tab" href="#transactions" role="tab"
+                            ref={(tab) => this.tabs[transactionsRefName] = tab}
                            aria-controls="transactions" aria-selected="false">Transactions</a>
                     </li>
                 </ul>
                 <div className="tab-content" id="myTabContent">
                     <div className="tab-pane fade show active" id="send" role="tabpanel" aria-labelledby="send-tab">
-                        <WalletSendPane wallet={wallet} />
+                        <WalletSendPane wallet={wallet} showTab={this.showTab} />
                     </div>
                     <div className="tab-pane fade" id="receive" role="tabpanel" aria-labelledby="receive-tab">
-                        <WalletReceivePane wallet={wallet} />
+                        <WalletReceivePane wallet={wallet} showTab={this.showTab} />
                     </div>
                     <div className="tab-pane fade" id="addresses" role="tabpanel" aria-labelledby="addresses-tab">
-                        <WalletAddressesPane wallet={wallet}/>
+                        <WalletAddressesPane wallet={wallet} showTab={this.showTab} />
                     </div>
                     <div className="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
-                        <WalletTransactionsPane wallet={wallet} />
+                        <WalletTransactionsPane wallet={wallet} showTab={this.showTab} />
                     </div>
                 </div>
                 <ReactTooltip />
             </div>
         );
+    }
+
+    public showTab(tabName: string) {
+        const tabElement: any = this.tabs[tabName];
+        if (!tabElement) {
+            throw new Error(`Invalid tab: ${tabName}`);
+        }
+        ($(tabElement) as any).tab("show");
     }
 }

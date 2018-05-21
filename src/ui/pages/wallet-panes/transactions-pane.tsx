@@ -1,12 +1,12 @@
 import {observer} from "mobx-react";
 import {shell} from "electron";
 import * as React from "react";
-import {WalletPaneProps} from "../wallet-pane";
+import {WalletTabPaneProps} from "../wallet-pane";
 
 @observer
-export class WalletTransactionsPane extends React.Component<WalletPaneProps, any> {
+export class WalletTransactionsPane extends React.Component<WalletTabPaneProps, any> {
 
-    constructor(props: WalletPaneProps) {
+    constructor(props: WalletTabPaneProps) {
         super(props);
     }
 

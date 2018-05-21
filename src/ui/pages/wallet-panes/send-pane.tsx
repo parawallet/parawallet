@@ -5,11 +5,11 @@ import { toast } from "react-toastify";
 import {totpValidator, TotpVerifyDialog} from "../../totp";
 import {Wallet} from "../../wallets";
 import { stringifyErrorReplacer, stringifyErrorMessageReplacer } from "../../../util/errors";
-import {WalletPaneProps} from "../wallet-pane";
+import {WalletTabPaneProps} from "../wallet-pane";
 
 
 @observer
-export class WalletSendPane extends React.Component<WalletPaneProps, any> {
+export class WalletSendPane extends React.Component<WalletTabPaneProps, any> {
     @observable
     private from: string = "";
     @observable
@@ -21,7 +21,7 @@ export class WalletSendPane extends React.Component<WalletPaneProps, any> {
     @observable
     private submitted: boolean = false;
 
-    public constructor(props: WalletPaneProps) {
+    public constructor(props: WalletTabPaneProps) {
         super(props);
         this.changeFrom = this.changeFrom.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);

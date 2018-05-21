@@ -4,14 +4,14 @@ import * as React from "react";
 import {toast} from "react-toastify";
 import {clipboard} from "electron";
 import * as qrcode from "qrcode";
-import {WalletPaneProps} from "../wallet-pane";
+import {WalletTabPaneProps} from "../wallet-pane";
 
 @observer
-export class WalletReceivePane extends React.Component<WalletPaneProps, any> {
+export class WalletReceivePane extends React.Component<WalletTabPaneProps, any> {
     @observable
     private addressQRCode: string;
 
-    public constructor(props: WalletPaneProps) {
+    public constructor(props: WalletTabPaneProps) {
         super(props);
 
         qrcode.toDataURL(props.wallet.defaultAddress)
@@ -47,7 +47,7 @@ export class WalletReceivePane extends React.Component<WalletPaneProps, any> {
                                 </button>
                                 <button type="button" data-tip="Manage wallet addresses"
                                         className="btn btn-outline-secondary btn-sm"
-                                        onClick={() => this.copyAddress(address)}>
+                                        onClick={() => this.props.showTab("addresses")}>
                                     <i className="fas fa-cog"/> Manage Addresses
                                 </button>
                             </div>

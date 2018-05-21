@@ -2,12 +2,12 @@ import {observer} from "mobx-react";
 import {clipboard} from "electron";
 import * as React from "react";
 import {toast} from "react-toastify";
-import {WalletPaneProps} from "../wallet-pane";
+import {WalletTabPaneProps} from "../wallet-pane";
 
 
 @observer
-export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
-    constructor(props: WalletPaneProps) {
+export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any> {
+    constructor(props: WalletTabPaneProps) {
         super(props);
         this.addNewAddress = this.addNewAddress.bind(this);
         this.copyAddress = this.copyAddress.bind(this);
