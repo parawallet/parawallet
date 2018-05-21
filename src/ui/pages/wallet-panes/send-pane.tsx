@@ -2,6 +2,7 @@ import { computed, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { toast } from "react-toastify";
+import {shell} from "electron";
 import {totpValidator, TotpVerifyDialog} from "../../totp";
 import {Wallet} from "../../wallets";
 import { stringifyErrorReplacer, stringifyErrorMessageReplacer } from "../../../util/errors";
@@ -161,7 +162,13 @@ export class WalletSendPane extends React.Component<WalletPaneProps, any> {
         let txnId: string;
         try {
             const callback = (txid: string, status: string) => {
-                toast.warn(`${wallet.name} transaction [${txid}] is completed with ${status}.`);
+                const noti = new Notification("Para Wallet", {
+                    body: `${wallet.name} transaction [${txid.slice(0, 11) + "..."}] is completed with ${status}.`,
+                });
+                noti.onclick = () => {
+                    const url = wallet.getExporerURL() + txid;
+                    shell.openExternal(url);
+                };
             };
             if (wallet.supportsMultiAddressTransactions()) {
                 txnId = await wallet.send(this.address, Number(this.amount), callback);

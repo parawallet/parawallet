@@ -92,10 +92,6 @@ class Main extends React.Component<any, any> {
         const kv = DB.get(C.WALLET_DB)!;
         this.mnemonic = await getOrInitializeMnemonic(kv);
 
-        if (this.loginType === LoginType.NEW) {
-            toast.info("Please write down following words to backup your wallet: " + this.mnemonic);
-        }
-
         const BTC = newBtcWallet(kv, this.mnemonic, mnemonicPass);
         const ETH = newEthWallet(kv, this.mnemonic, mnemonicPass);
         const XRP = newXrpWallet(kv, this.mnemonic, mnemonicPass);
@@ -115,6 +111,15 @@ class Main extends React.Component<any, any> {
     }
 
     private renderPage() {
+        if (this.loginType === LoginType.NEW) {
+            toast.warn("Please see backup page and write down backup phrase to a safe place!");
+        } else if (this.loginType === LoginType.IMPORT) {
+            // tslint:disable-next-line
+            new Notification("Para Wallet", {
+                body: "Wallet import completed successfully.",
+            });
+        }
+
         const defaultWallet = this.wallets[0];
         return (<Page defaultWalletCode={defaultWallet.code} wallets={this.wallets} portfolioStore={this.portfolioStore} mnemonics={this.mnemonic} key="page"/>);
     }
