@@ -1,7 +1,7 @@
 import * as React from "react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import {PaneHeader} from "./pane-header";
+import {PaneHeader} from "../pane-header";
 
 
 @observer

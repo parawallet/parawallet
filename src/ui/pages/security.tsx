@@ -1,8 +1,8 @@
 import * as React from "react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import {TotpRemove, TotpSetup, totpValidator} from "./totp";
-import {PaneHeader} from "./pane-header";
+import {TotpRemove, TotpSetup, totpValidator} from "../totp";
+import {PaneHeader} from "../pane-header";
 
 
 export class SecurityPane extends React.Component<any, any> {

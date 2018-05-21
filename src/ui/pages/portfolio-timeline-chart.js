@@ -1,11 +1,11 @@
-import * as React from "react";
-import {Chart} from "react-google-charts";
-import {PortfolioStore} from "../core/portfolio";
-import * as moment from "moment";
-import * as C from "../constants";
 import {observable} from "mobx";
 import {observer} from "mobx-react";
-import {PaneHeader} from "./pane-header";
+import * as moment from "moment";
+import * as React from "react";
+import {Chart} from "react-google-charts";
+import {PortfolioStore} from "../../core/portfolio";
+import * as C from "../../constants";
+import {PaneHeader} from "../pane-header";
 
 @observer
 export class TimelineChart extends React.Component {

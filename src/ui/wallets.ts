@@ -3,7 +3,7 @@ import {remote} from "electron";
 import { isProductionBuild } from "../runtime-args";
 import {BtcNetworkType, BtcWallet} from "../core/btc/btc-wallet";
 import {EthNetworkType, EthWallet} from "../core/eth/eth-wallet";
-import {Balance, Wallet} from "../core/wallet";
+import {Balance, Wallet, WalletType} from "../core/wallet";
 import {XrpNetworkType, XrpWallet} from "../core/xrp/xrp-wallet";
 
 const production = isProductionBuild(remote.process);
@@ -24,4 +24,4 @@ export function newXrpWallet(kv: SecoKeyval, mnemonic: string, mnemonicPass: str
 }
 
 export {getOrInitializeMnemonic} from "../core/mnemonic";
-export {Balance, Wallet, BtcWallet, EthWallet, XrpWallet};
+export {Balance, Wallet, WalletType, BtcWallet, EthWallet, XrpWallet};

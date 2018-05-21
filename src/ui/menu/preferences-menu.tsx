@@ -1,9 +1,5 @@
 import * as React from "react";
-import {TotpRemove, TotpSetup, totpValidator} from "./totp";
-import {PaneId} from "./page";
-import { observable } from "mobx";
-import { observer } from "mobx-react";
-
+import {PaneId} from "../page";
 
 interface IPreferencesMenuProps {
     onMenuClick(paneId: PaneId): void;

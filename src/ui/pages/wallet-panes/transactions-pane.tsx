@@ -1,14 +1,7 @@
-import {computed, observable, reaction, action} from "mobx";
 import {observer} from "mobx-react";
-import {clipboard, shell} from "electron";
+import {shell} from "electron";
 import * as React from "react";
-import * as Modal from "react-modal";
-import {toast} from "react-toastify";
-import {Wallet} from "../core/wallet";
-import {WalletSendPane} from "./wallet-send-pane";
-import {PaneHeader} from "./pane-header";
-import * as ReactTooltip from "react-tooltip";
-import {WalletPaneProps} from "./wallet-pane";
+import {WalletPaneProps} from "../wallet-pane";
 
 @observer
 export class WalletTransactionsPane extends React.Component<WalletPaneProps, any> {
@@ -22,7 +15,6 @@ export class WalletTransactionsPane extends React.Component<WalletPaneProps, any
         const rows = wallet.knownTransactions.map((tx, index) => {
             return (
                 <tr key={index}>
-                    <td>{tx.status === "success" ? "☑️" :  (tx.status === "pending" ? "⏳" : "❌")}</td>
                     <td>{new Date(tx.timestamp).toDateString()}</td>
                     <td><a className="txn-result" href="#"
                            onClick={(event) => this.openTxnExplorer(event, tx.id)}>{tx.id.slice(0, 15) + "..."}</a></td>

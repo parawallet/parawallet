@@ -1,5 +1,5 @@
 import * as React from "react";
-import {WalletType} from "../core/wallet";
+import {WalletType} from "../wallets";
 
 interface IWalletMenuProps {
     readonly wallets: WalletType[];

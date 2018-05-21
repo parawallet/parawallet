@@ -1,14 +1,8 @@
-import {computed, observable, reaction, action} from "mobx";
 import {observer} from "mobx-react";
-import {clipboard, shell} from "electron";
+import {clipboard} from "electron";
 import * as React from "react";
-import * as Modal from "react-modal";
 import {toast} from "react-toastify";
-import {Wallet} from "../core/wallet";
-import {WalletSendPane} from "./wallet-send-pane";
-import {PaneHeader} from "./pane-header";
-import * as ReactTooltip from "react-tooltip";
-import {WalletPaneProps} from "./wallet-pane";
+import {WalletPaneProps} from "../wallet-pane";
 
 
 @observer
@@ -47,12 +41,9 @@ export class WalletAddressesPane extends React.Component<WalletPaneProps, any> {
                     <td style={{width: "325px"}}>{balance.address}</td>
                     <td>{balance.amount}&nbsp;{wallet.code}</td>
                     <td>{balance.address === wallet.defaultAddress ? "Default Address" :
-                        <a className="link" href="#" onClick={() => this.setDefaultAddress(balance.address)}>Set As Default</a>}</td>
                 </tr>
             );
         });
-
-
 
         return (
             <div>

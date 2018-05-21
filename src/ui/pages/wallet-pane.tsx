@@ -2,12 +2,12 @@ import {observable} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
 import * as ReactTooltip from "react-tooltip";
-import {Wallet} from "../core/wallet";
-import {WalletSendPane} from "./wallet-send-pane";
-import {PaneHeader} from "./pane-header";
-import {WalletAddressesPane} from "./wallet-addresses-pane";
-import {WalletTransactionsPane} from "./wallet-transactions-pane";
-import {WalletReceivePane} from "./wallet-receive-pane";
+import {Wallet} from "../wallets";
+import {PaneHeader} from "../pane-header";
+import {WalletSendPane} from "./wallet-panes/send-pane";
+import {WalletAddressesPane} from "./wallet-panes/addresses-pane";
+import {WalletTransactionsPane} from "./wallet-panes/transactions-pane";
+import {WalletReceivePane} from "./wallet-panes/receive-pane";
 
 export interface WalletPaneProps {
     readonly wallet: Wallet;

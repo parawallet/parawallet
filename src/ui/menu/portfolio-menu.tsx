@@ -1,5 +1,5 @@
 import * as React from "react";
-import {PaneId} from "./page";
+import {PaneId} from "../page";
 
 
 interface IPortfolioMenuProps {

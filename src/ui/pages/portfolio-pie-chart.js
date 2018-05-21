@@ -1,13 +1,13 @@
-import * as React from "react";
-import {Chart} from "react-google-charts";
-import {PortfolioStore} from "../core/portfolio";
-import * as moment from "moment";
-import * as DB from "../util/secure-db";
-import * as C from "../constants";
 import {observable} from "mobx";
 import {observer} from "mobx-react";
-import {getPrice} from "../core/coin-prices";
-import {PaneHeader} from "./pane-header";
+import * as moment from "moment";
+import * as React from "react";
+import {Chart} from "react-google-charts";
+import {PortfolioStore} from "../../core/portfolio";
+import * as DB from "../../util/secure-db";
+import * as C from "../../constants";
+import {getPrice} from "../../core/coin-prices";
+import {PaneHeader} from "../pane-header";
 
 @observer
 export class PieChart extends React.Component {
