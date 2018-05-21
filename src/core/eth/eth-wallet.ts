@@ -1,5 +1,6 @@
 import SecoKeyval from "seco-keyval";
-import {AbstractWallet, Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
+import {Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
+import {AbstractWallet} from "../abstract-wallet";
 import {EthWalletRpc} from "./wallet-rpc";
 import * as C from "../../constants";
 import { stringifyErrorReplacer } from "../../util/errors";

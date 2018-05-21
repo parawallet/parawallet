@@ -1,6 +1,7 @@
 import SecoKeyval from "seco-keyval";
 import * as moment from "moment";
-import {AbstractWallet, Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
+import {Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
+import {AbstractWallet} from "../abstract-wallet";
 import {XrpWalletRpc} from "./wallet-rpc";
 import * as C from "../../constants";
 import {FormattedPaymentTransaction, Outcome} from "ripple-lib/dist/npm/transaction/types";

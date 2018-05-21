@@ -10,6 +10,7 @@ import {Page} from "./page";
 import { TotpSetup, totpValidator } from "./totp";
 import { getOrInitializeMnemonic, Wallet, newXrpWallet, newEthWallet, newBtcWallet } from "./wallets";
 import {PortfolioStore} from "../core/portfolio";
+import { WalletNotificationHandler } from "./wallet-notifications";
 
 enum PageId {
     AUTH,
@@ -96,6 +97,8 @@ class Main extends React.Component<any, any> {
         const ETH = newEthWallet(kv, this.mnemonic, mnemonicPass);
         const XRP = newXrpWallet(kv, this.mnemonic, mnemonicPass);
         this.wallets.push(BTC, ETH, XRP);
+
+        this.wallets.forEach((wallet) => wallet.setEventListener(new WalletNotificationHandler(wallet)));
 
         const promises = this.wallets.map((w) => w.initialize(createEmpty));
         await Promise.all(promises);
