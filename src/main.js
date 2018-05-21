@@ -27,7 +27,7 @@ if (alreadyRunning) {
 
 function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1200, height: 900, title: "Para Wallet", show: false});
+  mainWindow = new BrowserWindow({width: 1200, height: 900, title: "Para Wallet (" + app.getVersion() + ")", show: false});
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({

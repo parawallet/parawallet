@@ -5,7 +5,6 @@ import * as C from "../../constants";
 import {AbstractWallet, Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
 import {BtcAddressGenerator} from "./address-gen";
 import {BtcWalletRpc, createBtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
-import { computed, action } from "mobx";
 
 export enum BtcNetworkType {
     MAINNET, TESTNET,

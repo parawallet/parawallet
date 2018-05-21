@@ -2,7 +2,7 @@ import {observable} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import {ToastContainer, toast, style as toastStyle} from "react-toastify";
+import {ToastContainer, toast} from "react-toastify";
 import * as C from "../constants";
 import * as DB from "../util/secure-db";
 import {Login, LoginCredentials, LoginType} from "./login";
@@ -17,8 +17,6 @@ enum PageId {
     LOADING,
     MAIN_PAGE,
 }
-
-toastStyle({width: "640px"});
 
 @observer
 class Main extends React.Component<any, any> {
@@ -37,7 +35,7 @@ class Main extends React.Component<any, any> {
 
     public render() {
         return [this.renderActivePage(),
-            (<ToastContainer position={toast.POSITION.TOP_CENTER} autoClose={false} hideProgressBar={true} key="toast"/>)];
+            (<ToastContainer position={toast.POSITION.TOP_CENTER} style={{width: "640px"}} autoClose={false} hideProgressBar={true} key="toast"/>)];
     }
 
     private renderActivePage() {

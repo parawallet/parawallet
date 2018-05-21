@@ -1,12 +1,4 @@
-import { computed, observable } from "mobx";
-import { observer } from "mobx-react";
-import {clipboard} from "electron";
 import * as React from "react";
-import * as Modal from "react-modal";
-import { toast } from "react-toastify";
-import {Wallet} from "../core/wallet";
-import {WalletSendPane} from "./wallet-send-pane";
-
 
 interface PaneHeaderProps {
     readonly title: string;

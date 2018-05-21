@@ -2,6 +2,7 @@ import {observable, reaction} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
 import {toast} from "react-toastify";
+import {remote} from "electron";
 import {Wallet, WalletType} from "../core/wallet";
 import {PreferencesMenu} from "./preferences-menu";
 import {PortfolioMenu} from "./portfolio-menu";
@@ -90,7 +91,7 @@ export class Page extends React.Component<PageProps, any> {
                     </a>
                     <ul className="navbar-nav px-3">
                         <li className="nav-item text-nowrap">
-                            <a className="nav-link" href="#">Version 0.1</a>
+                            <a className="nav-link" href="#">Version {remote.app.getVersion()}</a>
                         </li>
                     </ul>
                 </nav>

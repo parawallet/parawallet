@@ -1,11 +1,8 @@
-import {computed, observable} from "mobx";
+import {observable} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
 import {toast} from "react-toastify";
-import {totpValidator, TotpVerifyDialog} from "./totp";
-import {clipboard, shell} from "electron";
-import {Wallet} from "./wallets";
-import {stringifyErrorReplacer, stringifyErrorMessageReplacer} from "../util/errors";
+import {clipboard} from "electron";
 import {WalletPaneProps} from "./wallet-pane";
 import * as qrcode from "qrcode";
 
@@ -16,15 +13,16 @@ export class WalletReceivePane extends React.Component<WalletPaneProps, any> {
 
     public constructor(props: WalletPaneProps) {
         super(props);
+
+        qrcode.toDataURL(props.wallet.defaultAddress)
+            .then((url: string) => {
+                this.addressQRCode = url;
+            });
     }
 
     public render() {
         const wallet = this.props.wallet;
         const address = wallet.defaultAddress;
-        qrcode.toDataURL(address)
-            .then((url: string) => {
-                this.addressQRCode = url;
-            });
         return (
             <div className="row">
                 <div className="col-2">

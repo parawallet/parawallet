@@ -128,8 +128,15 @@ export abstract class AbstractWallet implements Wallet {
         this.checkPendingTransaction = this.checkPendingTransaction.bind(this);
     }
 
+    @computed
     public get defaultAddress(): string {
         return this.defaultPublicAddress;
+    }
+
+    @action
+    public setDefaultAddress(address: string): Promise<string> {
+        this.defaultPublicAddress = address;
+        return this.kv.set(this.code + C.DEFAULT_ADDRESS_SUFFIX, this.defaultPublicAddress);
     }
 
     @computed
@@ -148,11 +155,6 @@ export abstract class AbstractWallet implements Wallet {
         return this.transactions;
     }
 
-    public setDefaultAddress(address: string): Promise<string> {
-        this.defaultPublicAddress = address;
-        return this.kv.set(this.code + C.DEFAULT_ADDRESS_SUFFIX, this.defaultPublicAddress);
-    }
-
     public isPublicAddress(address: string) {
         return true;
     }
@@ -163,8 +165,7 @@ export abstract class AbstractWallet implements Wallet {
         this.balances = await this.kv.get(this.code + C.BALANCES_SUFFIX) || [];
         this.defaultPublicAddress = await this.kv.get(this.code + C.DEFAULT_ADDRESS_SUFFIX);
         if (!this.defaultPublicAddress && this.balances.length > 0) {
-            this.defaultPublicAddress = this.balances[0].address;
-            await this.kv.set(this.code + C.DEFAULT_ADDRESS_SUFFIX, this.defaultPublicAddress);
+            await this.setDefaultAddress(this.balances[0].address);
         }
 
         this.transactions = await this.kv.get(this.code + C.TRANSACTIONS_SUFFIX) || [];

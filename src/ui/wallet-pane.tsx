@@ -1,13 +1,10 @@
-import {computed, observable, reaction, action} from "mobx";
+import {observable} from "mobx";
 import {observer} from "mobx-react";
-import {clipboard, shell} from "electron";
 import * as React from "react";
-import * as Modal from "react-modal";
-import {toast} from "react-toastify";
+import * as ReactTooltip from "react-tooltip";
 import {Wallet} from "../core/wallet";
 import {WalletSendPane} from "./wallet-send-pane";
 import {PaneHeader} from "./pane-header";
-import * as ReactTooltip from "react-tooltip";
 import {WalletAddressesPane} from "./wallet-addresses-pane";
 import {WalletTransactionsPane} from "./wallet-transactions-pane";
 import {WalletReceivePane} from "./wallet-receive-pane";
@@ -58,8 +55,7 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
                     <div className="tab-pane fade" id="receive" role="tabpanel" aria-labelledby="receive-tab">
                         <WalletReceivePane wallet={wallet} />
                     </div>
-                    <div className="tab-pane fade" id="addresses" role="tabpanel" ref={(addressTab) => this.addressTab = addressTab}
-                         aria-labelledby="addresses-tab">
+                    <div className="tab-pane fade" id="addresses" role="tabpanel" aria-labelledby="addresses-tab">
                         <WalletAddressesPane wallet={wallet}/>
                     </div>
                     <div className="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
