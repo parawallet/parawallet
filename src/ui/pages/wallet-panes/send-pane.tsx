@@ -53,8 +53,12 @@ export class WalletSendPane extends React.Component<WalletPaneProps, any> {
                         <input type="text" className="form-control" value={this.amount} onChange={(event) => this.amount = event.target.value}/>
                     </div>
                     <div className="btn-group" role="group" aria-label="Basic example">
+                        <button data-tip="Send coins to destination address"
+                            className="btn btn-outline-secondary" type="submit" value="Send" disabled={this.submitted} >
                             <i className="fas fa-paper-plane"/> Send
                         </button>
+                        <button data-tip="Reset parameters"
+                            className="btn btn-outline-secondary" type="button" value="Reset" onClick={this.reset} >
                             <i className="fas fa-eraser"/> Reset
                         </button>
                     </div>

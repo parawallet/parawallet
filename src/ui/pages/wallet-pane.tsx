@@ -23,6 +23,10 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
         super(props);
     }
 
+    public componentDidUpdate() {
+        ReactTooltip.rebuild();
+    }
+
     public render() {
         const wallet = this.props.wallet;
         return (

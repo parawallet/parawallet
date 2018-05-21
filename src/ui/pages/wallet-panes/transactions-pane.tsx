@@ -15,6 +15,7 @@ export class WalletTransactionsPane extends React.Component<WalletPaneProps, any
         const rows = wallet.knownTransactions.map((tx, index) => {
             return (
                 <tr key={index}>
+                    <td data-tip="Status of transaction">{tx.status === "success" ? "☑️" :  (tx.status === "pending" ? "⏳" : "❌")}</td>
                     <td>{new Date(tx.timestamp).toDateString()}</td>
                     <td><a className="txn-result" href="#"
                            onClick={(event) => this.openTxnExplorer(event, tx.id)}>{tx.id.slice(0, 15) + "..."}</a></td>
