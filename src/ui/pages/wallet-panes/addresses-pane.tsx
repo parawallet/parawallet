@@ -40,9 +40,9 @@ export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any
                     <td style={{width: "90px"}}>{copyBtn}</td>
                     <td style={{width: "325px"}}>{balance.address}</td>
                     <td>{balance.amount}&nbsp;{wallet.code}</td>
-                    <td>{balance.address === wallet.defaultAddress ? "Default Address" :
+                    <td>{wallet.isPublicAddress(balance.address) ? balance.address === wallet.defaultAddress ? "Default Address" :
                         <a data-tip="Set as wallet's default receive address"
-                        className="link" href="#" onClick={() => this.setDefaultAddress(balance.address)}>Set As Default</a>}</td>
+                        className="link" href="#" onClick={() => this.setDefaultAddress(balance.address)}>Set As Default</a> : ""}</td>
                 </tr>
             );
         });
