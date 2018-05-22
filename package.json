@@ -2,16 +2,19 @@
   "name": "parawallet",
   "version": "0.1.0",
   "description": "The wallet you need",
+  "homepage": "https://parawallet.app",
   "main": "app/main.js",
   "scripts": {
-    "build": "npm run lint && rm -rf app && tsc",
+    "lint": "tslint -c tslint.json -p tsconfig.json",
+    "build": "npm run lint && tsc",
+    "rebuild": "rm -rf app && npm run build",
     "test": "mocha --require ts-node/register test/**/*.{js,ts}",
     "prestart": "npm run build",
     "start": "electron --enable-logging .",
-    "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder",
-    "lint": "tslint -c tslint.json -p tsconfig.json",
-    "rebuild": "electron-rebuild"
+    "pack": "npm run rebuild && electron-builder --dir",
+    "dist": "npm run rebuild && electron-builder",
+    "dist-all": "npm run rebuild && electron-builder -mlw",
+    "postinstall": "electron-builder install-app-deps"
   },
   "repository": "https://github.com/parawallet/parawallet",
   "keywords": [
@@ -39,7 +42,7 @@
     "@types/speakeasy": "^2.0.2",
     "chai": "^4.1.2",
     "electron": "^1.7.15",
-    "electron-builder": "^19.52.1",
+    "electron-builder": "^20.13.4",
     "electron-rebuild": "^1.6.0",
     "mocha": "^4.1.0",
     "ts-node": "^4.1.0",
@@ -70,12 +73,17 @@
   },
   "build": {
     "appId": "app.parawallet",
+    "productName": "Para Wallet",
+    "copyright": "Copyright (C) 2018 Para Wallet",
     "mac": {
       "category": "public.app-category.finance"
     },
     "files": [
       "app/",
       "static/"
-    ]
+    ],
+    "directories": {
+      "buildResources": "static/images"
+    }
   }
 }
