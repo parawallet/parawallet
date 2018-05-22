@@ -45,7 +45,7 @@ export class WalletReceivePane extends React.Component<WalletTabPaneProps, any> 
                                         onClick={() => this.copyAddress(address)}>
                                     <i className="fas fa-copy"/> Copy Address
                                 </button>
-                                <button type="button" data-tip="Manage wallet addresses"
+                                <button type="button" data-tip="Change default address. Add new addresses."
                                         className="btn btn-outline-secondary btn-sm"
                                         onClick={() => this.props.showTab("addresses")}>
                                     <i className="fas fa-cog"/> Manage Addresses

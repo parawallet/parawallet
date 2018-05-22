@@ -9,8 +9,6 @@ import {WalletTabPaneProps} from "../wallet-pane";
 export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any> {
     constructor(props: WalletTabPaneProps) {
         super(props);
-        this.addNewAddress = this.addNewAddress.bind(this);
-        this.copyAddress = this.copyAddress.bind(this);
     }
 
     public render() {
@@ -57,7 +55,7 @@ export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any
                         Refresh
                     </button>
                     <button type="button" className="btn btn-outline-primary btn-sm"
-                            data-tip="Add a new public address" onClick={this.addNewAddress}>
+                            data-tip="Add a new public address" onClick={() => this.addNewAddress()}>
                         <i className="fas fa-plus" />
                         New Address
                     </button>
