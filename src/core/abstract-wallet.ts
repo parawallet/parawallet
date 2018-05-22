@@ -7,11 +7,11 @@ import * as assert from "assert";
 
 class NopEventListener implements WalletEventListener {
     public onBalanceChange(address: string, previousAmount: number, currentAmount: number) {
-        //
+        // nop
     }
 
     public onTransactionComplete(txid: string, amount: number, status: TransactionStatus) {
-        //
+        // nop
     }
 }
 

@@ -1,6 +1,7 @@
 import {app, BrowserWindow} from "electron";
 import * as path from "path";
 import * as url from "url";
+import {buildAndSetApplicationMenu} from "./menu";
 import {setProfile} from "./runtime-args";
 
 setProfile(process, app);
@@ -47,6 +48,8 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  buildAndSetApplicationMenu();
 }
 
 // This method will be called when Electron has finished
