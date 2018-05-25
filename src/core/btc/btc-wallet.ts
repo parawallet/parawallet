@@ -2,7 +2,7 @@ import {address as btcAddress, ECPair, TransactionBuilder} from "bitcoinjs-lib";
 import coinselect = require("coinselect");
 import SecoKeyval from "seco-keyval";
 import * as C from "../../constants";
-import {Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
+import {Balance, Wallet, TransactionStatus, Transaction, ExplorerDataType} from "../wallet";
 import {AbstractWallet} from "../abstract-wallet";
 import {BtcAddressGenerator} from "./address-gen";
 import {BtcWalletRpc, createBtcWalletRpc, UnspentTxOutput} from "./wallet-rpc";
@@ -63,8 +63,8 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         return await this.rpc.pushTransaction(txnHex);
     }
 
-    public getExporerURL() {
-        return this.networkType === BtcNetworkType.TESTNET ? "https://www.blocktrail.com/tBTC/tx/" : "https://www.blocktrail.com/BTC/tx/";
+    public getExporerURL(type: ExplorerDataType) {
+        return this.networkType === BtcNetworkType.TESTNET ? "https://www.blocktrail.com/tBTC/" + type + "/" : "https://www.blocktrail.com/BTC/" + type + "/";
     }
 
     private createTransaction(toAddress: string, satoshiAmount: number, outputTuples: Array<[ECPair, UnspentTxOutput[]]>) {

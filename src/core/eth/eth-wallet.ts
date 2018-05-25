@@ -1,8 +1,7 @@
 import SecoKeyval from "seco-keyval";
-import {Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
+import {Balance, Wallet, TransactionStatus, Transaction, ExplorerDataType} from "../wallet";
 import {AbstractWallet} from "../abstract-wallet";
 import {EthWalletRpc} from "./wallet-rpc";
-import * as C from "../../constants";
 import { stringifyErrorReplacer } from "../../util/errors";
 
 export enum EthNetworkType {
@@ -43,8 +42,8 @@ export class EthWallet extends AbstractWallet implements Wallet {
         return this.rpc.send(fromAddress, toAddress, amount);
     }
 
-    public getExporerURL() {
-        return this.rpc.explorerURL;
+    public getExporerURL(type: ExplorerDataType) {
+        return this.rpc.getExplorerURL(type);
     }
 
     protected async getTransactions(address: string): Promise<Transaction[]> {

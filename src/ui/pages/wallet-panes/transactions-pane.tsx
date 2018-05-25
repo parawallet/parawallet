@@ -42,7 +42,7 @@ export class WalletTransactionsPane extends React.Component<WalletTabPaneProps, 
 
     private openTxnExplorer(event: any, txid: string) {
         event.preventDefault();
-        const url = this.props.wallet.getExporerURL() + txid;
+        const url = this.props.wallet.getExporerURL("tx") + txid;
         console.log(`Opening ${url}`);
         shell.openExternal(url);
     }

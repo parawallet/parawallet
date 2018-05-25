@@ -1,5 +1,5 @@
 import {observer} from "mobx-react";
-import {clipboard} from "electron";
+import {clipboard, shell} from "electron";
 import * as React from "react";
 import {toast} from "react-toastify";
 import {WalletTabPaneProps} from "../wallet-pane";
@@ -36,9 +36,14 @@ export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any
             return (
                 <tr key={index}>
                     <td style={{width: "90px"}}>{copyBtn}</td>
-                    <td style={{width: "325px"}}>{balance.address}</td>
+                    <td style={{width: "405px"}}>{balance.address}
+                        {wallet.getExporerURL("address") ?
+                            (<a href="#" onClick={() => this.openAddressOnExplorer(balance.address)}> <i
+                                className="fas fa-search" data-tip="Search the address on blockchain."/> </a>)
+                            : ""}
+                    </td>
                     <td>{balance.amount}&nbsp;{wallet.code}</td>
-                    <td>{wallet.isPublicAddress(balance.address) ? balance.address === wallet.defaultAddress ? "Default Address" :
+                    <td>{wallet.isPublicAddress(balance.address) ? balance.address === wallet.defaultAddress ? <b>Default Address</b> :
                         <a data-tip="Set as wallet's default receive address"
                         className="link" href="#" onClick={() => this.setDefaultAddress(balance.address)}>Set As Default</a> : ""}</td>
                 </tr>
@@ -90,5 +95,10 @@ export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any
         const wallet = this.props.wallet;
         wallet.setDefaultAddress(address);
         toast.info(`${address} is set as your default public address.`, {autoClose: 2000});
+    }
+
+    private openAddressOnExplorer(address: string) {
+        const url = this.props.wallet.getExporerURL("address") + address;
+        shell.openExternal(url);
     }
 }

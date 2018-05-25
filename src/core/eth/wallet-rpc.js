@@ -3,6 +3,7 @@ import * as C from "../../constants";
 import { EthNetworkType } from "./eth-wallet";
 import { Wallet, providers, HDNode, utils } from "ethers";
 import { stringifyErrorReplacer } from "../../util/errors";
+import {ExplorerDataType} from "../wallet";
 
 class Params {
     constructor(addressIndex) {
@@ -138,8 +139,8 @@ export class EthWalletRpc {
         return transactionResult.hash;
     }
 
-    get explorerURL() {
-        return this.provider ? this.provider.baseUrl + "/tx/" : "";
+    getExplorerURL(type) {
+        return this.provider ? this.provider.baseUrl + "/" + type + "/" : null;
     }
 
     get addressIndex() {

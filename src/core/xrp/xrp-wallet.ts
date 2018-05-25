@@ -1,6 +1,6 @@
 import SecoKeyval from "seco-keyval";
 import * as moment from "moment";
-import {Balance, Wallet, TransactionStatus, Transaction} from "../wallet";
+import {Balance, Wallet, TransactionStatus, Transaction, ExplorerDataType} from "../wallet";
 import {AbstractWallet} from "../abstract-wallet";
 import {XrpWalletRpc} from "./wallet-rpc";
 import * as C from "../../constants";
@@ -35,7 +35,10 @@ export class XrpWallet extends AbstractWallet implements Wallet {
         return this.rpc.send(fromAddress!, toAddress, amount);
     }
 
-    public getExporerURL() {
+    public getExporerURL(type: ExplorerDataType) {
+        if (type === "address") {
+            return null;
+        }
         return "https://xrpcharts.ripple.com/#/transactions/";
     }
 

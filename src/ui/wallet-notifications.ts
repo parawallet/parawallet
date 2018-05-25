@@ -26,7 +26,7 @@ export class WalletNotificationHandler implements WalletEventListener {
       body: `${this.wallet.name} transaction [${txid.slice(0, 11) + "..."}] is completed with ${status}.`,
     });
     noti.onclick = () => {
-        const url = this.wallet.getExporerURL() + txid;
+        const url = this.wallet.getExporerURL("tx") + txid;
         shell.openExternal(url);
     };
   }

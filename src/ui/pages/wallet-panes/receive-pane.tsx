@@ -2,7 +2,7 @@ import {observable} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
 import {toast} from "react-toastify";
-import {clipboard} from "electron";
+import {clipboard, shell} from "electron";
 import * as qrcode from "qrcode";
 import {WalletTabPaneProps} from "../wallet-pane";
 
@@ -35,6 +35,10 @@ export class WalletReceivePane extends React.Component<WalletTabPaneProps, any> 
                         </div>
                         <div className="col-12 receive_address">
                             {address}
+                            {wallet.getExporerURL("address") ?
+                                (<a href="#" onClick={() => this.openAddressOnExplorer(address)}> <i
+                                    className="fas fa-search" data-tip="Search the address on blockchain."/> </a>)
+                                : ""}
                         </div>
                     </div>
                     <div className="row pt-5">
@@ -55,10 +59,15 @@ export class WalletReceivePane extends React.Component<WalletTabPaneProps, any> 
                     </div>
                 </div>
                 <div className="w-100">
-                <hr/>
+                    <hr/>
                 </div>
             </div>
         );
+    }
+
+    private openAddressOnExplorer(address: string) {
+        const url = this.props.wallet.getExporerURL("address") + address;
+        shell.openExternal(url);
     }
 
     private copyAddress(address: string) {

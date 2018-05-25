@@ -40,6 +40,10 @@ i.pane-header-icon:hover {
     font-weight: bold;
 }
 
+.receive_address i {
+    font-size: 13pt;
+}
+
 .coin_icon {
     width: 19px;
     height: 18px;

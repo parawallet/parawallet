@@ -5,6 +5,9 @@ export interface Balance {
 
 export type TransactionStatus = "success" | "failure" | "pending";
 
+// todo ensure all the explorers use 'tx' and 'address' in their rest endpoint
+export type ExplorerDataType = "tx" | "address";
+
 export interface Transaction {
     readonly id: string;
     // milliseconds since unix epoch
@@ -92,7 +95,7 @@ export interface Wallet extends WalletType {
     /**
      * Returns web explorer url for this wallet.
      */
-    getExporerURL(): string;
+    getExporerURL(type: ExplorerDataType): string | null;
 
     /**
      * Validates given address. Fails with an error if address is not valid, returns silently otherwise.
