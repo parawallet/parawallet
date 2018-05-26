@@ -14,10 +14,12 @@ export class WalletReceivePane extends React.Component<WalletTabPaneProps, any> 
     public constructor(props: WalletTabPaneProps) {
         super(props);
 
-        qrcode.toDataURL(props.wallet.defaultAddress)
-            .then((url: string) => {
-                this.addressQRCode = url;
-            });
+        if (props.wallet.defaultAddress) {
+            qrcode.toDataURL(props.wallet.defaultAddress)
+                .then((url: string) => {
+                    this.addressQRCode = url;
+                });
+        }
     }
 
     public render() {
