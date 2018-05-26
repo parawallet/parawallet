@@ -46,6 +46,9 @@ export abstract class AbstractWallet implements Wallet {
 
     @computed
     public get defaultAddress(): string {
+        if (!this.defaultPublicAddress && this.currentBalances && this.currentBalances.length > 0) {
+            this.defaultPublicAddress = this.currentBalances[0].address;
+        }
         return this.defaultPublicAddress;
     }
 
