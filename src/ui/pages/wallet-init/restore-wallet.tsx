@@ -16,30 +16,43 @@ export class RestoreWallet extends React.Component<any, any> {
 
     public render() {
         return (
-            <div style={{padding: "30px"}}>
-                <form onSubmit={this.handle}>
+            <div className="login-div w-100 h-100">
+                <div className="text-center w-50" style={{margin: "auto"}}>
+                    <img src="images/wallet_logo_inv.png" className="login-logo"/>
                     <div className="form-group">
-                        <label>Application Password:</label>
-                        <input type="text" className="form-control" defaultValue={defaultPassword}
+                        <input type="text" className="form-control form-control-lg"
+                               placeholder={"Application Password"}
                                ref={(input) => this.appPassInput = input}/>
                     </div>
                     <div className="form-group">
-                        <label>Confirm Application Password:</label>
-                        <input type="text" className="form-control" ref={(input) => this.confirmAppPassInput = input}/>
+                        <input type="text" className="form-control form-control-lg"
+                               placeholder={"Confirm Application Password"}
+                               ref={(input) => this.confirmAppPassInput = input}/>
                     </div>
                     <div className="form-group">
-                        <label>Mnemonic:</label>
-                        <input type="text" className="form-control" ref={(input) => this.mnemonicInput = input}/>
+                        <input type="text" className="form-control form-control-lg"
+                               placeholder={"Mnemonic"}
+                               ref={(input) => this.mnemonicInput = input}/>
                     </div>
                     <div className="form-group">
-                        <label>Mnemonic Password:</label>
-                        <input type="text" className="form-control" ref={(input) => this.mnemonicPassInput = input}/>
+                        <input type="text" className="form-control form-control-lg"
+                               placeholder={"Mnemonic Salt"}
+                               ref={(input) => this.mnemonicPassInput = input}/>
                     </div>
-                    <div className="form-actions">
-                        <input className="btn btn-large" type="submit" value="Back" onClick={this.props.reset}/>
-                        <input className="btn btn-large btn-default" type="submit" value="Submit"/>
+
+                    <div className="btn-group w-75" role="group">
+                        <button
+                            className="btn-lg btn-light w-50"
+                            onClick={this.props.reset}>
+                            <i className="fas fa-arrow-left"/> Back
+                        </button>
+                        <button
+                            className="btn-lg btn-light w-50"
+                            onClick={this.handle}>
+                            <i className="fas fa-undo"/> Restore
+                        </button>
                     </div>
-                </form>
+                </div>
             </div>
         );
     }

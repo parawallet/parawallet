@@ -18,18 +18,21 @@ export enum WalletInitType {
     EXISTING,
 }
 
+export enum WalletInitPage {
+    NEW_WALLET,
+    RESTORE_WALLET,
+}
+
 @observer
 export class WalletInit extends React.Component<any, any> {
     @observable
-    private shouldShowCreateNewDialog: boolean = false;
-    @observable
-    private shouldShowImportDialog: boolean = false;
+    private activePage: WalletInitPage | null;
 
     constructor(props: any) {
         super(props);
         this.handleLogin = this.handleLogin.bind(this);
         this.handleCreateNew = this.handleCreateNew.bind(this);
-        this.handleImport = this.handleImport.bind(this);
+        this.handleRestore = this.handleRestore.bind(this);
     }
 
     public render() {
@@ -37,13 +40,13 @@ export class WalletInit extends React.Component<any, any> {
             return (
                 <Login handle={this.handleLogin}/>
             );
-        } else if (this.shouldShowCreateNewDialog) {
+        } else if (this.activePage === WalletInitPage.NEW_WALLET) {
             return (
                 <CreateNewWallet handle={this.handleCreateNew} reset={this.reset}/>
             );
-        } else if (this.shouldShowImportDialog) {
+        } else if (this.activePage === WalletInitPage.RESTORE_WALLET) {
             return (
-                <RestoreWallet handle={this.handleImport} reset={this.reset}/>
+                <RestoreWallet handle={this.handleRestore} reset={this.reset}/>
             );
         } else {
             return this.renderInit();
@@ -52,12 +55,24 @@ export class WalletInit extends React.Component<any, any> {
 
     private renderInit() {
         return (
-            <div style={{padding: "30px"}}>
-                <div className="form-actions">
-                    <input className="btn btn-large" type="button" value="Create New Wallet"
-                           onClick={this.showCreateNewDialog}/>
-                    <input className="btn btn-large btn-default" type="button" value="Import Wallet"
-                           onClick={this.showImportDialog}/>
+            <div className="login-div w-100 h-100">
+                <div className="text-center w-50" style={{margin: "auto"}}>
+                    <img src="images/wallet_logo_inv.png" className="login-logo"/>
+                    <div>
+                        <button type="button"
+                                className="btn-lg btn-light w-75"
+                                onClick={this.showCreateNewDialog}>
+                            <i className="fas fa-plus"/> Create New Wallet
+                        </button>
+                    </div>
+                    <br/>
+                    <div>
+                        <button type="button" data-tip="Restore your wallet by entering 12 words mnemonics."
+                                className="btn-lg btn-light w-75"
+                                onClick={this.showRestoreDialog}>
+                            <i className="fas fa-undo"/> Restore Your Wallet
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -65,20 +80,17 @@ export class WalletInit extends React.Component<any, any> {
 
     @action.bound
     private showCreateNewDialog() {
-        this.shouldShowCreateNewDialog = true;
-        this.shouldShowImportDialog = false;
+        this.activePage = WalletInitPage.NEW_WALLET;
     }
 
     @action.bound
-    private showImportDialog() {
-        this.shouldShowCreateNewDialog = false;
-        this.shouldShowImportDialog = true;
+    private showRestoreDialog() {
+        this.activePage = WalletInitPage.RESTORE_WALLET;
     }
 
     @action.bound
     private reset() {
-        this.shouldShowCreateNewDialog = false;
-        this.shouldShowImportDialog = false;
+        this.activePage = null;
     }
 
     private async handleCreateNew(credentials: LoginCredentials) {
@@ -91,7 +103,7 @@ export class WalletInit extends React.Component<any, any> {
         }
     }
 
-    private async handleImport(credentials: LoginCredentials, mnemonic: string) {
+    private async handleRestore(credentials: LoginCredentials, mnemonic: string) {
         try {
             if (!validateMnemonic(mnemonic)) {
                 toast.warn("Given mnemonic is not a valid mnemonic!");
