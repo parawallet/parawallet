@@ -5,12 +5,13 @@ import * as ReactDOM from "react-dom";
 import {ToastContainer, toast} from "react-toastify";
 import * as C from "../constants";
 import * as DB from "../util/secure-db";
-import {Login, LoginCredentials, LoginType} from "./login";
+import {WalletInit, WalletInitType} from "./wallet-init";
 import {Page} from "./page";
 import { TotpSetup, totpValidator } from "./totp";
 import { getOrInitializeMnemonic, Wallet, newXrpWallet, newEthWallet, newBtcWallet } from "./wallets";
 import {PortfolioStore} from "../core/portfolio";
 import { WalletNotificationHandler } from "./wallet-notifications";
+import {LoginCredentials} from "../core/login-credentials";
 
 enum PageId {
     AUTH,
@@ -23,7 +24,7 @@ enum PageId {
 class Main extends React.Component<any, any> {
     private wallets: Wallet[] = [];
     private credentials: LoginCredentials;
-    private loginType: LoginType;
+    private loginType: WalletInitType;
     private mnemonic: string;
     private portfolioStore: PortfolioStore;
     @observable
@@ -43,8 +44,8 @@ class Main extends React.Component<any, any> {
         switch (this.activePage) {
             case PageId.AUTH:
                 return (
-                    <Login onLogin={(login: LoginCredentials, loginType: LoginType) => this.onLogin(login, loginType)}
-                           key="login"/>);
+                    <WalletInit onLogin={(login: LoginCredentials, loginType: WalletInitType) => this.onLogin(login, loginType)}
+                                key="login"/>);
             case PageId.SETUP_2FA:
                 return (<TotpSetup onValidToken={this.onValidToken} key="totp"/>);
             case PageId.LOADING:
@@ -62,10 +63,10 @@ class Main extends React.Component<any, any> {
 
     private onValidToken() {
         this.activePage = PageId.LOADING;
-        this.initializeWallets(this.credentials.mnemonicPass, this.loginType === LoginType.NEW);
+        this.initializeWallets(this.credentials.mnemonicPass, this.loginType === WalletInitType.NEW);
     }
 
-    private async onLogin(loginCreds: LoginCredentials, loginType: LoginType) {
+    private async onLogin(loginCreds: LoginCredentials, loginType: WalletInitType) {
         this.activePage = PageId.LOADING;
         this.credentials = loginCreds;
         this.loginType = loginType;
@@ -75,7 +76,7 @@ class Main extends React.Component<any, any> {
             console.log("Databases are ready now");
 
             totpValidator.restore(configKv!);
-            if (loginType === LoginType.NEW || loginType === LoginType.IMPORT) {
+            if (loginType === WalletInitType.NEW || loginType === WalletInitType.IMPORT) {
                 // Clear local storage, if this is a newly created or imported wallet.
                 localStorage.clear();
                 this.activePage = PageId.SETUP_2FA;
@@ -114,9 +115,9 @@ class Main extends React.Component<any, any> {
     }
 
     private renderPage() {
-        if (this.loginType === LoginType.NEW) {
+        if (this.loginType === WalletInitType.NEW) {
             toast.warn("Please see backup page and write down backup phrase to a safe place!");
-        } else if (this.loginType === LoginType.IMPORT) {
+        } else if (this.loginType === WalletInitType.IMPORT) {
             // tslint:disable-next-line
             new Notification("Para Wallet", {
                 body: "Wallet import completed successfully.",
