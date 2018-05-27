@@ -1,5 +1,5 @@
 import * as React from "react";
-import {defaultPassword, LoginCredentials} from "../../../core/login-credentials";
+import {LoginCredentials} from "../../../core/login-credentials";
 
 
 export class Login extends React.Component<any, any> {
@@ -18,12 +18,11 @@ export class Login extends React.Component<any, any> {
                     <img src="images/wallet_logo_inv.png" className="login-logo"/>
                     <form onSubmit={this.handle}>
                         <div className="form-group">
-                            <input type="text" className="form-control form-control-lg" placeholder={"Password"}
-                                   defaultValue={defaultPassword}
+                            <input type="password" className="form-control form-control-lg" placeholder={"Wallet Password"}
                                    ref={(input) => this.appPassInput = input}/>
                         </div>
                         <div className="form-group">
-                            <input type="text" className="form-control form-control-lg"
+                            <input type="password" className="form-control form-control-lg"
                                    placeholder={"Mnemonic Salt"}
                                    ref={(input) => this.mnemonicPassInput = input}/>
                         </div>

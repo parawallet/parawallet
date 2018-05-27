@@ -1,6 +1,6 @@
 import {toast} from "react-toastify";
 import * as React from "react";
-import {defaultPassword, LoginCredentials} from "../../../core/login-credentials";
+import {LoginCredentials} from "../../../core/login-credentials";
 
 export class CreateNewWallet extends React.Component<any, any> {
     private appPassInput: HTMLInputElement | null = null;

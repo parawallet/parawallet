@@ -1,6 +1,6 @@
 import {toast} from "react-toastify";
 import * as React from "react";
-import {defaultPassword, LoginCredentials} from "../../../core/login-credentials";
+import {LoginCredentials} from "../../../core/login-credentials";
 import * as bip39 from "bip39";
 
 export class RestoreWallet extends React.Component<any, any> {

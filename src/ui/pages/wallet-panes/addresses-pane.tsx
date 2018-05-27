@@ -36,7 +36,7 @@ export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any
             return (
                 <tr key={index}>
                     <td style={{width: "90px"}}>{copyBtn}</td>
-                    <td style={{width: "405px"}}>{balance.address}
+                    <td style={{width: "435px"}}>{balance.address}
                         {wallet.getExporerURL("address") ?
                             (<a href="#" onClick={() => this.openAddressOnExplorer(balance.address)}> <i
                                 className="fas fa-search" data-tip="Search the address on blockchain."/> </a>)

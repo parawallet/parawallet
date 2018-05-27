@@ -16,8 +16,8 @@ export interface WalletTabPaneProps extends WalletPaneProps {
     readonly showTab: (tabName: string) => void;
 }
 
-const sendRefName = "send";
 const receiveRefName = "receive";
+const sendRefName = "send";
 const addressesRefName = "addresses";
 const transactionsRefName = "transactions";
 
@@ -43,14 +43,14 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
 
                 <ul className="nav nav-tabs wallet-tabs" id="myTab" role="tablist">
                     <li className="nav-item">
-                        <a className="nav-link active" id="send-tab" data-toggle="tab" href="#send" role="tab"
-                            ref={(tab) => this.tabs[sendRefName] = tab}
-                           aria-controls="send" aria-selected="true">Send</a>
+                        <a className="nav-link active" id="receive-tab" data-toggle="tab" href="#receive" role="tab"
+                           ref={(tab) => this.tabs[receiveRefName] = tab}
+                           aria-controls="receive" aria-selected="false">Receive</a>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link" id="receive-tab" data-toggle="tab" href="#receive" role="tab"
-                            ref={(tab) => this.tabs[receiveRefName] = tab}
-                           aria-controls="receive" aria-selected="false">Receive</a>
+                        <a className="nav-link" id="send-tab" data-toggle="tab" href="#send" role="tab"
+                            ref={(tab) => this.tabs[sendRefName] = tab}
+                           aria-controls="send" aria-selected="true">Send</a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link" id="addresses-tab" data-toggle="tab" href="#addresses" role="tab"
@@ -64,11 +64,11 @@ export class WalletPane extends React.Component<WalletPaneProps, any> {
                     </li>
                 </ul>
                 <div className="tab-content" id="myTabContent">
-                    <div className="tab-pane fade show active" id="send" role="tabpanel" aria-labelledby="send-tab">
-                        <WalletSendPane wallet={wallet} showTab={this.showTab} />
-                    </div>
-                    <div className="tab-pane fade" id="receive" role="tabpanel" aria-labelledby="receive-tab">
+                    <div className="tab-pane fade show active" id="receive" role="tabpanel" aria-labelledby="receive-tab">
                         <WalletReceivePane wallet={wallet} showTab={this.showTab} />
+                    </div>
+                    <div className="tab-pane fade" id="send" role="tabpanel" aria-labelledby="send-tab">
+                        <WalletSendPane wallet={wallet} showTab={this.showTab} />
                     </div>
                     <div className="tab-pane fade" id="addresses" role="tabpanel" aria-labelledby="addresses-tab">
                         <WalletAddressesPane wallet={wallet} showTab={this.showTab} />

@@ -86,6 +86,7 @@ class Main extends React.Component<any, any> {
             }
         } catch (error) {
             console.log(error);
+            this.activePage = PageId.AUTH;
             toast.error("Wrong password!", {position: toast.POSITION.TOP_CENTER});
         }
     }

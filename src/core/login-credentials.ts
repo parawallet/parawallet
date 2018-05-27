@@ -8,4 +8,3 @@ export class LoginCredentials {
     }
 }
 
-export const defaultPassword = "the-wallet-secure-password";
