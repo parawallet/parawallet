@@ -33,20 +33,23 @@ export class WalletInit extends React.Component<any, any> {
         this.handleLogin = this.handleLogin.bind(this);
         this.handleCreateNew = this.handleCreateNew.bind(this);
         this.handleRestore = this.handleRestore.bind(this);
+        this.showRestoreDialog = this.showRestoreDialog.bind(this);
     }
 
     public render() {
-        if (DB.exists(C.WALLET_DB)) {
-            return (
-                <Login handle={this.handleLogin}/>
-            );
-        } else if (this.activePage === WalletInitPage.NEW_WALLET) {
+        if (this.activePage === WalletInitPage.NEW_WALLET) {
             return (
                 <CreateNewWallet handle={this.handleCreateNew} reset={this.reset}/>
             );
         } else if (this.activePage === WalletInitPage.RESTORE_WALLET) {
             return (
                 <RestoreWallet handle={this.handleRestore} reset={this.reset}/>
+            );
+        }
+
+        if (DB.exists(C.WALLET_DB)) {
+            return (
+                <Login handle={this.handleLogin} showRestore={this.showRestoreDialog}/>
             );
         } else {
             return this.renderInit();

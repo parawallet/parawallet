@@ -97,15 +97,26 @@ export class TotpSetup extends React.Component<any, any> {
     }
 
     return (
-      <div>
-        <div className="form-group">
-          <label>Do you want to enable Two-Factor Authentication?</label>
+        <div className="login-div w-100 h-100">
+          <div className="text-center w-50" style={{margin: "auto"}}>
+            <img src="images/wallet_logo_inv.png" className="login-logo"/>
+              <div>
+                <button type="button"  data-tip="Recommended."
+                        className="btn-lg btn-light w-75"
+                        onClick={this.enable2FA}>
+                  <i className="fas fa-lock"/> Enable Two Factor Authentication
+                </button>
+              </div>
+              <br/>
+              <div>
+                <button type="button"
+                        className="btn-lg btn-light w-75"
+                        onClick={this.props.onValidToken}>
+                  <i className="fas fa-lock-open"/> Skip
+                </button>
+              </div>
+          </div>
         </div>
-        <div className="form-actions">
-          <input className="btn btn-large" type="submit" value="No" onClick={this.props.onValidToken} />
-          <input className="btn btn-large btn-default" type="submit" value="Yes" onClick={this.enable2FA} />
-        </div>
-      </div>
     );
   }
 

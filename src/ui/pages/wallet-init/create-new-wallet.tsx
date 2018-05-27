@@ -19,23 +19,23 @@ export class CreateNewWallet extends React.Component<any, any> {
                 <div className="text-center w-50" style={{margin: "auto"}}>
                     <img src="images/wallet_logo_inv.png" className="login-logo"/>
                     <div className="form-group">
-                        <input type="text" className="form-control form-control-lg"
-                               placeholder={"Application Password"}
+                        <input type="password" className="form-control form-control-lg"
+                               placeholder={"Wallet Password"}
                                ref={(input) => this.appPassInput = input}/>
                     </div>
                     <div className="form-group">
-                        <input type="text" className="form-control form-control-lg"
-                               placeholder={"Confirm Application Password"}
+                        <input type="password" className="form-control form-control-lg"
+                               placeholder={"Confirm Wallet Password"}
                                ref={(input) => this.confirmAppPassInput = input}/>
                     </div>
                     <div className="form-group">
-                        <input type="text"
-                               placeholder={"Mnemonic Password"}
+                        <input type="password"
+                               placeholder={"Mnemonic Salt"}
                                className="form-control form-control-lg" ref={(input) => this.mnemonicPassInput = input}/>
                     </div>
                     <div className="form-group">
-                        <input type="text" className="form-control form-control-lg"
-                               placeholder={"Confirm Mnemonic Password"}
+                        <input type="password" className="form-control form-control-lg"
+                               placeholder={"Confirm Mnemonic Salt"}
                                ref={(input) => this.confirmMnemonicPassInput = input}/>
                     </div>
                     <div className="btn-group w-75" role="group">
@@ -64,11 +64,11 @@ export class CreateNewWallet extends React.Component<any, any> {
         const confirmMnemonicPass = this.confirmMnemonicPassInput ? this.confirmMnemonicPassInput.value : "";
 
         if (!appPass || appPass !== confirmAppPass) {
-            toast.error("Application passwords do not match!", {autoClose: 5000});
+            toast.error("Wallet passwords do not match!", {autoClose: 5000});
             return;
         }
         if (mnemonicPass !== confirmMnemonicPass) {
-            toast.error("Mnemonic passwords do not match!", {autoClose: 5000});
+            toast.error("Mnemonic salts do not match!", {autoClose: 5000});
             return;
         }
 

@@ -114,6 +114,10 @@ i {
     margin-right: 7px;
 }
 
+a.link-dark {
+    color: #eee;
+}
+
 /*
  * Sidebar
  */

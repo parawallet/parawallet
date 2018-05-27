@@ -9,6 +9,7 @@ export class Login extends React.Component<any, any> {
     constructor(props: any) {
         super(props);
         this.handle = this.handle.bind(this);
+        this.showRestore = this.showRestore.bind(this);
     }
 
     public render() {
@@ -29,6 +30,16 @@ export class Login extends React.Component<any, any> {
                         <div className="form-actions">
                             <input className="btn btn-lg btn-light w-50" type="submit" value="Login"/>
                         </div>
+                        <br/>
+                        <div>
+                            or
+                        </div>
+                        <br/>
+                        <div>
+                            <a href="#" className="link-dark" onClick={this.showRestore}> click here to restore your wallet.</a>
+                        </div>
+
+
                     </form>
                 </div>
             </div>
@@ -41,5 +52,9 @@ export class Login extends React.Component<any, any> {
         const mnemonicPass = this.mnemonicPassInput ? this.mnemonicPassInput.value : "";
         const creds = new LoginCredentials(appPass, mnemonicPass);
         this.props.handle(creds);
+    }
+    private showRestore(event: any) {
+        event.preventDefault();
+        this.props.showRestore();
     }
 }
