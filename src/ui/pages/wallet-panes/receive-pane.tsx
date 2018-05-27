@@ -1,4 +1,4 @@
-import {observable} from "mobx";
+import {observable, reaction} from "mobx";
 import {observer} from "mobx-react";
 import * as React from "react";
 import {toast} from "react-toastify";
@@ -20,6 +20,17 @@ export class WalletReceivePane extends React.Component<WalletTabPaneProps, any> 
                     this.addressQRCode = url;
                 });
         }
+    }
+
+
+    public componentDidMount(): void {
+        const reaction1 = reaction(
+            () => this.props.wallet.defaultAddress,
+            (address) => qrcode.toDataURL(address)
+                .then((url: string) => {
+                    this.addressQRCode = url;
+                }),
+        );
     }
 
     public render() {
