@@ -1,10 +1,13 @@
 import {toast} from "react-toastify";
 import * as React from "react";
-import {LoginCredentials} from "../../../core/login-credentials";
 import * as bip39 from "bip39";
 import {observer} from "mobx-react";
 import {observable} from "mobx";
 import * as ReactTooltip from "react-tooltip";
+import { confirmAlert } from "react-confirm-alert";
+import {LoginCredentials} from "../../../core/login-credentials";
+import * as C from "../../../constants";
+import * as DB from "../../../util/secure-db";
 
 @observer
 export class RestoreWallet extends React.Component<any, any> {
@@ -31,12 +34,12 @@ export class RestoreWallet extends React.Component<any, any> {
                     <h4>Create New Wallet</h4>
                     <br/>
                     <div className="form-group">
-                        <input type="text" className="form-control form-control-lg"
+                        <input type="password" className="form-control form-control-lg"
                                placeholder={"Application Password"}
                                ref={(input) => this.appPassInput = input}/>
                     </div>
                     <div className="form-group">
-                        <input type="text" className="form-control form-control-lg"
+                        <input type="password" className="form-control form-control-lg"
                                placeholder={"Confirm Application Password"}
                                ref={(input) => this.confirmAppPassInput = input}/>
                     </div>
@@ -45,6 +48,13 @@ export class RestoreWallet extends React.Component<any, any> {
                                placeholder={"Mnemonic"}
                                ref={(input) => this.mnemonicInput = input}/>
                     </div>
+                    {this.showMnemonicPass ? (
+                    <div className="form-group">
+                        <input type="password" className="form-control form-control-lg"
+                               placeholder={"Mnemonic Passphrase"}
+                               ref={(input) => this.mnemonicPassInput = input}/>
+                    </div>
+                    ) : ""}
                     <div className="form-group text-left">
                         <div className="form-check" data-tip="Only needed if you had set a passphrase for mnemonic.">
                             <input type="checkbox" id="PassphraseCheckbox"
@@ -55,13 +65,6 @@ export class RestoreWallet extends React.Component<any, any> {
                             Mnemonic Passphrase</label>
                         </div>
                     </div>
-                    {this.showMnemonicPass ? (
-                    <div className="form-group">
-                        <input type="text" className="form-control form-control-lg"
-                               placeholder={"Mnemonic Passphrase"}
-                               ref={(input) => this.mnemonicPassInput = input}/>
-                    </div>
-                    ) : ""}
                     <div className="btn-group w-75" role="group">
                         <button
                             className="btn-lg btn-light w-50"
@@ -107,6 +110,23 @@ export class RestoreWallet extends React.Component<any, any> {
             return;
         }
 
+        if (DB.exists(C.WALLET_DB)) {
+            confirmAlert({
+                buttons: [
+                  {label: "Yes", onClick: () => this.restore(appPass, mnemonic, mnemonicPass)},
+                  {label: "Cancel", onClick: () => this.props.reset()},
+                ],
+                message: "You will lose all existing data during restore.",
+                title: "Are you sure to overwrite existing wallet?",
+              });
+        } else {
+            this.restore(appPass, mnemonic, mnemonicPass);
+        }
+    }
+
+    private restore(appPass: string, mnemonic: string, mnemonicPass: string) {
+        DB.unlink(C.WALLET_DB);
+        DB.unlink(C.CONFIG_DB);
         const creds = new LoginCredentials(appPass, mnemonicPass);
         this.props.handle(creds, mnemonic);
     }

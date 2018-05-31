@@ -1,16 +1,23 @@
 import * as React from "react";
 import { toast } from "react-toastify";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import * as ReactTooltip from "react-tooltip";
 import {LoginCredentials} from "../../../core/login-credentials";
 
-
+@observer
 export class Login extends React.Component<any, any> {
     private appPassInput: HTMLInputElement | null = null;
     private mnemonicPassInput: HTMLInputElement | null = null;
+    private showMnemonicPassInput: HTMLInputElement | null = null;
+    @observable
+    private showMnemonicPass: boolean | null = false;
 
     constructor(props: any) {
         super(props);
         this.handle = this.handle.bind(this);
         this.showRestore = this.showRestore.bind(this);
+        this.handleMnemonicPassphraseCheckbox = this.handleMnemonicPassphraseCheckbox.bind(this);
     }
 
     public render() {
@@ -23,10 +30,22 @@ export class Login extends React.Component<any, any> {
                             <input type="password" className="form-control form-control-lg" placeholder={"Wallet Password"}
                                    ref={(input) => this.appPassInput = input}/>
                         </div>
+                        {this.showMnemonicPass ? (
                         <div className="form-group">
                             <input type="password" className="form-control form-control-lg"
-                                   placeholder={"Mnemonic Salt"}
-                                   ref={(input) => this.mnemonicPassInput = input}/>
+                                placeholder={"Mnemonic Passphrase"}
+                                ref={(input) => this.mnemonicPassInput = input}/>
+                        </div>
+                        ) : ""}
+                        <div className="form-group text-left">
+                            <div className="form-check" data-tip="Only needed if you had set a passphrase for mnemonic.">
+                                <input type="checkbox" id="PassphraseCheckbox"
+                                    className="form-control form-control-lg form-check-input"
+                                    onChange={this.handleMnemonicPassphraseCheckbox}
+                                    ref={(input) => this.showMnemonicPassInput = input}/>
+                                <label className="form-check-label" htmlFor="PassphraseCheckbox">
+                                Mnemonic Passphrase</label>
+                            </div>
                         </div>
                         <div className="form-actions">
                             <input className="btn btn-lg btn-light w-50" type="submit" value="Login"/>
@@ -39,12 +58,15 @@ export class Login extends React.Component<any, any> {
                         <div>
                             <a href="#" className="link-dark" onClick={this.showRestore}> click here to restore your wallet.</a>
                         </div>
-
-
                     </form>
                 </div>
+                <ReactTooltip />
             </div>
         );
+    }
+
+    private handleMnemonicPassphraseCheckbox(event: any) {
+        this.showMnemonicPass = this.showMnemonicPassInput && this.showMnemonicPassInput.checked;
     }
 
     private handle(event: any) {

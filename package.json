@@ -61,6 +61,7 @@
     "moment": "^2.22.1",
     "qrcode": "^1.2.0",
     "react": "^16.3.2",
+    "react-confirm-alert": "^2.0.2",
     "react-dom": "^16.3.2",
     "react-google-charts": "^1.6.0",
     "react-modal": "^3.4.4",

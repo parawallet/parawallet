@@ -42,6 +42,22 @@ export class CreateNewWallet extends React.Component<any, any> {
                                placeholder={"Confirm Wallet Password"}
                                ref={(input) => this.confirmAppPassInput = input}/>
                     </div>
+                    {this.showAdvancedOptions ? (
+                    <div>
+                        <div className="form-group">
+                            <input type="password"
+                                    data-tip={this.mnemonicPassphraseTip}
+                                    placeholder={"Mnemonic Passphrase"}
+                                    className="form-control form-control-lg"
+                                    ref={(input) => this.mnemonicPassphraseInput = input}/>
+                        </div>
+                        <div className="form-group">
+                            <input type="password" className="form-control form-control-lg"
+                                    data-tip={this.mnemonicPassphraseTip}
+                                    placeholder={"Confirm Mnemonic Passphrase"}
+                                    ref={(input) => this.confirmMnemonicPassphraseInput = input}/>
+                        </div>
+                    </div>) : ""}
                     <div className="form-group text-left">
                         <div className="form-check" data-tip="Not recommended for users new to crypto space.">
                             <input type="checkbox" id="PassphraseCheckbox"
@@ -52,22 +68,6 @@ export class CreateNewWallet extends React.Component<any, any> {
                                    >Advanced Options</label>
                         </div>
                     </div>
-                    {this.showAdvancedOptions ? (
-                        <div>
-                            <div className="form-group">
-                                <input type="password"
-                                       data-tip={this.mnemonicPassphraseTip}
-                                       placeholder={"Mnemonic Passphrase"}
-                                       className="form-control form-control-lg"
-                                       ref={(input) => this.mnemonicPassphraseInput = input}/>
-                            </div>
-                            <div className="form-group">
-                                <input type="password" className="form-control form-control-lg"
-                                       data-tip={this.mnemonicPassphraseTip}
-                                       placeholder={"Confirm Mnemonic Passphrase"}
-                                       ref={(input) => this.confirmMnemonicPassphraseInput = input}/>
-                            </div>
-                        </div>) : ""}
                     <div className="btn-group w-75" role="group">
                         <button
                             className="btn-lg btn-light w-50"

@@ -27,3 +27,11 @@ export function exists(name: string) {
   const dbPath = path.join(appPath, name + ".db");
   return fs.existsSync(dbPath);
 }
+
+export function unlink(name: string) {
+  const dbPath = path.join(appPath, name + ".db");
+  if (fs.existsSync(dbPath)) {
+    fs.unlinkSync(dbPath);
+  }
+  kvStores.delete(name);
+}
