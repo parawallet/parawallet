@@ -2,8 +2,8 @@ import {observer} from "mobx-react";
 import {clipboard, shell} from "electron";
 import * as React from "react";
 import {toast} from "react-toastify";
+import { confirmAlert } from "react-confirm-alert";
 import {WalletTabPaneProps} from "../wallet-pane";
-
 
 @observer
 export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any> {
@@ -80,10 +80,20 @@ export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any
         );
     }
 
-    private async addNewAddress() {
+    private addNewAddress() {
         const wallet = this.props.wallet;
-        const newAddress = await wallet.addNewAddress();
-        toast.info(`Added new address ${newAddress}.`, {autoClose: 3000});
+        confirmAlert({
+            buttons: [
+              {label: "Yes", onClick: async () => {
+                const newAddress = await wallet.addNewAddress();
+                toast.info(`Added new address ${newAddress}.`, {autoClose: 3000});
+                },
+              },
+              {label: "Cancel", onClick: () => null},
+            ],
+            message: `A new public address will be created in ${this.props.wallet.name} wallet. \nDo you confirm?`,
+            title: "Confirm New Address",
+          });
     }
 
     private copyAddress(address: string) {

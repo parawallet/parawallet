@@ -2,6 +2,7 @@ import { computed, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { toast } from "react-toastify";
+import { confirmAlert } from "react-confirm-alert";
 import {totpValidator, TotpVerifyDialog} from "../../totp";
 import {Wallet} from "../../wallets";
 import { stringifyErrorReplacer, stringifyErrorMessageReplacer } from "../../../util/errors";
@@ -113,13 +114,14 @@ export class WalletSendPane extends React.Component<WalletTabPaneProps, any> {
             return;
         }
 
-        this.submitted = true;
-        console.log(`Transfering ${this.amount} ${this.props.wallet.code} to ${this.address} from ${this.from}`);
-        if (totpValidator.enabled) {
-            this.verifyToken = true;
-        } else {
-            this.transfer();
-        }
+        confirmAlert({
+            buttons: [
+              {label: "Yes", onClick: () => this.initiateTransfer()},
+              {label: "Cancel", onClick: () => null},
+            ],
+            message: `${this.amount} ${this.props.wallet.code} will be transfered to ${this.address}. \nDo you confirm?`,
+            title: "Confirm Transfer",
+          });
     }
 
     private validateParams(): boolean {
@@ -133,6 +135,11 @@ export class WalletSendPane extends React.Component<WalletTabPaneProps, any> {
                 wallet.validateAddress(this.from);
             } catch (error) {
                 toast.error("Invalid 'From Address'");
+                return false;
+            }
+
+            if (this.from === this.address) {
+                toast.error("'From Address' and 'To Address' are same!");
                 return false;
             }
         }
@@ -156,7 +163,17 @@ export class WalletSendPane extends React.Component<WalletTabPaneProps, any> {
         return true;
     }
 
+    private initiateTransfer() {
+        this.logger.info(`Transfering ${this.amount} ${this.props.wallet.code} to ${this.address} from ${this.from}`);
+        if (totpValidator.enabled) {
+            this.verifyToken = true;
+        } else {
+            this.transfer();
+        }
+    }
+
     private async transfer() {
+        this.submitted = true;
         const wallet = this.props.wallet;
         let txnId: string;
         try {
