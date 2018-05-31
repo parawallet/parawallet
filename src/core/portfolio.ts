@@ -3,6 +3,7 @@ import * as C from "../constants";
 import {getPrice, cacheThePrices} from "./coin-prices";
 import * as moment from "moment";
 import {Moment} from "moment";
+import { loggers } from "../util/logger";
 
 export class PortfolioRecord {
     public readonly dateStr: string;
@@ -17,6 +18,7 @@ export class PortfolioRecord {
 }
 
 export class PortfolioStore {
+    private readonly logger = loggers.getLogger("PortfolioStore");
     private readonly wallets: ReadonlyArray<Wallet>;
     private readonly records: PortfolioRecord[] = [];
 
@@ -30,7 +32,7 @@ export class PortfolioStore {
 
     public async updateLastRecord() {
         const dateStr = todayDate().format(C.PORTFOLIO_DATE_FORMAT);
-        console.log(`Updating last portfolio record for date: ${dateStr}`);
+        this.logger.debug(`Updating last portfolio record for date: ${dateStr}`);
         let totalValue = 0;
         const currentPortfolioMap = new Map<string, number>();
         for (const wallet of this.wallets) {
@@ -58,7 +60,7 @@ export class PortfolioStore {
 
         const lastRecord = this.records[this.records.length - 1];
         const lastRecordDate = moment(lastRecord.dateStr, C.PORTFOLIO_DATE_FORMAT);
-        console.log(`Last portfolio record date: ${lastRecordDate}`);
+        this.logger.debug(`Last portfolio record date: ${lastRecordDate}`);
         if (lastRecordDate.isSame(todayDate())) {
             return;
         }
@@ -72,7 +74,7 @@ export class PortfolioStore {
             return false;
         }
 
-        console.log(`Restoring portfolio history from ${startDateStr}`);
+        this.logger.info(`Restoring portfolio history from ${startDateStr}`);
         const date = moment(startDateStr, C.PORTFOLIO_DATE_FORMAT);
         for (; date.isSameOrBefore(todayDate()); date.add(1, "days")) {
             const record = this.restoreRecord(date);
@@ -96,7 +98,7 @@ export class PortfolioStore {
         // CAUTION: moment object is mutable: https://momentjs.com/guides/#/lib-concepts/mutability/
         for (; fromDate.isSameOrBefore(today); fromDate.add(1, "days")) {
             const dateStr = fromDate.format(C.PORTFOLIO_DATE_FORMAT);
-            console.log(`Updating portolio [${lastRecord.portfolio}] for date: ${dateStr}`);
+            this.logger.debug(`Updating portolio [${lastRecord.portfolio}] for date: ${dateStr}`);
 
             let totalValue = 0;
             for (const coin of portfolioMap.keys()) {
@@ -114,7 +116,7 @@ export class PortfolioStore {
 
     private async initializePortfolioHistory() {
         const dateStr = todayDate().format(C.PORTFOLIO_DATE_FORMAT);
-        console.log(`Initializing portolio for the first time. Date: ${dateStr}`);
+        this.logger.info(`Initializing portolio for the first time. Date: ${dateStr}`);
         localStorage.setItem(C.PORTFOLIO_START, dateStr);
         await this.updateLastRecord();
     }

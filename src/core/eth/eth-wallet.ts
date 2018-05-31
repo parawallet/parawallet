@@ -22,7 +22,7 @@ export class EthWallet extends AbstractWallet implements Wallet {
     constructor(kv: SecoKeyval, mnemonic: string, mnemonicPass: string, network: EthNetworkType) {
         super("ETH", "Ethereum", kv);
         this.rpc = new EthWalletRpc(kv, mnemonic, mnemonicPass, network);
-        console.info(`ETH using ${EthNetworkType[network]} network`);
+        this.logger.info(`ETH using ${EthNetworkType[network]} network`);
     }
 
     protected initializeImpl(createEmpty: boolean) {
@@ -51,12 +51,12 @@ export class EthWallet extends AbstractWallet implements Wallet {
         try {
             const txns: EthTransactionResponse[] = await this.rpc.getHistory();
             return txns.map((tx) => {
-                console.log(`ETH TX: ${JSON.stringify(tx)}`);
+                this.logger.debug(`TX: ${JSON.stringify(tx)}`);
                 const status: TransactionStatus = "success";
                 return {id: tx.hash, timestamp: 0, source: tx.from, destination: tx.to, amount: tx.value / 1.0e18, status};
             });
         } catch (error) {
-            console.log(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
         }
         return [];
     }
@@ -65,13 +65,13 @@ export class EthWallet extends AbstractWallet implements Wallet {
         try {
             // https://docs.ethers.io/ethers.js/html/api-providers.html#transactionresponse
             const tx: EthTransactionResponse = await this.rpc.getTransaction(txid);
-            console.log(`ETH TX RECEIPT: ${JSON.stringify(tx)}`);
+            this.logger.debug(`TX RECEIPT: ${JSON.stringify(tx)}`);
             if (tx && tx.blockHash) {
                 return "success";
             }
             // TODO: failed transaction ???
         } catch (error) {
-            console.log(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
         }
         return "pending";
     }

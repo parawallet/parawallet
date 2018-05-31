@@ -4,6 +4,7 @@ import { EthNetworkType } from "./eth-wallet";
 import { Wallet, providers, HDNode, utils } from "ethers";
 import { stringifyErrorReplacer } from "../../util/errors";
 import {ExplorerDataType} from "../wallet";
+import { loggers } from "../../util/logger";
 
 class Params {
     constructor(addressIndex) {
@@ -14,6 +15,7 @@ class Params {
 // todo support multiple addresses
 export class EthWalletRpc {
     constructor(kv, mnemonic, pass, networkType) {
+        this.logger = loggers.getLogger("EthWalletRpc");
         this.kv = kv;
         this.pass = pass || "";
         if (!mnemonic) {
@@ -36,12 +38,12 @@ export class EthWalletRpc {
 
         const params = await this.kv.get(C.ETH_PARAMS);
         if (params) {
-            console.log("ETH PARAMS: " + JSON.stringify(params));
+            this.logger.debug("PARAMS: " + JSON.stringify(params));
             this.params = params;
             this.fillWallets();
         } else {
             const index = await this.discover();
-            console.info(`ETH discovered index=${index}`);
+            this.logger.debug(`discovered index=${index}`);
             this.addressIndex = index;
             this.fillWallets();
             return this.persistParams();
@@ -65,11 +67,11 @@ export class EthWalletRpc {
     }
 
     async discover() {
-        console.log("Discovering addresses for ETH");
+        this.logger.debug("Discovering addresses");
         try {
             return await this.discoverAccounts(0, 0);
         } catch (error) {
-            console.error(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
             return 0;
         }
     }
@@ -79,9 +81,9 @@ export class EthWalletRpc {
         const amount = await this.provider.getBalance(address);
         if (!amount || amount.isZero()) {
             gap++;
-            console.error(`ETH ${index} -> ${address} has NO balance. gap: ${gap}`);
+            this.logger.debug(`${index} -> ${address} has NO balance. gap: ${gap}`);
         } else {
-            console.info(`ETH ${index} -> ${address} has balance=${amount}.`);
+            this.logger.debug(`${index} -> ${address} has balance=${amount}.`);
             gap = 0;
         }
         if (gap < C.GAP_LIMIT) {
@@ -95,10 +97,10 @@ export class EthWalletRpc {
         return this.wallets.map((wallet) => {
             const address = wallet.address;
             return this.provider.getBalance(address).then((amount) => {
-                console.info(`ETH Balance for ${address} = ${amount}`);
+                this.logger.debug(`Balance for ${address} = ${amount}`);
                 return {address: address, amount: amount / 1.0e18};
             }).catch((e) => {
-                console.error(JSON.stringify(e));
+                this.logger.error(JSON.stringify(e));
                 return {address: address, amount: 0};
             });
         });
@@ -122,8 +124,8 @@ export class EthWalletRpc {
     async send(from, toAddr, etherAmount) {
         const wallet = this.wallets.find((w) => w.address === from);
         if (!wallet) {
-            const notFound = `ETH Wallet for address: ${from} not found!`;
-            console.error(notFound);
+            const notFound = `Wallet for address: ${from} not found!`;
+            this.logger.error(notFound);
             throw notFound;
         }
 
@@ -135,7 +137,7 @@ export class EthWalletRpc {
         const amount = etherAmount * 1e18;
 
         const transactionResult = await wallet.send(toAddr, amount, options);
-        console.log("ETH txn hash: " + JSON.stringify(transactionResult));
+        this.logger.debug("txn hash: " + JSON.stringify(transactionResult));
         return transactionResult.hash;
     }
 

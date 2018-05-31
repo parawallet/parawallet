@@ -6,11 +6,13 @@ import { confirmAlert } from "react-confirm-alert";
 import {totpValidator, TotpVerifyDialog} from "../../totp";
 import {Wallet} from "../../wallets";
 import { stringifyErrorReplacer, stringifyErrorMessageReplacer } from "../../../util/errors";
+import { loggers } from "../../../util/logger";
 import {WalletTabPaneProps} from "../wallet-pane";
 
 
 @observer
 export class WalletSendPane extends React.Component<WalletTabPaneProps, any> {
+    private readonly logger = loggers.getLogger("WalletSendPane");
     @observable
     private from: string = "";
     @observable
@@ -100,7 +102,6 @@ export class WalletSendPane extends React.Component<WalletTabPaneProps, any> {
     private changeFrom(event: any) {
         event.preventDefault();
         const address = event.target.value;
-        console.log(`From changed to: ${address}`);
         this.from = address;
     }
 
@@ -184,7 +185,7 @@ export class WalletSendPane extends React.Component<WalletTabPaneProps, any> {
             }
             this.reset();
         } catch (error) {
-            console.log(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
             toast.error(JSON.stringify(error, stringifyErrorMessageReplacer));
             this.submitted = false;
         }

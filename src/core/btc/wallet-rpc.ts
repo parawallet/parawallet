@@ -4,6 +4,7 @@ import { RequestResponse as Response } from "request";
 import { Balance, Transaction } from "../wallet";
 import { BtcNetworkType } from "./btc-wallet";
 import { stringifyErrorReplacer } from "../../util/errors";
+import { loggers } from "../../util/logger";
 
 export function createBtcWalletRpc(network: BtcNetworkType): BtcWalletRpc {
     return new SmartbitBtcWalletRpc(network);
@@ -41,6 +42,8 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
   private readonly queryUrl: string;
   private readonly txUrl: string;
 
+  private readonly logger = loggers.getLogger("SmartbitBtcWalletRpc");
+
   constructor(network: BtcNetworkType) {
     this.baseUrl = network === BtcNetworkType.MAINNET
       ? SmartbitBtcWalletRpc.MAINNET : SmartbitBtcWalletRpc.TESTNET;
@@ -59,14 +62,14 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
       const results: any[] = response.addresses || [response.address];
 
       return results.map((result) => {
-          console.log("Received query result for " + result.address
-          + ", total: " + result.total.balance_int
-          + ", confirmed: " + result.confirmed.balance_int
-          + ", unconfirmed: " + result.unconfirmed.balance_int);
-          return {address: result.address, amount: result.confirmed.balance_int / 1e8};
+        this.logger.debug("Received query result for " + result.address
+            + ", total: " + result.total.balance_int
+            + ", confirmed: " + result.confirmed.balance_int
+            + ", unconfirmed: " + result.unconfirmed.balance_int);
+        return {address: result.address, amount: result.confirmed.balance_int / 1e8};
       });
     } catch (error) {
-      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
       return addresses.map((address) => {
         return {address, amount: 0};
       });
@@ -109,7 +112,7 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
       const transactions: any[] = addressObj.transactions || [];
       return transactions;
     } catch (error) {
-      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
       return [];
     }
   }
@@ -131,13 +134,13 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
         const unspents = allUnspents.filter((out) => keypair.getAddress() === out.addresses[0])
           .map((out: utxo) => new UnspentTxOutput(out.txid, out.n, out.value_int));
         outputs.push([keypair, unspents]);
-        console.log("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
+        this.logger.debug("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
       });
 
       return outputs;
 
     } catch (error) {
-      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
       return [];
     }
   }
@@ -151,10 +154,9 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
     try {
       const body = await request.post(options);
       const txid: string = JSON.parse(body).txid;
-      console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
       return txid;
     } catch (error) {
-      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
       throw error;
     }
   }
@@ -166,7 +168,7 @@ class SmartbitBtcWalletRpc implements BtcWalletRpc {
       const tx = JSON.parse(txStr);
       return tx;
     } catch (error) {
-      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
       return null;
     }
   }
@@ -188,6 +190,8 @@ class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
   private readonly queryAddressUrl: string;
   private readonly balanceSuffix: string;
   private readonly utxoUrl: string;
+
+  private readonly logger = loggers.getLogger("BitpayInsightBtcWalletRpc");
 
   constructor(network: BtcNetworkType) {
     this.baseUrl = network === BtcNetworkType.MAINNET
@@ -220,10 +224,10 @@ class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
     const promises = addresses.map((address) => {
       const url = this.queryAddressUrl + address + this.balanceSuffix;
       return request.get(url).then((value) => {
-        console.log("Received query result for " + address + ", amount: " + value);
+        this.logger.debug("Received query result for " + address + ", amount: " + value);
         return {address, amount: Number(value) / 1e8};
       }).catch((error) => {
-        console.error(JSON.stringify(error, stringifyErrorReplacer));
+        this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
         return {address, amount: 0};
       });
     });
@@ -239,7 +243,7 @@ class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
       return response.transactions as string[];
 
     } catch (error) {
-      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
       return [];
     }
   }
@@ -282,11 +286,11 @@ class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
         const unspents = allUnspents.filter((out) => keypair.getAddress() === out.address)
           .map((out: utxo) => new UnspentTxOutput(out.txid, out.vout, out.satoshis));
         outputs.push([keypair, unspents]);
-        console.log("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
+        this.logger.debug("Unspent outputs for " + keypair.getAddress() + " -> " + JSON.stringify(unspents));
       });
       return outputs;
     } catch (error) {
-      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
       return [];
     }
   }
@@ -301,10 +305,9 @@ class BitpayInsightBtcWalletRpc implements BtcWalletRpc {
     try {
       const body = await request.post(options);
       const txid: string = JSON.parse(body).txid;
-      console.log("https://www.blocktrail.com/tBTC/tx/" + txid);
       return txid;
     } catch (error) {
-      console.error(JSON.stringify(error, stringifyErrorReplacer));
+      this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
       throw error;
     }
   }

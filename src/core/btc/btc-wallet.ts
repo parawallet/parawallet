@@ -21,7 +21,7 @@ export class BtcWallet extends AbstractWallet implements Wallet {
         this.networkType = networkType;
         this.rpc = createBtcWalletRpc(networkType);
         this.addressGen = new BtcAddressGenerator(kv, mnemonic, mnemonicPass, networkType, this.rpc.queryTransactionIds.bind(this.rpc));
-        console.info(`BTC using ${BtcNetworkType[networkType]} network`);
+        this.logger.info(`BTC using ${BtcNetworkType[networkType]} network`);
     }
 
     protected initializeImpl(createEmpty: boolean) {
@@ -81,15 +81,15 @@ export class BtcWallet extends AbstractWallet implements Wallet {
             "address": toAddress,
             "value": satoshiAmount,
         }], 20);
-        console.log("Fee: " + fee);
+        this.logger.debug("Fee: " + fee);
 
         // .inputs and .outputs will be undefined if no solution was found
         if (!inputs || !outputs) {
             throw new Error("This transaction is not possible!");
         }
 
-        inputs.forEach((input) => console.log("input::" + JSON.stringify(input)));
-        outputs.forEach((output) => console.log("output::" + JSON.stringify(output)));
+        inputs.forEach((input) => this.logger.debug("input::" + JSON.stringify(input)));
+        outputs.forEach((output) => this.logger.debug("output::" + JSON.stringify(output)));
 
         const txb = new TransactionBuilder(this.addressGen.getNetwork());
         for (const input of inputs) {
@@ -120,7 +120,7 @@ export class BtcWallet extends AbstractWallet implements Wallet {
     protected async transactionStatus(txid: string): Promise<TransactionStatus> {
         let st: TransactionStatus = "pending";
         const tx = await this.rpc.getTransaction(txid);
-        console.log(`BTC TX: ${JSON.stringify(tx)}`);
+        this.logger.debug(`TX: ${JSON.stringify(tx)}`);
         if (tx.success) {
             st = "success";
         }

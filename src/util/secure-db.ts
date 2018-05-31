@@ -2,9 +2,11 @@ import {remote} from "electron";
 import * as fs from "fs";
 import * as path from "path";
 import SecoKeyval from "seco-keyval";
+import { loggers } from "./logger";
 
 const appPath = remote.app.getPath("userData");
 const kvStores = new Map<string, SecoKeyval>();
+const logger = loggers.getLogger("Secure-DB");
 
 export async function open(name: string, password: string) {
   if (kvStores.has(name)) {
@@ -12,7 +14,7 @@ export async function open(name: string, password: string) {
   }
 
   const dbPath = path.join(appPath, name + ".db");
-  console.log("Opening " + name + " db. Path: " + dbPath);
+  logger.debug("Opening " + name + " db. Path: " + dbPath);
   const kv = new SecoKeyval(dbPath, { appName: "parawallet", appVersion: "0.1" });
   await kv.open(password);
   kvStores.set(name, kv);

@@ -1,5 +1,7 @@
 import * as request from "request";
+import { loggers } from "../util/logger";
 
+const logger = loggers.getLogger("CoinPrices");
 const coinPrices = new Map<string, number>();
 
 export function getPrice(dateStr: string, coin: string): Promise<any> {
@@ -15,7 +17,7 @@ export function getPrice(dateStr: string, coin: string): Promise<any> {
             const result: any = JSON.parse(body);
             if (result == null || result.length < 1) {
                 // todo throw exception, do not show chart. user should not see incorrect balance.
-                console.error("No price from web service for:" + key);
+                logger.error("No price from web service for:" + key);
                 resolve(-1);
             } else {
                 const priceUsd = result[0].price_usd;
@@ -28,17 +30,12 @@ export function getPrice(dateStr: string, coin: string): Promise<any> {
 
 export function cacheThePrices(coin: string, date1: string, date2: string) {
     const url: string = "http://mindeet.com/admin/operation/coinPrice/prices?coinType=" + coin + "&start=" + date1 + "&end=" + date2;
-    console.log(url);
     return new Promise((resolve, reject) => {
         request(url, (error, response, body) => {
-            console.log("body");
-            console.log(body);
             const result: any = JSON.parse(body);
-            console.log("response");
-            console.log(response);
             if (result == null || result.length < 1) {
                 // todo throw exception, do not show chart. user should not see incorrect balance.
-                console.error("No price from web service for:" + coin);
+                logger.error("No price from web service for:" + coin);
                 resolve(-1);
             } else {
                 for (const item of result) {

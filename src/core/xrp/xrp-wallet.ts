@@ -16,7 +16,7 @@ export class XrpWallet extends AbstractWallet implements Wallet {
     constructor(kv: SecoKeyval, mnemonic: string, pass: string, networkType: XrpNetworkType) {
         super("XRP", "Ripple", kv);
         this.rpc = new XrpWalletRpc(kv, mnemonic, pass, networkType);
-        console.info(`XRP using ${XrpNetworkType[networkType]} network`);
+        this.logger.info(`XRP using ${XrpNetworkType[networkType]} network`);
     }
 
     protected initializeImpl(createEmpty: boolean) {
@@ -46,7 +46,7 @@ export class XrpWallet extends AbstractWallet implements Wallet {
         const txns = await this.rpc.getTransactions(address);
         const result: Transaction[] = [];
         txns.forEach((tx) => {
-            console.log(`XRP TX: ${JSON.stringify(tx)}`);
+            this.logger.debug(`XRP TX: ${JSON.stringify(tx)}`);
             if (isPaymentTransaction(tx)) {
                 const spec = tx.specification;
                 const amount = address === spec.source.address
@@ -62,7 +62,7 @@ export class XrpWallet extends AbstractWallet implements Wallet {
     protected async transactionStatus(txid: string): Promise<TransactionStatus> {
         const outcome = await this.rpc.getTransactionOutcome(txid);
         // https://ripple.com/build/transactions/#full-transaction-response-list
-        console.log(`XRP TX OUTCOME: ${JSON.stringify(outcome)}`);
+        this.logger.debug(`TX OUTCOME: ${JSON.stringify(outcome)}`);
         if (outcome) {
             return transactionStatus(outcome);
         }

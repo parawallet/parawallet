@@ -2,8 +2,8 @@ import {action, runInAction, computed, observable, reaction, toJS} from "mobx";
 import SecoKeyval from "seco-keyval";
 import * as C from "../constants";
 import { Wallet, Balance, Transaction, TransactionStatus, WalletEventListener } from "./wallet";
-
 import * as assert from "assert";
+import { loggers, Logger } from "../util/logger";
 
 class NopEventListener implements WalletEventListener {
     public onBalanceChange(address: string, previousAmount: number, currentAmount: number) {
@@ -20,6 +20,7 @@ export interface AbstractWallet extends Wallet {
 }
 
 export abstract class AbstractWallet implements Wallet {
+    protected readonly logger: Logger;
     public readonly code: string;
     public readonly name: string;
 
@@ -40,6 +41,7 @@ export abstract class AbstractWallet implements Wallet {
         this.code = code;
         this.name = name;
         this.kv = kv;
+        this.logger = loggers.getLogger(name + "Wallet");
 
         this.checkPendingTransaction = this.checkPendingTransaction.bind(this);
     }
@@ -114,7 +116,7 @@ export abstract class AbstractWallet implements Wallet {
 
     private async onBalancesChange() {
         const prevBalances: Balance[] = await this.kv.get(this.code + C.BALANCES_SUFFIX) || [];
-        console.log(`${this.code}: Persisting balances: ${JSON.stringify(this.balances)}`);
+        this.logger.debug(`${this.code}: Persisting balances: ${JSON.stringify(this.balances)}`);
         this.kv.set(this.code + C.BALANCES_SUFFIX, toJS(this.balances));
 
         const balanceMap = new Map(prevBalances.map((balance) => [balance.address, balance.amount] as [string, number]));
@@ -147,7 +149,7 @@ export abstract class AbstractWallet implements Wallet {
     // }
 
     private persistTransactions() {
-        console.log(`${this.code}: Persisting transactions: ${JSON.stringify(this.transactions)}`);
+        this.logger.debug(`${this.code}: Persisting transactions: ${JSON.stringify(this.transactions)}`);
         this.kv.set(this.code + C.TRANSACTIONS_SUFFIX, toJS(this.transactions));
     }
 
@@ -208,11 +210,11 @@ export abstract class AbstractWallet implements Wallet {
 
     private async checkPendingTransaction() {
         if (!this.pendingTransaction) {
-            console.log(this.code + ": No pending transaction at the moment.");
+            this.logger.debug(this.code + ": No pending transaction at the moment.");
             return;
         }
 
-        console.log(`${this.code}: Checking pending transaction: ${this.pendingTransaction}`);
+        this.logger.debug(`${this.code}: Checking pending transaction: ${this.pendingTransaction}`);
         const status = await this.transactionStatus(this.pendingTransaction);
 
         if (status === "pending") {
@@ -222,7 +224,7 @@ export abstract class AbstractWallet implements Wallet {
             assert.strictEqual(tx.id, this.pendingTransaction);
 
             tx.status = status;
-            console.log(`${this.code}: Completed transaction: ${JSON.stringify(tx)}`);
+            this.logger.info(`${this.code}: Completed transaction: ${JSON.stringify(tx)}`);
 
             this.pendingTransaction = null;
             this.updateBalances();

@@ -12,6 +12,7 @@ import { getOrInitializeMnemonic, Wallet, newXrpWallet, newEthWallet, newBtcWall
 import {PortfolioStore} from "../core/portfolio";
 import { WalletNotificationHandler } from "./wallet-notifications";
 import {LoginCredentials} from "../core/login-credentials";
+import {loggers} from "../util/logger";
 
 enum PageId {
     AUTH,
@@ -22,6 +23,7 @@ enum PageId {
 
 @observer
 class Main extends React.Component<any, any> {
+    private readonly logger = loggers.getLogger("Main");
     private wallets: Wallet[] = [];
     private credentials: LoginCredentials;
     private loginType: WalletInitType;
@@ -73,7 +75,6 @@ class Main extends React.Component<any, any> {
         try {
             const walletKv = await DB.open(C.WALLET_DB, loginCreds.appPass);
             const configKv = await DB.open(C.CONFIG_DB, loginCreds.appPass);
-            console.log("Databases are ready now");
 
             totpValidator.restore(configKv!);
             if (loginType === WalletInitType.NEW || loginType === WalletInitType.IMPORT) {
@@ -85,8 +86,8 @@ class Main extends React.Component<any, any> {
                 this.initializeWallets(loginCreds.mnemonicPass, false);
             }
         } catch (error) {
-            console.log(error);
             this.activePage = PageId.AUTH;
+            this.logger.error(error);
             toast.error("Wrong password!", {position: toast.POSITION.TOP_CENTER});
         }
     }

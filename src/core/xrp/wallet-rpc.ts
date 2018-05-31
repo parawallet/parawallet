@@ -5,6 +5,7 @@ import {generateAddress, XrpAccount} from "./address-gen";
 import {XrpNetworkType} from "./xrp-wallet";
 import { Balance, Transaction } from "../wallet";
 import { stringifyErrorReplacer } from "../../util/errors";
+import { loggers } from "../../util/logger";
 
 const testServer = "wss://s.altnet.rippletest.net:51233";
 const testDataServer = testServer;
@@ -30,6 +31,7 @@ class Params {
 }
 
 export class XrpWalletRpc {
+    private readonly logger = loggers.getLogger("XrpWalletRpc");
     private readonly kv: SecoKeyval;
     private readonly mnemonic: string;
     private readonly pass: string;
@@ -53,12 +55,12 @@ export class XrpWalletRpc {
 
         const params: Params = await this.kv.get(C.XRP_PARAMS);
         if (params) {
-            console.log("XRP PARAMS: " + JSON.stringify(params));
+            this.logger.debug("PARAMS: " + JSON.stringify(params));
             this.params = params;
             this.fillAccounts();
         } else {
             const index = await this.discover();
-            console.info(`XRP discovered index=${index}`);
+            this.logger.debug(`discovered index=${index}`);
             this.addressIndex = index;
             this.fillAccounts();
             return this.persistParams();
@@ -78,13 +80,13 @@ export class XrpWalletRpc {
 
     private addAccount(index: number) {
         const account = generateAddress(this.mnemonic, this.pass, index);
-        console.log(index + ": XRP ADDRESS-> " + account.address);
+        this.logger.debug(index + ": ADDRESS-> " + account.address);
         this.accounts[index] = account;
         return account;
     }
 
     private async discover(): Promise<number> {
-        console.log("Discovering addresses for XRP");
+        this.logger.debug("Discovering addresses");
         const api = this.newRippleAPI(false);
 
         try {
@@ -92,7 +94,7 @@ export class XrpWalletRpc {
             const index = await this.discoverAccounts(api, 0, 0);
             return index;
         } catch (error) {
-            console.error(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
             return 0;
         } finally {
             api.disconnect();
@@ -107,7 +109,7 @@ export class XrpWalletRpc {
             const balance = await this.getAccountBalance(api, account.address) || emptyBalance;
             return this.inspectAndDiscoverAccount(api, index, gap, balance);
         } catch (error) {
-            console.error(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
             return this.inspectAndDiscoverAccount(api, index, gap, emptyBalance);
         }
     }
@@ -115,9 +117,9 @@ export class XrpWalletRpc {
     private inspectAndDiscoverAccount(api: RippleAPI, index: number, gap: number, balance: Balance) {
         if (balance.amount === 0) {
             gap++;
-            console.error(`XRP ${index} -> ${balance.address} has NO balance. gap: ${gap}`);
+            this.logger.debug(`${index} -> ${balance.address} has NO balance. gap: ${gap}`);
         } else {
-            console.info(`XRP ${index} -> ${balance.address} has balance=${balance.amount}.`);
+            this.logger.debug(`${index} -> ${balance.address} has balance=${balance.amount}.`);
             gap = 0;
         }
         if (gap < C.GAP_LIMIT) {
@@ -137,7 +139,7 @@ export class XrpWalletRpc {
             return balances;
         })).catch((e) => {
             api.disconnect();
-            console.error(JSON.stringify(e));
+            this.logger.error(JSON.stringify(e));
             return [];
         });
         return balancePromise;
@@ -146,10 +148,10 @@ export class XrpWalletRpc {
     private async getAccountBalance(api: RippleAPI, address: string): Promise<Balance> {
         try {
             const info = await api.getAccountInfo(address);
-            console.info(`XRP Balance for ${address} = ${info.xrpBalance}`);
+            this.logger.debug(`Balance for ${address} = ${info.xrpBalance}`);
             return {address, amount: Number(info.xrpBalance)};
         } catch (error) {
-            console.error(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
             return {address, amount: 0};
         }
     }
@@ -167,7 +169,7 @@ export class XrpWalletRpc {
             const tx = await api.getTransactions(address, {types: ["payment"]});
             return tx;
         } catch (error) {
-            console.error(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer, 2));
             return [];
         }
     }
@@ -179,7 +181,7 @@ export class XrpWalletRpc {
             const tx = await api.getTransaction(txid);
             return tx.outcome;
         } catch (error) {
-            console.error(JSON.stringify(error, stringifyErrorReplacer));
+            this.logger.error(JSON.stringify(error, stringifyErrorReplacer));
             return null;
         }
     }
@@ -187,8 +189,8 @@ export class XrpWalletRpc {
     public async send(from: string, toAddress: string, amount: number) {
         const account = this.accounts.find((acc) => acc.address === from);
         if (!account) {
-            const notFound = `XRP Wallet for address: ${from} not found!`;
-            console.error(notFound);
+            const notFound = `Wallet for address: ${from} not found!`;
+            this.logger.error(notFound);
             throw notFound;
         }
 
@@ -198,13 +200,13 @@ export class XrpWalletRpc {
         try {
             await api.connect();
             const prepared = await api.preparePayment(account.address, payment);
-            console.log("XRP TX: " + prepared.txJSON);
+            this.logger.debug("TX: " + prepared.txJSON);
 
             const signedTxn = api.sign(prepared.txJSON, account.keypair);
-            console.log("XRP TX ID:" + signedTxn.id);
+            this.logger.debug("TX ID:" + signedTxn.id);
 
             const result = await api.submit(signedTxn.signedTransaction);
-            console.log(`XRP TX RESULT: ${JSON.stringify(result)}`);
+            this.logger.debug(`TX RESULT: ${JSON.stringify(result)}`);
             return signedTxn.id;
         } finally {
             api.disconnect();
