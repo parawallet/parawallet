@@ -102,7 +102,7 @@ export class RestoreWallet extends React.Component<any, any> {
             return;
         }
         if (!bip39.validateMnemonic(mnemonic)) {
-            // TODO: we can allow invalid mnemonics  -- enes: why?
+            // TODO: we can allow invalid mnemonics
             toast.error("Invalid mnemonic!", {autoClose: 5000});
             return;
         }

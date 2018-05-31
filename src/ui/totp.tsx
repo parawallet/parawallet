@@ -32,7 +32,6 @@ class TotpValidator {
   public restore(kv: SecoKeyval) {
     return kv.get(C.TOTP_PARAMS).then((params: TotpParams) => {
       this.params = params || new TotpParams(false);
-      console.log("TOTP PARAMS: " + JSON.stringify(this.params));
     });
   }
 
@@ -122,7 +121,6 @@ export class TotpSetup extends React.Component<any, any> {
 
   private enable2FA(event: any) {
     event.preventDefault();
-    console.log(this.secret.otpauth_url);
     qrcode.toDataURL(this.secret.otpauth_url!, (err, url) => {
       this.setState({qrcodeUrl: url});
     });

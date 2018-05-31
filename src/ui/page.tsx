@@ -16,6 +16,7 @@ import {PortfolioStore} from "../core/portfolio";
 import {stringifyErrorMessageReplacer} from "../util/errors";
 import {BackupPane} from "./pages/backup";
 import {SecurityPane} from "./pages/security";
+import { isProductionBuild } from "../runtime-args";
 
 interface PageProps {
     readonly portfolioStore: PortfolioStore;
@@ -34,24 +35,25 @@ export class Page extends React.Component<PageProps, any> {
     private activePaneId: PaneId = PaneId.PANE_TIMELINE;
     private portfolioStore: PortfolioStore;
     private mnemonics: string;
+    private reactionDisposer: () => void;
 
     constructor(props: PageProps) {
         super(props);
         this.walletStore = new WalletStore(props.wallets, props.defaultWalletCode);
         this.portfolioStore = props.portfolioStore;
         this.mnemonics = props.mnemonics;
-
-        // Update portfolio when total balance of any wallet changes
-        reaction(() => this.walletStore.allWallets.map((wa) => wa.totalBalanceAmount),
-            () => this.portfolioStore.updateLastRecord());
     }
 
     public componentDidMount() {
+        // Update portfolio when total balance of any wallet changes
+        this.reactionDisposer = reaction(() => this.walletStore.allWallets.map((wa) => wa.totalBalanceAmount),
+                () => this.portfolioStore.updateLastRecord());
         this.timerID = setInterval(() => this.updateActiveBalance(), 30000);
     }
 
     public componentWillUnmount() {
         clearInterval(this.timerID);
+        this.reactionDisposer();
     }
 
     public render() {
@@ -86,14 +88,12 @@ export class Page extends React.Component<PageProps, any> {
         return (
             <div>
                 <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-                    <a className="navbar-brand col-sm-3 col-md-2 mr-0" href="#">
+                    <span className="navbar-brand col-sm-3 col-md-2 mr-0">
                         <img src="images/wallet_logo_inv.png" className="nav-logo"/>
-                    </a>
-                    <ul className="navbar-nav px-3">
-                        <li className="nav-item text-nowrap">
-                            <a className="nav-link" href="#">Version {remote.app.getVersion()}</a>
-                        </li>
-                    </ul>
+                    </span>
+                    <div className="navbar-nav px-3">
+                        <span className="nav-link">{isProductionBuild(remote.process) ? "PROD" : "TEST"} - Version {remote.app.getVersion()}</span>
+                    </div>
                 </nav>
 
 
@@ -127,7 +127,6 @@ export class Page extends React.Component<PageProps, any> {
     }
 
     private switchWallet(walletType: WalletType) {
-        console.log(`Switching wallet: ${walletType.code}`);
         this.activePaneId = PaneId.PANE_WALLET;
         this.walletStore.switchWallet(walletType.code);
     }

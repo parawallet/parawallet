@@ -101,7 +101,7 @@ const template = [
     submenu: [
       {
         label: "Learn More",
-        click: function() { shell.openExternal("http://electron.atom.io") }
+        click: function() { shell.openExternal("https://parawallet.app") }
       },
     ]
   },

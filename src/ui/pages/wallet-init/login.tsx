@@ -1,4 +1,5 @@
 import * as React from "react";
+import { toast } from "react-toastify";
 import {LoginCredentials} from "../../../core/login-credentials";
 
 
@@ -49,6 +50,10 @@ export class Login extends React.Component<any, any> {
     private handle(event: any) {
         event.preventDefault();
         const appPass = this.appPassInput ? this.appPassInput.value : "";
+        if (!appPass) {
+            toast.error("Wallet password is required!", {autoClose: 5000});
+            return;
+        }
         const mnemonicPass = this.mnemonicPassInput ? this.mnemonicPassInput.value : "";
         const creds = new LoginCredentials(appPass, mnemonicPass);
         this.props.handle(creds);

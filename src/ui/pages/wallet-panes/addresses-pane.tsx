@@ -88,7 +88,6 @@ export class WalletAddressesPane extends React.Component<WalletTabPaneProps, any
 
     private copyAddress(address: string) {
         clipboard.writeText(address);
-        toast.info(`Copied ${address} to clipboard.`, {autoClose: 2000});
     }
 
     private setDefaultAddress(address: string) {

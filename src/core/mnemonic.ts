@@ -6,12 +6,10 @@ export async function getOrInitializeMnemonic(kv: SecoKeyval) {
     let mnemonic: string | undefined = await kv.get(C.MNEMONIC);
 
     if (mnemonic) {
-        console.log("read mnemonic:" + mnemonic);
         return mnemonic;
     }
 
     mnemonic = bip39.generateMnemonic();
-    console.log("generated mnemonic:" + mnemonic);
     await kv.set(C.MNEMONIC, mnemonic);
     return mnemonic;
 }

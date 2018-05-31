@@ -10,10 +10,11 @@ import {WalletTabPaneProps} from "../wallet-pane";
 export class WalletReceivePane extends React.Component<WalletTabPaneProps, any> {
     @observable
     private addressQRCode: string;
+    private reactionDisposer: () => void;
+    private unmounted = false;
 
     public constructor(props: WalletTabPaneProps) {
         super(props);
-
         if (props.wallet.defaultAddress) {
             qrcode.toDataURL(props.wallet.defaultAddress)
                 .then((url: string) => {
@@ -22,15 +23,23 @@ export class WalletReceivePane extends React.Component<WalletTabPaneProps, any> 
         }
     }
 
-
     public componentDidMount(): void {
-        const reaction1 = reaction(
+        this.reactionDisposer = reaction(
             () => this.props.wallet.defaultAddress,
             (address) => qrcode.toDataURL(address)
-                .then((url: string) => {
+            .then((url: string) => {
+                if (!this.unmounted) {
+                    // do not update state if unmounted.
+                    // we have this check since state is modified async here.
                     this.addressQRCode = url;
-                }),
+                }
+            }),
         );
+    }
+
+    public componentWillUnmount() {
+        this.reactionDisposer();
+        this.unmounted = true;
     }
 
     public render() {
