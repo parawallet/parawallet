@@ -53,7 +53,6 @@ export class CreateNewWallet extends React.Component<any, any> {
                         </div>
                         <div className="form-group">
                             <input type="password" className="form-control form-control-lg"
-                                    data-tip={this.mnemonicPassphraseTip}
                                     placeholder={"Confirm Mnemonic Passphrase"}
                                     ref={(input) => this.confirmMnemonicPassphraseInput = input}/>
                         </div>

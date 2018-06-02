@@ -31,7 +31,7 @@ export class RestoreWallet extends React.Component<any, any> {
             <div className="login-div w-100 h-100">
                 <div className="w-50" style={{margin: "auto"}}>
                     <img src="images/wallet_logo_inv.png" className="login-logo"/>
-                    <h4>Create New Wallet</h4>
+                    <h4>Restore Your Wallet</h4>
                     <br/>
                     <div className="form-group">
                         <input type="password" className="form-control form-control-lg"
