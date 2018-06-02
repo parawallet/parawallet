@@ -48,15 +48,14 @@ export class Login extends React.Component<any, any> {
                             </div>
                         </div>
                         <div className="form-actions">
-                            <input className="btn btn-lg btn-light w-50" type="submit" value="Login"/>
+                            <input className="btn btn-lg btn-light w-100" type="submit" value="Login"/>
                         </div>
                         <br/>
-                        <div>
-                            or
-                        </div>
+                        <br/>
+                        <br/>
                         <br/>
                         <div>
-                            <a href="#" className="link-dark" onClick={this.showRestore}> click here to restore your wallet.</a>
+                            or <a href="#" className="link-dark" onClick={this.showRestore}> click to restore your wallet.</a>
                         </div>
                     </form>
                 </div>
